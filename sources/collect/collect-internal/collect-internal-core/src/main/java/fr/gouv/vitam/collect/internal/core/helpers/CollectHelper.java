@@ -317,7 +317,7 @@ public class CollectHelper {
         try {
             String requestId = VitamThreadUtils.getVitamSession().getRequestId();
             String fileName = Strings.isNullOrEmpty(extension) ? requestId : requestId + "." + extension;
-            File file = SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamTmpFolder(), fileName);
+            File file = SafeFileChecker.checkSafeFileSubPaths(VitamConfiguration.getVitamTmpFolder(), fileName);
             Files.copy(inputStream, file.toPath());
             return file;
         } catch (IllegalPathException e) {

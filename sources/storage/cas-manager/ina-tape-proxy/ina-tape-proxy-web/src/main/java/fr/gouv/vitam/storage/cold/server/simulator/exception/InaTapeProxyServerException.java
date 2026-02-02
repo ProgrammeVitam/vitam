@@ -24,31 +24,19 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.cold.server;
+package fr.gouv.vitam.storage.cold.server.simulator.exception;
 
-import fr.gouv.vitam.storage.engine.common.api.exception.TapeCommandException;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.ext.ExceptionMapper;
-import jakarta.ws.rs.ext.Provider;
+public class InaTapeProxyServerException extends InaTapeProxyException {
 
-@Provider
-public class TapeCommandExceptionMapper implements ExceptionMapper<TapeCommandException> {
-
-    @Override
-    public Response toResponse(TapeCommandException e) {
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-            .entity(new ErrorResponse("TAPE_COMMAND_ERROR", e.getMessage()))
-            .build();
+    public InaTapeProxyServerException(String message) {
+        super(message);
     }
 
-    public static class ErrorResponse {
+    public InaTapeProxyServerException(Throwable e) {
+        super(e);
+    }
 
-        public String code;
-        public String message;
-
-        public ErrorResponse(String code, String message) {
-            this.code = code;
-            this.message = message;
-        }
+    public InaTapeProxyServerException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

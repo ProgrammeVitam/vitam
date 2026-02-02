@@ -50,7 +50,7 @@ public class RemoteTapeLoadUnloadServiceTest {
 
     @Test
     public void shouldReturnTapeLibrarySpec_whenStatusIsCalled() throws Exception {
-        TapeLibrarySpec expectedSpec = new TapeLibraryState();
+        TapeLibraryState expectedSpec = new TapeLibraryState();
         when(inaTapeProxyApi.getLibraryStatus()).thenReturn(expectedSpec);
 
         TapeLibrarySpec result = service.status();

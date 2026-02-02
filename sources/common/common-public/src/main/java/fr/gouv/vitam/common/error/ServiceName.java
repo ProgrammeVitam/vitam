@@ -101,7 +101,17 @@ public enum ServiceName {
     /**
      * Used for collect external access error
      */
-    COLLECT_EXTERNAL_ACCESS("13", "Collect External Access");
+    COLLECT_EXTERNAL_ACCESS("13", "Collect External Access"),
+
+    /**
+     * Used for collect external access error
+     */
+    OFFER("14", "Offer"),
+
+    /**
+     * Used for collect external access error
+     */
+    INA_TAPE_PROXY("15", "InaTapeProxy");
 
     private final String code;
     private final String name;

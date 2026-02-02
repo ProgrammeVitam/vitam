@@ -24,10 +24,12 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.cold.server.simulator.filesystem;
+package fr.gouv.vitam.storage.cold.server.simulator.service.filesystem;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.storage.cold.server.simulator.exception.InaTapeProxyException;
+import fr.gouv.vitam.storage.cold.server.simulator.exception.InaTapeProxyServerException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -51,49 +53,35 @@ public class MarkerManager {
     }
 
     /**
-     * Marker types for different operation states
-     */
-    public enum MarkerType {
-        WRITTEN(".WRITTEN"),
-        NOT_FOUND(".NOT_FOUND"),
-        READ_REQUEST(".READ_REQUEST"),
-        AVAILABLE_FOR_READ(".AVAILABLE_FOR_READ");
-
-        private final String suffix;
-
-        MarkerType(String suffix) {
-            this.suffix = suffix;
-        }
-
-        public String getSuffix() {
-            return suffix;
-        }
-    }
-
-    /**
      * Create a marker file for the given filename and marker type
      * The marker file contains a timestamp
      */
-    public void createMarker(String filename, MarkerType type) throws IOException {
-        Path markerPath = fsManager.getMarkersPath(filename + type.getSuffix());
-        String timestamp = Instant.now().toString();
-
-        Files.writeString(markerPath, timestamp);
-
-        LOGGER.debug("Created marker: {} (type={})", markerPath.getFileName(), type);
+    public void createMarker(String filename, MarkerType type) throws InaTapeProxyException {
+        try {
+            Path markerPath = fsManager.getMarkersPath(filename, type);
+            String timestamp = Instant.now().toString();
+            Files.writeString(markerPath, timestamp);
+            LOGGER.debug("Created marker: {} (type={})", markerPath.getFileName(), type);
+        } catch (IOException e) {
+            throw new InaTapeProxyServerException(e);
+        }
     }
 
     /**
      * Delete a marker file for the given filename and marker type
      */
-    public void deleteMarker(String filename, MarkerType type) throws IOException {
-        Path markerPath = fsManager.getMarkersPath(filename + type.getSuffix());
-        boolean deleted = Files.deleteIfExists(markerPath);
+    public void deleteMarker(String filename, MarkerType type) throws InaTapeProxyException {
+        try {
+            Path markerPath = fsManager.getMarkersPath(filename, type);
+            boolean deleted = Files.deleteIfExists(markerPath);
 
-        if (deleted) {
-            LOGGER.debug("Deleted marker: {} (type={})", markerPath.getFileName(), type);
-        } else {
-            LOGGER.trace("Marker does not exist, nothing to delete: {} (type={})", markerPath.getFileName(), type);
+            if (deleted) {
+                LOGGER.debug("Deleted marker: {} (type={})", markerPath.getFileName(), type);
+            } else {
+                LOGGER.debug("Marker does not exist, nothing to delete: {} (type={})", markerPath.getFileName(), type);
+            }
+        } catch (IOException e) {
+            throw new InaTapeProxyServerException(e);
         }
     }
 }

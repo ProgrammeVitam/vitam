@@ -24,49 +24,31 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.cold.server;
+package fr.gouv.vitam.storage.cold.server.exception;
 
-import fr.gouv.vitam.common.serverv2.application.AdminApplication;
-import fr.gouv.vitam.storage.cold.InaTapeProxyConfiguration;
-import org.junit.Test;
+import fr.gouv.vitam.storage.engine.common.api.exception.TapeCommandException;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.ext.Provider;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertNotNull;
+@Provider
+public class TapeCommandExceptionMapper implements ExceptionMapper<TapeCommandException> {
 
-public class InaTapeProxyServerTest {
-
-    @Test
-    public void testServerStartWithValidConfiguration() throws Exception {
-        String testConfigPath = getClass().getClassLoader().getResource("ina-tape-proxy-web.conf").getFile();
-        InaTapeProxyServer server = new InaTapeProxyServer(
-            InaTapeProxyConfiguration.class,
-            testConfigPath,
-            InaTapeProxyApplication.class,
-            AdminApplication.class
-        );
-
-        assertNotNull("Le serveur ne doit pas être null", server);
-
-        // Démarrage du serveur (peut bloquer, donc attention)
-        // Ici on ne fait pas un run complet pour ne pas bloquer le test
-        server.start(); // Initialisation sans bloquer
-        server.stop(); // Arrêt rapide
+    @Override
+    public Response toResponse(TapeCommandException e) {
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(new ErrorResponse("TAPE_COMMAND_ERROR", e.getMessage()))
+            .build();
     }
 
-    @Test
-    public void testServerFailsWithMissingConfiguration() {
-        String invalidConfigPath = "nonexistent.yaml";
+    public static class ErrorResponse {
 
-        assertThatThrownBy(
-            () ->
-                new InaTapeProxyServer(
-                    InaTapeProxyConfiguration.class,
-                    invalidConfigPath,
-                    InaTapeProxyApplication.class,
-                    AdminApplication.class
-                )
-        )
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("Cannot start the INA Tape Proxy Test Application Server");
+        public String code;
+        public String message;
+
+        public ErrorResponse(String code, String message) {
+            this.code = code;
+            this.message = message;
+        }
     }
 }

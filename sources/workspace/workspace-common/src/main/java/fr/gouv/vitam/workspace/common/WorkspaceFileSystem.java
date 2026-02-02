@@ -136,19 +136,19 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
     }
 
     public File checkWorkspaceContainerSanity(String container) throws IllegalPathException {
-        return SafeFileChecker.checkSafeDirPath(root.toString(), container);
+        return SafeFileChecker.checkSafeDirSubPaths(root.toString(), container);
     }
 
     public File checkWorkspaceDirSanity(String container, String directory) throws IllegalPathException {
         List<String> paths = new ArrayList<>();
         paths.add(container);
         Collections.addAll(paths, directory.split(LINUX_PATH_SEPARATOR));
-        return SafeFileChecker.checkSafeDirPath(root.toString(), paths.toArray(new String[0]));
+        return SafeFileChecker.checkSafeDirSubPaths(root.toString(), paths.toArray(new String[0]));
     }
 
     public void checkWorkspaceFileSanity(String containerName, String relativeObjectName) throws IllegalPathException {
         String fullRelativePath = containerName + LINUX_PATH_SEPARATOR + relativeObjectName;
-        SafeFileChecker.checkSafeFilePath(root.toString(), fullRelativePath.split(LINUX_PATH_SEPARATOR));
+        SafeFileChecker.checkSafeFileSubPaths(root.toString(), fullRelativePath.split(LINUX_PATH_SEPARATOR));
     }
 
     @Override
@@ -785,7 +785,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                     File file;
                     try {
                         String[] subPaths = entryName.split(LINUX_PATH_SEPARATOR);
-                        file = SafeFileChecker.checkSafeFilePath(folder.getPath(), subPaths);
+                        file = SafeFileChecker.checkSafeFileSubPaths(folder.getPath(), subPaths);
                     } catch (IllegalPathException e) {
                         throw new ZipFilesNameNotAllowedException(
                             String.format("%s file or folder not allowed name: '", entryName + "'"),

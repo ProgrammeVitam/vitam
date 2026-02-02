@@ -33,17 +33,16 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Common Private (for SafeFileChecker) -->
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>common-private</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Common Manifest (for FileNameCleaner) -->
+        <!-- Common Database (for MongoDB access) -->
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
-            <artifactId>common-manifest</artifactId>
+            <artifactId>common-database-private</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -73,16 +72,6 @@
     </dependencies>
 
     <build>
-
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <excludes>
-                    <exclude>openapi-config.yaml</exclude>
-                </excludes>
-            </resource>
-        </resources>
-
         <plugins>
             <plugin>
                 <groupId>com.mycila</groupId>
@@ -170,7 +159,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>fr.gouv.vitam.storage.cold.server.InaTapeProxyLauncher</mainClass>
+                            <mainClass>fr.gouv.vitam.storage.cold.server.InaTapeProxyMain</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

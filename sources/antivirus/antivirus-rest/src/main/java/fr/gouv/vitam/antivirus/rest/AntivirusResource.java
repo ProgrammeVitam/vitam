@@ -97,7 +97,7 @@ public class AntivirusResource extends ApplicationStatusResource {
             if (relativePath.startsWith("/")) {
                 relativePath = relativePath.substring(1);
             }
-            file = SafeFileChecker.checkSafeFilePath(basePath, relativePath.split("/"));
+            file = SafeFileChecker.checkSafeFileSubPaths(basePath, relativePath.split("/"));
         } catch (InvalidParseOperationException e) { // Should not occur as the regex forces a non-empty path
             LOGGER.error(MESSAGE_INVALID_PATH_PARAM, e);
             return Response.status(Status.NOT_FOUND).build();

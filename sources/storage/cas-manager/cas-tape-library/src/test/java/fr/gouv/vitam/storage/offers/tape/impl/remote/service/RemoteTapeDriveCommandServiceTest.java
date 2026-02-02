@@ -39,29 +39,30 @@ import static org.mockito.Mockito.*;
 
 public class RemoteTapeDriveCommandServiceTest {
 
+    private static final Integer DRIVE_INDEX = 0;
     private InaTapeProxyApi inaTapeProxyApi;
     private RemoteTapeDriveCommandService service;
 
     @Before
     public void setUp() {
         inaTapeProxyApi = mock(InaTapeProxyApi.class);
-        service = new RemoteTapeDriveCommandService(inaTapeProxyApi);
+        service = new RemoteTapeDriveCommandService(inaTapeProxyApi, DRIVE_INDEX);
     }
 
     @Test
     public void shouldReturnTapeDriveSpec_whenStatusIsCalled() throws Exception {
-        TapeDriveSpec expectedSpec = new TapeDriveState();
-        when(inaTapeProxyApi.getDriveStatus()).thenReturn(expectedSpec);
+        TapeDriveState expectedSpec = new TapeDriveState();
+        when(inaTapeProxyApi.getDriveStatus(DRIVE_INDEX)).thenReturn(expectedSpec);
 
         TapeDriveSpec result = service.status();
 
         assertSame("status() should return the value from InaTapeProxyApi", expectedSpec, result);
-        verify(inaTapeProxyApi).getDriveStatus();
+        verify(inaTapeProxyApi).getDriveStatus(DRIVE_INDEX);
     }
 
     @Test(expected = TapeCommandException.class)
     public void shouldThrowTapeCommandException_whenApiExceptionOnStatus() throws Exception {
-        when(inaTapeProxyApi.getDriveStatus()).thenThrow(new ApiException("API down"));
+        when(inaTapeProxyApi.getDriveStatus(DRIVE_INDEX)).thenThrow(new ApiException("API down"));
 
         service.status();
     }
@@ -70,12 +71,12 @@ public class RemoteTapeDriveCommandServiceTest {
     public void shouldCallMoveOnColdStorageApi() throws Exception {
         service.move(10, true);
 
-        verify(inaTapeProxyApi).move(10, true);
+        verify(inaTapeProxyApi).move(DRIVE_INDEX, 10, true);
     }
 
     @Test(expected = TapeCommandException.class)
     public void shouldThrowTapeCommandException_whenApiExceptionOnMove() throws Exception {
-        doThrow(new ApiException("Move error")).when(inaTapeProxyApi).move(anyInt(), anyBoolean());
+        doThrow(new ApiException("Move error")).when(inaTapeProxyApi).move(anyInt(), anyInt(), anyBoolean());
 
         service.move(5, false);
     }
@@ -84,12 +85,12 @@ public class RemoteTapeDriveCommandServiceTest {
     public void shouldCallRewindOnColdStorageApi() throws Exception {
         service.rewind();
 
-        verify(inaTapeProxyApi).rewind();
+        verify(inaTapeProxyApi).rewind(DRIVE_INDEX);
     }
 
     @Test(expected = TapeCommandException.class)
     public void shouldThrowTapeCommandException_whenApiExceptionOnRewind() throws Exception {
-        doThrow(new ApiException("Rewind error")).when(inaTapeProxyApi).rewind();
+        doThrow(new ApiException("Rewind error")).when(inaTapeProxyApi).rewind(DRIVE_INDEX);
 
         service.rewind();
     }
@@ -97,24 +98,24 @@ public class RemoteTapeDriveCommandServiceTest {
     @Test
     public void shouldCallGoToEndOnColdStorageApi() throws Exception {
         service.goToEnd();
-        verify(inaTapeProxyApi).goToEnd();
+        verify(inaTapeProxyApi).goToEnd(DRIVE_INDEX);
     }
 
     @Test(expected = TapeCommandException.class)
     public void shouldThrowTapeCommandException_whenApiExceptionOnGoToEnd() throws Exception {
-        doThrow(new ApiException("End error")).when(inaTapeProxyApi).goToEnd();
+        doThrow(new ApiException("End error")).when(inaTapeProxyApi).goToEnd(DRIVE_INDEX);
         service.goToEnd();
     }
 
     @Test
     public void shouldCallEjectOnColdStorageApi() throws Exception {
         service.eject();
-        verify(inaTapeProxyApi).eject();
+        verify(inaTapeProxyApi).eject(DRIVE_INDEX);
     }
 
     @Test(expected = TapeCommandException.class)
     public void shouldThrowTapeCommandException_whenApiExceptionOnEject() throws Exception {
-        doThrow(new ApiException("Eject error")).when(inaTapeProxyApi).eject();
+        doThrow(new ApiException("Eject error")).when(inaTapeProxyApi).eject(DRIVE_INDEX);
         service.eject();
     }
 }

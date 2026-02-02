@@ -1,9 +1,9 @@
 basePaths:
 {% if inventory_hostname in groups['hosts_ingest_external'] %}
-  - "{{ vitam_defaults.folder.root_path }}/data/ingest-external"
+  - "{{ vitam_defaults.folder.root_path }}/data/{{ vitam.ingest_external.vitam_component }}"
 {% endif %}
 {% if inventory_hostname in groups['hosts_worker'] %}
-  - "{{ vitam_defaults.folder.root_path }}/tmp/worker"
+  - "{{ vitam_defaults.folder.root_path }}/tmp/{{ vitam.worker.vitam_component }}"
 {% endif %}
 jettyConfig: jetty-config.xml
 antiVirusScriptName: scan-{{ vitam_struct.engine }}.sh

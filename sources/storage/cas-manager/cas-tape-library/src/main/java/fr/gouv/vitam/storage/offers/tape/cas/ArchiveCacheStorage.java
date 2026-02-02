@@ -130,7 +130,7 @@ public class ArchiveCacheStorage {
         this.archiveCacheEvictionController = archiveCacheEvictionController;
 
         // Sanity check
-        this.cacheDirectory = SafeFileChecker.checkSafeDirPath(cacheDirectory).toPath();
+        this.cacheDirectory = SafeFileChecker.checkSafeDirSubPaths(cacheDirectory).toPath();
         this.bucketTopologyHelper = bucketTopologyHelper;
 
         // Create / initialize LRU cache using current directory file listing
@@ -354,7 +354,7 @@ public class ArchiveCacheStorage {
             throw new IllegalArgumentException("Invalid fileBucketId '" + fileBucketId + "'");
         }
 
-        return SafeFileChecker.checkSafeDirPath(this.cacheDirectory.toString(), fileBucketId, tarId).toPath();
+        return SafeFileChecker.checkSafeDirSubPaths(this.cacheDirectory.toString(), fileBucketId, tarId).toPath();
     }
 
     private boolean filterNonRegularFiles(Path filePath) {
@@ -388,7 +388,7 @@ public class ArchiveCacheStorage {
             String filename = filePath.getFileName().toString();
 
             // Check file path safety
-            Path safeFilePath = SafeFileChecker.checkSafeFilePath(
+            Path safeFilePath = SafeFileChecker.checkSafeFileSubPaths(
                 this.cacheDirectory.toString(),
                 parentDir,
                 filename

@@ -1,0 +1,8 @@
+// Switch to identity database
+db = db.getSiblingDB('offer3')
+
+// Create indexes
+// A single collection can have no more than 64 indexes.
+db.OfferLog.createIndex( { "Container" : 1, "Sequence" : 1, "Time": -1 } )
+db.CompactedOfferLog.createIndex( { "Container" : 1, "SequenceStart" : -1 } )
+db.CompactedOfferLog.createIndex( { "Container" : 1, "SequenceEnd" : 1 } )

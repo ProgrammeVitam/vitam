@@ -24,11 +24,14 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.cold.server.simulator.filesystem;
+package fr.gouv.vitam.storage.cold.server.simulator.service.filesystem;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.IllegalPathException;
+import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.storage.cold.InaTapeProxyConfiguration;
+import fr.gouv.vitam.storage.cold.server.simulator.exception.InaTapeProxyBadRequestException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -61,10 +64,8 @@ public class FileSystemManager {
      * Creates necessary directories automatically
      */
     public void initialize() throws IOException {
-        String baseDir = configuration.getExchangeDirectory();
-        Path exchangeDir = Paths.get(baseDir);
-        String inaStorageBase = configuration.getInaStorageDirectory();
-        this.inaStorageDir = Paths.get(inaStorageBase);
+        Path exchangeDir = Paths.get(configuration.getExchangeDirectory());
+        this.inaStorageDir = Paths.get(configuration.getInaStorageDirectory());
 
         this.writeDir = exchangeDir.resolve("write");
         this.readDir = exchangeDir.resolve("read");
@@ -89,28 +90,49 @@ public class FileSystemManager {
     /**
      * Get path to a file in the read directory
      */
-    public Path getReadPath(String filename) {
-        return readDir.resolve(filename);
+    public Path getReadPath(String filename) throws InaTapeProxyBadRequestException {
+        try {
+            SafeFileChecker.checkSafeFileSubPaths(readDir.toString(), filename);
+            return readDir.resolve(filename);
+        } catch (IllegalPathException e) {
+            throw new InaTapeProxyBadRequestException("Illegal path '" + filename + "'", e);
+        }
     }
 
     /**
      * Get path to a file in the write directory
      */
-    public Path getWritePath(String filename) {
-        return writeDir.resolve(filename);
+    public Path getWritePath(String filename) throws InaTapeProxyBadRequestException {
+        try {
+            SafeFileChecker.checkSafeFileSubPaths(writeDir.toString(), filename);
+            return writeDir.resolve(filename);
+        } catch (IllegalPathException e) {
+            throw new InaTapeProxyBadRequestException("Illegal path '" + filename + "'", e);
+        }
     }
 
     /**
      * Get path to a marker file in the markers directory
      */
-    public Path getMarkersPath(String filename) {
-        return markersDir.resolve(filename);
+    public Path getMarkersPath(String filename, MarkerType markerType) throws InaTapeProxyBadRequestException {
+        try {
+            String filenameWithSuffix = filename + markerType.getSuffix();
+            SafeFileChecker.checkSafeFileSubPaths(markersDir.toString(), filenameWithSuffix);
+            return markersDir.resolve(filenameWithSuffix);
+        } catch (IllegalPathException e) {
+            throw new InaTapeProxyBadRequestException("Illegal path '" + filename + "'", e);
+        }
     }
 
     /**
      * Get path to a file in the INA storage directory
      */
-    public Path getInaStoragePath(String filename) {
-        return inaStorageDir.resolve(filename);
+    public Path getInaStoragePath(String filename) throws InaTapeProxyBadRequestException {
+        try {
+            SafeFileChecker.checkSafeFileSubPaths(inaStorageDir.toString(), filename);
+            return inaStorageDir.resolve(filename);
+        } catch (IllegalPathException e) {
+            throw new InaTapeProxyBadRequestException("Illegal path '" + filename + "'", e);
+        }
     }
 }

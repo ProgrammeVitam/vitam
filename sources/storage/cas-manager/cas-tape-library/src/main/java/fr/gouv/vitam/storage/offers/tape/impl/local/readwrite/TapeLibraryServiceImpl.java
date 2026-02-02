@@ -28,7 +28,6 @@ package fr.gouv.vitam.storage.offers.tape.impl.local.readwrite;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -508,7 +507,7 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
         // Read Label from tape
         File labelFile = null;
         try {
-            labelFile = new File(this.getTmpOutputDirectory(), GUIDFactory.newGUID().getId());
+            labelFile = new File(this.getTmpOutputDirectory(), TAPE_LABEL + tape.getCode());
 
             try {
                 tapeDriveService.getReadWriteService().readFromTape(labelFile.getAbsolutePath());

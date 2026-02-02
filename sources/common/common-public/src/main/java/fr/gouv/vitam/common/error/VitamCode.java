@@ -1244,6 +1244,22 @@ public enum VitamCode {
         "54",
         Status.BAD_REQUEST,
         "Access external client error in Originating agency Reassignment method."
+    ),
+
+    INA_TAPE_PROXY_BAD_REQUEST(
+        ServiceName.INA_TAPE_PROXY,
+        DomainName.IO,
+        "58",
+        Status.BAD_REQUEST,
+        "InaTapeProxy - Invalid request"
+    ),
+
+    INA_TAPE_PROXY_INTERNAL_SERVER_ERROR(
+        ServiceName.INA_TAPE_PROXY,
+        DomainName.IO,
+        "59",
+        Status.INTERNAL_SERVER_ERROR,
+        "InaTapeProxy - Invalid request"
     );
 
     private final ServiceName service;

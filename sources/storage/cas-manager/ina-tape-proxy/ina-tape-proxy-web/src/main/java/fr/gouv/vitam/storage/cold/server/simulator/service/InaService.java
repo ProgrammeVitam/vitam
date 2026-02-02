@@ -24,88 +24,77 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.cold.server.simulator;
+package fr.gouv.vitam.storage.cold.server.simulator.service;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.storage.cold.InaTapeProxyConfiguration;
-import fr.gouv.vitam.storage.engine.common.api.dto.TapeDriveSpec;
-import fr.gouv.vitam.storage.engine.common.api.dto.TapeLibrarySpec;
-import fr.gouv.vitam.storage.engine.common.api.exception.TapeCommandException;
+import fr.gouv.vitam.storage.cold.server.simulator.exception.InaTapeProxyException;
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeDriveState;
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeLibraryState;
 
 /**
  * Main service orchestrator
  * Delegates to specialized services:
  * - InaIoService: write/read operations
- * - InaLibraryService: robotic commands (sleep-only)
- * - InaStatusService: status queries (static responses)
+ * - InaLibraryService: robotic commands (sleep-only) and status queries (static responses)
  */
 public class InaService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(InaService.class);
 
-    private final InaTapeProxyConfiguration configuration;
     private final InaIoService ioService;
-    private final InaLibraryService roboticService;
-    private final InaStatusService statusService;
+    private final InaLibraryService inaLibraryService;
 
-    public InaService(
-        InaTapeProxyConfiguration configuration,
-        InaIoService ioService,
-        InaLibraryService roboticService,
-        InaStatusService statusService
-    ) {
-        this.configuration = configuration;
+    public InaService(InaIoService ioService, InaLibraryService inaLibraryService) {
         this.ioService = ioService;
-        this.roboticService = roboticService;
-        this.statusService = statusService;
+        this.inaLibraryService = inaLibraryService;
 
         LOGGER.info("InaService initialized");
     }
 
     // ========== I/O OPERATIONS ==========
 
-    public void writeToTape(String inputPath) throws TapeCommandException {
-        ioService.writeToTape(inputPath);
+    public void writeToTape(int driveIndex, String inputPath) throws InaTapeProxyException {
+        ioService.writeToTape(driveIndex, inputPath);
     }
 
-    public void readFromTape(String outputPath) throws TapeCommandException {
-        ioService.readFromTape(outputPath);
+    public void readFromTape(int driveIndex, String outputPath) throws InaTapeProxyException {
+        ioService.readFromTape(driveIndex, outputPath);
     }
 
     // ========== ROBOTIC OPERATIONS ==========
 
-    public void move(int position, boolean backward) throws TapeCommandException {
-        roboticService.move(position, backward);
+    public void move(int driveIndex, int position, boolean backward) throws InaTapeProxyException {
+        inaLibraryService.move(driveIndex, position, backward);
     }
 
-    public void rewind() throws TapeCommandException {
-        roboticService.rewind();
+    public void rewind(int driveIndex) throws InaTapeProxyException {
+        inaLibraryService.rewind(driveIndex);
     }
 
-    public void goToEnd() throws TapeCommandException {
-        roboticService.goToEnd();
+    public void goToEnd(int driveIndex) throws InaTapeProxyException {
+        inaLibraryService.goToEnd(driveIndex);
     }
 
-    public void eject() throws TapeCommandException {
-        roboticService.eject();
+    public void eject(int driveIndex) throws InaTapeProxyException {
+        inaLibraryService.eject(driveIndex);
     }
 
-    public void loadTape(int slot, int drive) throws TapeCommandException {
-        roboticService.loadTape(slot, drive);
+    public void loadTape(int slotNumber, int driveIndex) throws InaTapeProxyException {
+        inaLibraryService.loadTape(slotNumber, driveIndex);
     }
 
-    public void unloadTape(int slot, int drive) throws TapeCommandException {
-        roboticService.unloadTape(slot, drive);
+    public void unloadTape(int slotNumber, int driveIndex) throws InaTapeProxyException {
+        inaLibraryService.unloadTape(slotNumber, driveIndex);
     }
 
     // ========== STATUS OPERATIONS ==========
 
-    public TapeDriveSpec getDriveStatus() throws TapeCommandException {
-        return statusService.getDriveStatus();
+    public TapeDriveState getDriveStatus(int driveIndex) throws InaTapeProxyException {
+        return inaLibraryService.getDriveStatus(driveIndex);
     }
 
-    public TapeLibrarySpec getLibraryStatus() throws TapeCommandException {
-        return statusService.getLibraryStatus();
+    public TapeLibraryState getLibraryStatus() throws InaTapeProxyException {
+        return inaLibraryService.getLibraryStatus();
     }
 }

@@ -24,15 +24,15 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.cold.server;
+package fr.gouv.vitam.storage.cold.server.rest;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.storage.cold.server.simulator.InaService;
-import fr.gouv.vitam.storage.engine.common.api.dto.TapeDriveSpec;
-import fr.gouv.vitam.storage.engine.common.api.dto.TapeLibrarySpec;
-import fr.gouv.vitam.storage.engine.common.api.exception.TapeCommandException;
+import fr.gouv.vitam.storage.cold.server.simulator.exception.InaTapeProxyException;
+import fr.gouv.vitam.storage.cold.server.simulator.service.InaService;
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeDriveState;
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeLibraryState;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -42,6 +42,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
@@ -54,13 +55,13 @@ import jakarta.ws.rs.core.Response;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "INA Tape Proxy")
-public class InaTapeProxyResourceImpl extends ApplicationStatusResource {
+public class InaTapeProxyResource extends ApplicationStatusResource {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(InaTapeProxyResourceImpl.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(InaTapeProxyResource.class);
 
     private final InaService service;
 
-    public InaTapeProxyResourceImpl(InaService service) {
+    public InaTapeProxyResource(InaService service) {
         this.service = service;
         LOGGER.info("InaTapeProxyResourceImpl initialized with service");
     }
@@ -68,7 +69,7 @@ public class InaTapeProxyResourceImpl extends ApplicationStatusResource {
     // ========== DRIVE OPERATIONS ==========
 
     @GET
-    @Path("drive/status")
+    @Path("drive/{driveIndex}/status")
     @Operation(
         summary = "Get tape drive status",
         description = "Returns detailed information about the current tape drive.",
@@ -76,18 +77,18 @@ public class InaTapeProxyResourceImpl extends ApplicationStatusResource {
             @ApiResponse(
                 responseCode = "200",
                 description = "Drive status retrieved successfully",
-                content = @Content(schema = @Schema(implementation = TapeDriveSpec.class))
+                content = @Content(schema = @Schema(implementation = TapeDriveState.class))
             ),
             @ApiResponse(responseCode = "500", description = "Error while retrieving drive status"),
         }
     )
-    public TapeDriveSpec getDriveStatus() throws TapeCommandException {
-        LOGGER.debug("GET /drive/status");
-        return service.getDriveStatus();
+    public TapeDriveState getDriveStatus(@PathParam("driveIndex") int driveIndex) throws InaTapeProxyException {
+        LOGGER.info("GET /drive/{}/status", driveIndex);
+        return service.getDriveStatus(driveIndex);
     }
 
     @POST
-    @Path("drive/move")
+    @Path("drive/{driveIndex}/move")
     @Operation(
         summary = "Move tape position",
         description = "Moves the tape a certain number of blocks forward or backward.",
@@ -96,15 +97,18 @@ public class InaTapeProxyResourceImpl extends ApplicationStatusResource {
             @ApiResponse(responseCode = "500", description = "Error while moving the tape"),
         }
     )
-    public Response move(@QueryParam("position") int position, @QueryParam("backward") boolean backward)
-        throws TapeCommandException {
-        LOGGER.debug("POST /drive/move?position={}&backward={}", position, backward);
-        service.move(position, backward);
+    public Response move(
+        @PathParam("driveIndex") int driveIndex,
+        @QueryParam("position") int position,
+        @QueryParam("backward") boolean backward
+    ) throws InaTapeProxyException {
+        LOGGER.info("POST /drive/{}/move?position={}&backward={}", driveIndex, position, backward);
+        service.move(driveIndex, position, backward);
         return Response.ok().build();
     }
 
     @POST
-    @Path("drive/rewind")
+    @Path("drive/{driveIndex}/rewind")
     @Operation(
         summary = "Rewind tape",
         description = "Rewinds the current tape to the beginning.",
@@ -113,14 +117,14 @@ public class InaTapeProxyResourceImpl extends ApplicationStatusResource {
             @ApiResponse(responseCode = "500", description = "Error while rewinding the tape"),
         }
     )
-    public Response rewind() throws TapeCommandException {
-        LOGGER.debug("POST /drive/rewind");
-        service.rewind();
+    public Response rewind(@PathParam("driveIndex") int driveIndex) throws InaTapeProxyException {
+        LOGGER.info("POST /drive/{}/rewind", driveIndex);
+        service.rewind(driveIndex);
         return Response.ok().build();
     }
 
     @POST
-    @Path("drive/eod")
+    @Path("drive/{driveIndex}/eod")
     @Operation(
         summary = "Go to end of data (EOD)",
         description = "Moves the tape to the end of the recorded data.",
@@ -129,14 +133,14 @@ public class InaTapeProxyResourceImpl extends ApplicationStatusResource {
             @ApiResponse(responseCode = "500", description = "Error while positioning to EOD"),
         }
     )
-    public Response goToEnd() throws TapeCommandException {
-        LOGGER.debug("POST /drive/eod");
-        service.goToEnd();
+    public Response goToEnd(@PathParam("driveIndex") int driveIndex) throws InaTapeProxyException {
+        LOGGER.info("POST /drive/{}/eod", driveIndex);
+        service.goToEnd(driveIndex);
         return Response.ok().build();
     }
 
     @POST
-    @Path("drive/eject")
+    @Path("drive/{driveIndex}/eject")
     @Operation(
         summary = "Eject tape",
         description = "Ejects the tape from the drive.",
@@ -145,9 +149,9 @@ public class InaTapeProxyResourceImpl extends ApplicationStatusResource {
             @ApiResponse(responseCode = "500", description = "Error while ejecting the tape"),
         }
     )
-    public Response eject() throws TapeCommandException {
-        LOGGER.debug("POST /drive/eject");
-        service.eject();
+    public Response eject(@PathParam("driveIndex") int driveIndex) throws InaTapeProxyException {
+        LOGGER.info("POST /drive/{}/eject", driveIndex);
+        service.eject(driveIndex);
         return Response.ok().build();
     }
 
@@ -162,13 +166,13 @@ public class InaTapeProxyResourceImpl extends ApplicationStatusResource {
             @ApiResponse(
                 responseCode = "200",
                 description = "Library status retrieved successfully",
-                content = @Content(schema = @Schema(implementation = TapeLibrarySpec.class))
+                content = @Content(schema = @Schema(implementation = TapeLibraryState.class))
             ),
             @ApiResponse(responseCode = "500", description = "Error while retrieving library status"),
         }
     )
-    public TapeLibrarySpec getLibraryStatus() throws TapeCommandException {
-        LOGGER.debug("GET /library/status");
+    public TapeLibraryState getLibraryStatus() throws InaTapeProxyException {
+        LOGGER.info("GET /library/status");
         return service.getLibraryStatus();
     }
 
@@ -182,9 +186,10 @@ public class InaTapeProxyResourceImpl extends ApplicationStatusResource {
             @ApiResponse(responseCode = "500", description = "Error while loading the tape"),
         }
     )
-    public Response loadTape(@QueryParam("slot") int slot, @QueryParam("drive") int drive) throws TapeCommandException {
-        LOGGER.info("POST /library/load?slot={}&drive={}", slot, drive);
-        service.loadTape(slot, drive);
+    public Response loadTape(@QueryParam("slotNumber") int slotNumber, @QueryParam("drive") int drive)
+        throws InaTapeProxyException {
+        LOGGER.info("POST /library/load?slotNumber={}&drive={}", slotNumber, drive);
+        service.loadTape(slotNumber, drive);
         return Response.ok().build();
     }
 
@@ -198,42 +203,46 @@ public class InaTapeProxyResourceImpl extends ApplicationStatusResource {
             @ApiResponse(responseCode = "500", description = "Error while unloading the tape"),
         }
     )
-    public Response unloadTape(@QueryParam("slot") int slot, @QueryParam("drive") int drive)
-        throws TapeCommandException {
-        LOGGER.info("POST /library/unload?slot={}&drive={}", slot, drive);
-        service.unloadTape(slot, drive);
+    public Response unloadTape(@QueryParam("slotNumber") int slotNumber, @QueryParam("drive") int driveIndex)
+        throws InaTapeProxyException {
+        LOGGER.info("POST /library/unload?slotNumber={}&drive={}", slotNumber, driveIndex);
+        service.unloadTape(slotNumber, driveIndex);
         return Response.ok().build();
     }
 
     // ========== I/O OPERATIONS ==========
 
     @POST
-    @Path("io/write")
+    @Path("drives/{driveIndex}/io/write")
     @Operation(
         summary = "Write data to tape",
         description = "Transfers a file from the working directory to the mounted tape.",
         responses = {
-            @ApiResponse(responseCode = "204", description = "Data written successfully"),
+            @ApiResponse(responseCode = "202", description = "Data written successfully"),
             @ApiResponse(responseCode = "500", description = "Error while writing to tape"),
         }
     )
-    public void writeToTape(@QueryParam("inputPath") String inputPath) throws TapeCommandException {
-        LOGGER.info("POST /io/write?inputPath={}", inputPath);
-        service.writeToTape(inputPath);
+    public Response writeToTape(@PathParam("driveIndex") int driveIndex, @QueryParam("inputPath") String inputPath)
+        throws InaTapeProxyException {
+        LOGGER.info("POST /io/{}/write?inputPath={}", driveIndex, inputPath);
+        service.writeToTape(driveIndex, inputPath);
+        return Response.accepted().build();
     }
 
     @GET
-    @Path("io/read")
+    @Path("drives/{driveIndex}/io/read")
     @Operation(
         summary = "Read data from tape",
         description = "Extracts a file from the mounted tape to the working directory.",
         responses = {
-            @ApiResponse(responseCode = "204", description = "Data read successfully"),
+            @ApiResponse(responseCode = "202", description = "Data read successfully"),
             @ApiResponse(responseCode = "500", description = "Error while reading from tape"),
         }
     )
-    public void readFromTape(@QueryParam("outputPath") String outputPath) throws TapeCommandException {
-        LOGGER.info("GET /io/read?outputPath={}", outputPath);
-        service.readFromTape(outputPath);
+    public Response readFromTape(@PathParam("driveIndex") int driveIndex, @QueryParam("outputPath") String outputPath)
+        throws InaTapeProxyException {
+        LOGGER.info("GET /io/{}/read?outputPath={}", driveIndex, outputPath);
+        service.readFromTape(driveIndex, outputPath);
+        return Response.accepted().build();
     }
 }

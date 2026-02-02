@@ -246,7 +246,7 @@ public class IngestExternalImpl implements IngestExternal {
             final String objectNamePath = guid.getId();
             final File file;
             try {
-                file = SafeFileChecker.checkSafeFilePath(config.getPath(), containerNamePath, objectNamePath);
+                file = SafeFileChecker.checkSafeFileSubPaths(config.getPath(), containerNamePath, objectNamePath);
             } catch (IllegalPathException e) {
                 String filePath = config.getPath() + "/" + containerNamePath + "/" + objectNamePath;
                 throw new IngestExternalException("File path " + filePath + " is invalid", e);

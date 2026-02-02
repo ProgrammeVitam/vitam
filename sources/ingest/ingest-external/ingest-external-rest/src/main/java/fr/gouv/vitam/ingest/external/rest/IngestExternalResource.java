@@ -222,7 +222,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
         java.nio.file.Path path;
         try {
-            path = SafeFileChecker.checkSafeFilePath(
+            path = SafeFileChecker.checkSafeFileSubPaths(
                 ingestExternalConfiguration.getBaseUploadPath(),
                 localFile.getPath()
             ).toPath();

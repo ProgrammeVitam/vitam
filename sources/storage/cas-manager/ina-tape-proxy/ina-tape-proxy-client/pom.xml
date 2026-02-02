@@ -32,7 +32,7 @@
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>ina-tape-proxy-web</artifactId>
             <version>${project.version}</version>
-            <!--Only to ensure ina-tape-proxy-web is build before the client -->
+            <!--Only to ensure ina-tape-proxy-web is build before the client (required for swagger file generation) -->
             <scope>test</scope>
         </dependency>
         <dependency>

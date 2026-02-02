@@ -51,7 +51,7 @@ public class TempWorkspace implements AutoCloseable {
 
     public TempWorkspace(String prefix) throws IOException {
         try {
-            File tmpFolder = SafeFileChecker.checkSafeFilePath(
+            File tmpFolder = SafeFileChecker.checkSafeFileSubPaths(
                 VitamConfiguration.getVitamTmpFolder(),
                 prefix + GUIDFactory.newGUID().getId()
             );
@@ -78,7 +78,7 @@ public class TempWorkspace implements AutoCloseable {
 
     public File getFile(String filename) throws IOException {
         try {
-            return SafeFileChecker.checkSafeFilePath(tmpFolder.getAbsolutePath(), filename);
+            return SafeFileChecker.checkSafeFileSubPaths(tmpFolder.getAbsolutePath(), filename);
         } catch (IllegalPathException e) {
             throw new IOException("Cannot create tmp file", e);
         }

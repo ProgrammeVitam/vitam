@@ -5,6 +5,7 @@
     <runConfiguration name="Metadata" type="Application" />
     <runConfiguration name="Offer" type="Application" />
     <runConfiguration name="Workspace" type="Application" />
+    <runConfiguration name="InaTapeProxy" type="Application" />
     <runConfiguration name="Storage" type="Application" />
     <runConfiguration name="Processing" type="Application" />
     <runConfiguration name="Worker" type="Application" />
@@ -15,6 +16,7 @@
     <runConfiguration name="AccessExternal" type="Application" />
     <runConfiguration name="IngestExternal" type="Application" />
     <runConfiguration name="Antivirus" type="Application" />
+    <runConfiguration name="Offer-Tape-Ina" type="Application" />
     <method v="2" />
   </configuration>
 </component>

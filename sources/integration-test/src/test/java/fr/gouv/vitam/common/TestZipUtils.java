@@ -56,7 +56,7 @@ public class TestZipUtils {
         ) {
             ZipArchiveEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
-                File entryFile = SafeFileChecker.checkSafeDirPath(destDirectory, entry.getName().split("[/\\\\]"));
+                File entryFile = SafeFileChecker.checkSafeDirSubPaths(destDirectory, entry.getName().split("[/\\\\]"));
 
                 if (entry.isDirectory()) {
                     Files.createDirectories(entryFile.toPath());

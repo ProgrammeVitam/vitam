@@ -1,1 +1,55 @@
+#jinja2: lstrip_blocks: True
 jettyConfig: jetty-config.xml
+
+# =============================================================================
+# INA_LIBRARY CONFIGURATION
+# =============================================================================
+
+libraryName: {{ vitam.ina_tape_proxy.libraryName | default('INA_LIBRARY') }}
+nbDrives: {{ vitam.ina_tape_proxy.nbDrives | default(1) }}
+nbSlots: {{ vitam.ina_tape_proxy.nbSlots | default(15) }}
+tapeMaxCapacityMB: {{ vitam.ina_tape_proxy.tapeMaxCapacityMB | default(1000000) }} # 1 TB default
+
+# Tape codes (seeded once at startup into tape_catalog)
+tapeCodes:
+{% if vitam.ina_tape_proxy.tapeCodes is defined and vitam.ina_tape_proxy.tapeCodes is not none %}
+{% for tape_code in vitam.ina_tape_proxy.tapeCodes %}
+  - {{ tape_code }}
+{% endfor %}
+{% endif %}
+
+# =============================================================================
+# FILESYSTEM CONFIGURATION
+# =============================================================================
+
+exchangeDirectory: {{ vitam.ina_tape_proxy.exchangeDirectory | default(vitam_folder_data + '/ina-tape-proxy/exchange') }}
+inaStorageDirectory: {{ vitam.ina_tape_proxy.inaStorageDirectory | default(vitam_folder_data + '/ina-tape-proxy/storage') }}
+offerStorageDirectory: {{ vitam_defaults.folder.root_path }}/data/{{ vitam.offer.vitam_component }}
+
+# =============================================================================
+# LATENCIES CONFIGURATION (milliseconds)
+# =============================================================================
+
+writeLatencyMs:   {{ vitam.ina_tape_proxy.writeLatencyMs | default(3000) }}   # 3 seconds
+readLatencyMs:    {{ vitam.ina_tape_proxy.readLatencyMs | default(6000) }}    # 6 seconds
+readTimeout:      {{ vitam.ina_tape_proxy.readTimeout | default(30000) }}     # 30 seconds
+loadLatencyMs:    {{ vitam.ina_tape_proxy.loadLatencyMs | default(2000) }}    # 2 seconds
+unloadLatencyMs:  {{ vitam.ina_tape_proxy.unloadLatencyMs | default(2000) }}  # 2 seconds
+ejectLatencyMs:   {{ vitam.ina_tape_proxy.ejectLatencyMs | default(2000) }}   # 2 seconds
+roboticLatencyMs: {{ vitam.ina_tape_proxy.roboticLatencyMs | default(2000) }} # 2 seconds (move, rewind, goto...)
+
+# =============================================================================
+# MONGODB CONFIGURATION
+# =============================================================================
+
+mongoDbNodes:
+{% for server in groups['hosts_mongos_offer'] %}
+{% if hostvars[server]['mongo_cluster_name'] == offer_conf or inventory_hostname in single_vm_hostnames %}
+- dbHost: {{ hostvars[server]['ip_service'] }}
+  dbPort: {{ mongodb.mongos_port }}
+{% endif %}
+{% endfor %}
+dbName: ina-tape-proxy
+dbAuthentication: {{ mongodb.mongo_authentication }}
+dbUserName: {{ mongodb[offer_conf]['ina-tape-proxy'].user }}
+dbPassword: {{ mongodb[offer_conf]['ina-tape-proxy'].password }}

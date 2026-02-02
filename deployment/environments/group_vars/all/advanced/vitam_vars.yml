@@ -550,6 +550,7 @@ vitam:
     port_admin: 28216
     baseuri: ina-tape-proxy
     https_enabled: false
+    # TODO : Add config keys here
 
 # http://www.programmevitam.fr/ressources/DocCourante/html/installation/installation/21-addons.html#durees-minimales-permettant-de-controler-les-valeurs-saisies
 vitam_tenant_rule_duration:

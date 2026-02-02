@@ -26,25 +26,34 @@
  */
 package fr.gouv.vitam.storage.offer;
 
+import com.google.common.util.concurrent.Uninterruptibles;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.storage.cold.InaTapeProxyConfiguration;
 import fr.gouv.vitam.storage.cold.client.InaTapeProxyApi;
 import fr.gouv.vitam.storage.cold.client.InaTapeProxyClientFactory;
-import fr.gouv.vitam.storage.cold.server.InaTapeProxyLauncher;
-import org.apache.commons.io.FileUtils;
+import fr.gouv.vitam.storage.cold.server.InaTapeProxyApplication;
+import fr.gouv.vitam.storage.cold.server.InaTapeProxyServer;
+import fr.gouv.vitam.storage.cold.server.simulator.service.filesystem.MarkerType;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,49 +68,137 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 
 /**
- * Integration tests for INA Tape Proxy
+ * Integration tests for INA Tape Proxy.
+ * These tests validate the interaction between the client and the INA Tape Proxy server,
+ * including write operations, read operations, and tape robotic controls.
  */
 @RunWithCustomExecutor
 public class InaTapeProxyIT {
 
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(InaTapeProxyIT.class);
+
+    private static final Integer DRIVE_INDEX = 0;
+
+    // Configuration files
     private static final String CONFIG_DIR = "ina-tape-proxy";
     private static final String SERVER_CONFIG = CONFIG_DIR + "/ina-tape-proxy-web.conf";
     private static final String CLIENT_CONFIG = CONFIG_DIR + "/ina-tape-proxy-client.conf";
 
-    private static final String BASE_DIR = "/tmp/data/ina/exchange";
-    private static final String WRITE_DIR = BASE_DIR + "/write";
-    private static final String READ_DIR = BASE_DIR + "/read";
-    private static final String MARKERS_DIR = BASE_DIR + "/markers";
-    private static final String INA_STORAGE_DIR = "/tmp/data/ina/storage";
+    private static String WRITE_DIR; // INA writes files here
+    private static String READ_DIR; // INA copies read files directly here
+    private static String MARKERS_DIR;
+    private static String VITAM_STORAGE_DIR;
+    private static String INA_STORAGE_DIR; // INA tape storage (simulated)
+
+    // Marker file suffixes
+    private static final String WRITE_OK = MarkerType.WRITE_OK.getSuffix();
+    private static final String READ_OK = MarkerType.READ_OK.getSuffix();
+
+    // Timeouts and intervals
+    private static final Duration DEFAULT_MARKER_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration READ_MARKER_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration FAST_READ_MARKER_TIMEOUT = Duration.ofSeconds(2);
+    private static final Duration POLL_INTERVAL = Duration.ofMillis(100);
+    private static final Duration POLL_INTERVAL_READ = Duration.ofMillis(200);
+
+    @ClassRule
+    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    @ClassRule
+    public static MongoRule mongoRule = new MongoRule(
+        "admin",
+        MongoDbAccess.getMongoClientSettingsBuilder(),
+        "tape_catalog",
+        "tape_drive"
+    );
 
     @ClassRule
     public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor()
     );
 
+    private static InaTapeProxyServer server;
+
     @BeforeClass
-    public static void setupClass() throws IOException {
+    public static void setupClass() throws Exception {
         String confDir = PropertiesUtils.getResourceFile(CONFIG_DIR).getAbsolutePath();
         SystemPropertyUtil.set("vitam.conf.folder", confDir);
         VitamConfiguration.getConfiguration().setConfig(confDir);
 
+        // Set Jetty port BEFORE starting the server
+        SystemPropertyUtil.set("jetty.port", "8216");
+
         File serverConf = PropertiesUtils.getResourceFile(SERVER_CONFIG);
-        Files.createDirectories(Paths.get(BASE_DIR));
-        Files.createDirectories(Paths.get(INA_STORAGE_DIR));
-        InaTapeProxyLauncher.start(new String[] { serverConf.getAbsolutePath() });
+
+        // Directory structure
+        File exchangeRoot = temporaryFolder.newFolder();
+        String exchangeDirectory = exchangeRoot.getAbsolutePath() + "/data/ina/exchange";
+        INA_STORAGE_DIR = exchangeRoot.getAbsolutePath() + "/data/ina/storage";
+        File offerStorageRoot = temporaryFolder.newFolder();
+        VITAM_STORAGE_DIR = offerStorageRoot.getAbsolutePath() + "/data/offer";
+
+        // FileSystemManager will create write, read, markers subdirectories under exchangeDirectory
+        WRITE_DIR = exchangeDirectory + "/write";
+        READ_DIR = exchangeDirectory + "/read";
+        MARKERS_DIR = exchangeDirectory + "/markers";
+
+        // Create the base directories (FileSystemManager will create subdirectories)
+        Files.createDirectories(Paths.get(VITAM_STORAGE_DIR));
+
+        InaTapeProxyConfiguration inaTapeProxyConfiguration = PropertiesUtils.readYaml(
+            serverConf,
+            InaTapeProxyConfiguration.class
+        );
+        inaTapeProxyConfiguration.setExchangeDirectory(exchangeDirectory);
+        inaTapeProxyConfiguration.setInaStorageDirectory(INA_STORAGE_DIR);
+        inaTapeProxyConfiguration.setOfferStorageDirectory(VITAM_STORAGE_DIR);
+
+        // Write modified configuration to a temporary file
+        File tempConfigFile = temporaryFolder.newFile("ina-tape-proxy-temp.conf");
+        PropertiesUtils.writeYaml(tempConfigFile, inaTapeProxyConfiguration);
+
+        // Create and start server instance (keep reference to prevent GC)
+        server = new InaTapeProxyServer(
+            InaTapeProxyConfiguration.class,
+            tempConfigFile.getAbsolutePath(),
+            InaTapeProxyApplication.class,
+            AdminApplication.class
+        );
+        server.start();
+
+        // Wait for server to be fully started
+        LOGGER.info("Waiting for server to start...");
+        Uninterruptibles.sleepUninterruptibly(3, java.util.concurrent.TimeUnit.SECONDS);
+
+        // Clear system properties after server start
+        SystemPropertyUtil.clear("jetty.port");
+        SystemPropertyUtil.clear("vitam.conf.folder");
     }
 
     @AfterClass
-    public static void tearDownClass() throws IOException {
-        InaTapeProxyLauncher.stop();
-        FileUtils.deleteDirectory(new File(BASE_DIR));
-        FileUtils.deleteDirectory(new File(INA_STORAGE_DIR));
+    public static void tearDownClass() throws Exception {
+        if (server != null) {
+            server.stop();
+        }
     }
 
     @Before
     public void setup() {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID());
+    }
+
+    @org.junit.After
+    public void tearDown() {
+        // Try to unload any loaded tape to clean up state
+        try {
+            InaTapeProxyApi client = createClient();
+            client.unloadTape(1, DRIVE_INDEX);
+            LOGGER.debug("Tape unloaded successfully in tearDown");
+        } catch (Exception e) {
+            // No tape was loaded, or unload failed - this is OK
+            LOGGER.debug("Could not unload tape in tearDown: {}", e.getMessage());
+        }
     }
 
     // ==================== CONNECTIVITY ====================
@@ -117,12 +214,14 @@ public class InaTapeProxyIT {
     @Test
     public void should_write_file_to_tape() throws Exception {
         InaTapeProxyApi client = createClient();
+        client.loadTape(1, DRIVE_INDEX); // Load tape before writing
+
         String filename = filename("write");
         Path source = createFile(filename, "content");
 
         try {
-            call(() -> client.writeToTape(source.toString()));
-            assertMarkerExists(filename, ".WRITTEN");
+            client.writeToTape(DRIVE_INDEX, source.toString());
+            assertMarkerExists(filename);
             assertFileExists(WRITE_DIR, filename, "content");
         } finally {
             cleanup(filename, source);
@@ -132,14 +231,16 @@ public class InaTapeProxyIT {
     @Test
     public void should_skip_write_when_same_checksum() throws Exception {
         InaTapeProxyApi client = createClient();
+        client.loadTape(1, DRIVE_INDEX); // Load tape before writing
+
         String filename = filename("checksum");
         Path source = createFile(filename, "same");
 
         try {
-            call(() -> client.writeToTape(source.toString()));
-            assertMarkerExists(filename, ".WRITTEN");
+            client.writeToTape(DRIVE_INDEX, source.toString());
+            assertMarkerExists(filename);
 
-            call(() -> client.writeToTape(source.toString()));
+            client.writeToTape(DRIVE_INDEX, source.toString());
             assertFileExists(WRITE_DIR, filename, "same");
         } finally {
             cleanup(filename, source);
@@ -149,6 +250,8 @@ public class InaTapeProxyIT {
     @Test
     public void should_write_multiple_files() throws Exception {
         InaTapeProxyApi client = createClient();
+        client.loadTape(1, DRIVE_INDEX); // Load tape before writing
+
         String f1 = filename("m1");
         String f2 = filename("m2");
         String f3 = filename("m3");
@@ -158,13 +261,13 @@ public class InaTapeProxyIT {
         Path p3 = createFile(f3, "c3");
 
         try {
-            call(() -> client.writeToTape(p1.toString()));
-            call(() -> client.writeToTape(p2.toString()));
-            call(() -> client.writeToTape(p3.toString()));
+            client.writeToTape(DRIVE_INDEX, p1.toString());
+            client.writeToTape(DRIVE_INDEX, p2.toString());
+            client.writeToTape(DRIVE_INDEX, p3.toString());
 
-            assertMarkerExists(f1, ".WRITTEN");
-            assertMarkerExists(f2, ".WRITTEN");
-            assertMarkerExists(f3, ".WRITTEN");
+            assertMarkerExists(f1);
+            assertMarkerExists(f2);
+            assertMarkerExists(f3);
 
             assertFileExists(WRITE_DIR, f1, "c1");
             assertFileExists(WRITE_DIR, f2, "c2");
@@ -179,7 +282,7 @@ public class InaTapeProxyIT {
     @Test
     public void should_fail_write_nonexistent_file() {
         String missing = "/tmp/missing-" + System.currentTimeMillis() + ".tar";
-        assertThatThrownBy(() -> createClient().writeToTape(missing)).isInstanceOf(
+        assertThatThrownBy(() -> createClient().writeToTape(DRIVE_INDEX, missing)).isInstanceOf(
             fr.gouv.vitam.storage.cold.client.invoker.ApiException.class
         );
     }
@@ -189,28 +292,28 @@ public class InaTapeProxyIT {
     @Test
     public void should_read_file_from_tape() throws Exception {
         InaTapeProxyApi client = createClient();
+        client.loadTape(1, DRIVE_INDEX); // Load tape before I/O operations
+
         String filename = filename("read");
         Path source = createFile(filename, "data");
 
         try {
             // Write
-            call(() -> client.writeToTape(source.toString()));
-            assertMarkerExists(filename, ".WRITTEN");
+            client.writeToTape(DRIVE_INDEX, source.toString());
+            assertMarkerExists(filename);
 
             // Copy to INA storage (simulate archiving to tape)
             copyToInaStorage(filename);
 
             // Read
-            call(() -> client.readFromTape(Paths.get(READ_DIR, filename).toString()));
+            Path destination = Paths.get(VITAM_STORAGE_DIR, filename);
+            client.readFromTape(DRIVE_INDEX, destination.toString());
 
             // Wait for marker
-            await()
-                .atMost(Duration.ofSeconds(10))
-                .pollInterval(Duration.ofMillis(200))
-                .untilAsserted(() -> assertThat(marker(filename, ".AVAILABLE_FOR_READ")).exists());
+            assertMarkerExists(filename, READ_OK, READ_MARKER_TIMEOUT, POLL_INTERVAL_READ);
 
             // Verify
-            assertThat(Paths.get(READ_DIR, filename)).exists();
+            assertThat(destination).exists();
         } finally {
             cleanup(filename, source);
         }
@@ -219,35 +322,32 @@ public class InaTapeProxyIT {
     @Test
     public void should_read_already_prepared_file() throws Exception {
         InaTapeProxyApi client = createClient();
+        client.loadTape(1, DRIVE_INDEX); // Load tape before I/O operations
+
         String filename = filename("prepared");
         Path source = createFile(filename, "prep");
 
         try {
             // Write and first read
-            call(() -> client.writeToTape(source.toString()));
-            assertMarkerExists(filename, ".WRITTEN");
+            client.writeToTape(DRIVE_INDEX, source.toString());
+            assertMarkerExists(filename);
 
             // Copy to INA storage (simulate archiving to tape)
             copyToInaStorage(filename);
 
-            Path readDest = Paths.get(READ_DIR, filename);
-            call(() -> client.readFromTape(readDest.toString()));
+            // First read - pass destination path in Vitam storage
+            Path readDest = Paths.get(VITAM_STORAGE_DIR, filename);
+            client.readFromTape(DRIVE_INDEX, readDest.toString());
 
-            await()
-                .atMost(Duration.ofSeconds(10))
-                .pollInterval(Duration.ofMillis(200))
-                .untilAsserted(() -> assertThat(marker(filename, ".AVAILABLE_FOR_READ")).exists());
+            assertMarkerExists(filename, READ_OK, READ_MARKER_TIMEOUT, POLL_INTERVAL_READ);
 
             // Remove marker
-            Files.deleteIfExists(marker(filename, ".AVAILABLE_FOR_READ"));
+            Files.deleteIfExists(getMarkerPath(filename, READ_OK));
 
-            // Second read - should be instant
-            call(() -> client.readFromTape(readDest.toString()));
+            // Second read - should be instant (file already prepared)
+            client.readFromTape(DRIVE_INDEX, readDest.toString());
 
-            await()
-                .atMost(Duration.ofSeconds(2))
-                .pollInterval(Duration.ofMillis(100))
-                .untilAsserted(() -> assertThat(marker(filename, ".AVAILABLE_FOR_READ")).exists());
+            assertMarkerExists(filename, READ_OK, FAST_READ_MARKER_TIMEOUT, POLL_INTERVAL);
         } finally {
             cleanup(filename, source);
         }
@@ -255,8 +355,8 @@ public class InaTapeProxyIT {
 
     @Test
     public void should_fail_read_nonexistent_file() {
-        String missing = READ_DIR + "/missing-" + System.currentTimeMillis() + ".tar";
-        assertThatThrownBy(() -> createClient().readFromTape(missing)).isInstanceOf(
+        String missing = VITAM_STORAGE_DIR + "/missing-" + System.currentTimeMillis() + ".tar";
+        assertThatThrownBy(() -> createClient().readFromTape(0, missing)).isInstanceOf(
             fr.gouv.vitam.storage.cold.client.invoker.ApiException.class
         );
     }
@@ -264,47 +364,46 @@ public class InaTapeProxyIT {
     // ==================== ROBOTIC OPERATIONS ====================
 
     @Test
-    public void should_load_tape() {
-        assertThatCode(() -> createClient().loadTape(1, 0)).doesNotThrowAnyException();
-    }
-
-    @Test
-    public void should_unload_tape() {
-        assertThatCode(() -> createClient().unloadTape(1, 0)).doesNotThrowAnyException();
-    }
-
-    @Test
     public void should_load_and_unload_tape() throws IOException {
         InaTapeProxyApi client = createClient();
         assertThatCode(() -> {
-            client.loadTape(5, 0);
-            client.unloadTape(5, 0);
+            client.loadTape(1, DRIVE_INDEX);
+            client.unloadTape(1, DRIVE_INDEX);
         }).doesNotThrowAnyException();
     }
 
     @Test
-    public void should_move_tape_forward() {
-        assertThatCode(() -> createClient().move(10, false)).doesNotThrowAnyException();
+    public void should_move_tape_backword_forward() throws Exception {
+        InaTapeProxyApi client = createClient();
+        client.loadTape(1, DRIVE_INDEX);
+        writeMultipleFiles(10, client);
+        assertThatCode(() -> {
+            client.move(DRIVE_INDEX, 5, true);
+            client.move(DRIVE_INDEX, 3, false);
+        }).doesNotThrowAnyException();
     }
 
     @Test
-    public void should_move_tape_backward() {
-        assertThatCode(() -> createClient().move(5, true)).doesNotThrowAnyException();
+    public void should_rewind_tape() throws Exception {
+        InaTapeProxyApi client = createClient();
+        client.loadTape(1, DRIVE_INDEX);
+        writeMultipleFiles(5, client);
+        assertThatCode(() -> client.rewind(DRIVE_INDEX)).doesNotThrowAnyException();
     }
 
     @Test
-    public void should_rewind_tape() {
-        assertThatCode(() -> createClient().rewind()).doesNotThrowAnyException();
+    public void should_go_to_end_of_data() throws Exception {
+        InaTapeProxyApi client = createClient();
+        client.loadTape(1, DRIVE_INDEX);
+        writeMultipleFiles(5, client);
+        assertThatCode(() -> client.goToEnd(DRIVE_INDEX)).doesNotThrowAnyException();
     }
 
     @Test
-    public void should_go_to_end_of_data() throws IOException {
-        call(createClient()::goToEnd);
-    }
-
-    @Test
-    public void should_eject_tape() {
-        assertThatCode(() -> createClient().eject()).doesNotThrowAnyException();
+    public void should_eject_tape() throws Exception {
+        InaTapeProxyApi client = createClient();
+        client.loadTape(1, DRIVE_INDEX);
+        assertThatCode(() -> client.eject(DRIVE_INDEX)).doesNotThrowAnyException();
     }
 
     // ==================== HELPERS ====================
@@ -320,21 +419,23 @@ public class InaTapeProxyIT {
     }
 
     private Path createFile(String filename, String content) throws IOException {
-        Path path = Paths.get("/tmp", filename);
+        Path path = Paths.get(VITAM_STORAGE_DIR, filename);
+        Files.createDirectories(path.getParent());
         Files.writeString(path, content);
         return path;
     }
 
-    private Path marker(String filename, String suffix) {
+    private Path getMarkerPath(String filename, String suffix) {
         return Paths.get(MARKERS_DIR, filename + suffix);
     }
 
-    private void assertMarkerExists(String filename, String suffix) {
-        Path marker = marker(filename, suffix);
-        await()
-            .atMost(Duration.ofSeconds(5))
-            .pollInterval(Duration.ofMillis(100))
-            .untilAsserted(() -> assertThat(marker).exists());
+    private void assertMarkerExists(String filename) {
+        assertMarkerExists(filename, InaTapeProxyIT.WRITE_OK, DEFAULT_MARKER_TIMEOUT, POLL_INTERVAL);
+    }
+
+    private void assertMarkerExists(String filename, String suffix, Duration timeout, Duration pollInterval) {
+        Path marker = getMarkerPath(filename, suffix);
+        await().atMost(timeout).pollInterval(pollInterval).untilAsserted(() -> assertThat(marker).exists());
     }
 
     private void assertFileExists(String dir, String filename, String expectedContent) throws IOException {
@@ -347,31 +448,22 @@ public class InaTapeProxyIT {
         Files.deleteIfExists(source);
         Files.deleteIfExists(Paths.get(WRITE_DIR, filename));
         Files.deleteIfExists(Paths.get(READ_DIR, filename));
-        Files.deleteIfExists(Paths.get(INA_STORAGE_DIR, filename));
-        Files.deleteIfExists(marker(filename, ".WRITTEN"));
-        Files.deleteIfExists(marker(filename, ".AVAILABLE_FOR_READ"));
+        Files.deleteIfExists(Paths.get(VITAM_STORAGE_DIR, filename));
+        Files.deleteIfExists(getMarkerPath(filename, WRITE_OK));
+        Files.deleteIfExists(getMarkerPath(filename, READ_OK));
+    }
+
+    private void writeMultipleFiles(int nbrFiles, InaTapeProxyApi client) throws Exception {
+        for (int i = 0; i < nbrFiles; i++) {
+            String file = filename("filename_" + i);
+            Path path = createFile(file, "content_" + i);
+            client.writeToTape(DRIVE_INDEX, path.toString());
+        }
     }
 
     private void copyToInaStorage(String filename) throws IOException {
         Path sourceFile = Paths.get(WRITE_DIR, filename);
         Path destFile = Paths.get(INA_STORAGE_DIR, filename);
         Files.copy(sourceFile, destFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-    }
-
-    /**
-     * HTTP 204 responses cause NullPointerException in the client.
-     * This is a known issue with void methods.
-     */
-    private void call(ThrowingRunnable op) {
-        try {
-            op.run();
-        } catch (Exception ignored) {
-            // Expected for HTTP 204 responses
-        }
-    }
-
-    @FunctionalInterface
-    private interface ThrowingRunnable {
-        void run() throws Exception;
     }
 }

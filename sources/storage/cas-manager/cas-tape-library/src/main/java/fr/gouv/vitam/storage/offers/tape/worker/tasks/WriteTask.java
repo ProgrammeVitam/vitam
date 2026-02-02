@@ -28,7 +28,6 @@ package fr.gouv.vitam.storage.offers.tape.worker.tasks;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -502,7 +501,7 @@ public class WriteTask implements Future<ReadWriteResult> {
             Path tmpPath = Paths.get(inputTarPath, LocalFileUtils.INPUT_TAR_TMP_FOLDER);
             Files.createDirectories(tmpPath);
 
-            String fileName = TAPE_LABEL + GUIDFactory.newGUID().getId();
+            String fileName = TAPE_LABEL + workerCurrentTape.getCode();
             labelFile = tmpPath.resolve(fileName).toFile();
 
             JsonHandler.writeAsFile(objLabel, labelFile);

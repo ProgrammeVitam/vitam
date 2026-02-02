@@ -36,13 +36,13 @@ import fr.gouv.vitam.storage.cold.InaTapeProxyConfiguration;
 import java.io.File;
 import java.net.URL;
 
-public class InaTapeProxyLauncher {
+public class InaTapeProxyMain {
 
     private static final String CONFIGURATION_FILENAME = "ina-tape-proxy-web.conf";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(InaTapeProxyLauncher.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(InaTapeProxyMain.class);
     private static VitamStarter SERVER;
 
-    private InaTapeProxyLauncher() {
+    private InaTapeProxyMain() {
         // Utility class, prevent instantiation
     }
 
@@ -159,7 +159,7 @@ public class InaTapeProxyLauncher {
         }
 
         // Fallback: try loading from classpath
-        URL resourceUrl = InaTapeProxyLauncher.class.getClassLoader().getResource(CONFIGURATION_FILENAME);
+        URL resourceUrl = InaTapeProxyMain.class.getClassLoader().getResource(CONFIGURATION_FILENAME);
         if (resourceUrl != null) {
             LOGGER.info("Configuration file loaded from classpath: " + CONFIGURATION_FILENAME);
             return resourceUrl.getPath(); // Return URL path for compatibility with VitamStarter

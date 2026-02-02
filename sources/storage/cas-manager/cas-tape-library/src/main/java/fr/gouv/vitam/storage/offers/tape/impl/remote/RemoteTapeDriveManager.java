@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.offers.tape.impl.remote;
 
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
+import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.storage.cold.client.InaTapeProxyApi;
 import fr.gouv.vitam.storage.offers.tape.impl.remote.service.RemoteTapeDriveCommandService;
 import fr.gouv.vitam.storage.offers.tape.impl.remote.service.RemoteTapeReadWriteService;
@@ -40,9 +41,18 @@ public class RemoteTapeDriveManager implements TapeDriveService {
     final TapeReadWriteService tapeReadWriteService;
     final TapeDriveConf tapeDriveConf;
 
-    public RemoteTapeDriveManager(InaTapeProxyApi inaTapeProxyApi, TapeDriveConf tapeDriveConf) {
-        this.tapeDriveCommandService = new RemoteTapeDriveCommandService(inaTapeProxyApi);
-        this.tapeReadWriteService = new RemoteTapeReadWriteService(inaTapeProxyApi);
+    public RemoteTapeDriveManager(
+        InaTapeProxyApi inaTapeProxyApi,
+        TapeDriveConf tapeDriveConf,
+        TapeLibraryConfiguration configuration
+    ) {
+        this.tapeDriveCommandService = new RemoteTapeDriveCommandService(inaTapeProxyApi, tapeDriveConf.getIndex());
+        this.tapeReadWriteService = new RemoteTapeReadWriteService(
+            inaTapeProxyApi,
+            tapeDriveConf.getIndex(),
+            configuration.getInputTarStorageFolder(),
+            configuration.getTmpTarOutputStorageFolder()
+        );
         this.tapeDriveConf = tapeDriveConf;
     }
 

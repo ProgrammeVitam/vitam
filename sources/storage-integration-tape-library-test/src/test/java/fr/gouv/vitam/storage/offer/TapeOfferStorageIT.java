@@ -1455,7 +1455,7 @@ public class TapeOfferStorageIT {
         // Check anomalies in report file
         String reportFileName = offerDiffStatus.getReportFileName();
         assertThat(reportFileName).startsWith(VitamConfiguration.getVitamTmpFolder());
-        SafeFileChecker.checkSafeFilePath(
+        SafeFileChecker.checkSafeFileSubPaths(
             VitamConfiguration.getVitamTmpFolder(),
             reportFileName.substring(VitamConfiguration.getVitamTmpFolder().length() + 1).split(File.separator)
         );

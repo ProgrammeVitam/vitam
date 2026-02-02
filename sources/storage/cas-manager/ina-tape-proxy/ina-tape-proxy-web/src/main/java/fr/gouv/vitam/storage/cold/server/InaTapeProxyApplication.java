@@ -26,18 +26,21 @@
  */
 package fr.gouv.vitam.storage.cold.server;
 
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.storage.cold.InaTapeProxyConfiguration;
-import fr.gouv.vitam.storage.cold.server.simulator.InaIoService;
-import fr.gouv.vitam.storage.cold.server.simulator.InaLibraryService;
-import fr.gouv.vitam.storage.cold.server.simulator.InaService;
-import fr.gouv.vitam.storage.cold.server.simulator.InaStatusService;
-import fr.gouv.vitam.storage.cold.server.simulator.filesystem.FileSystemManager;
-import fr.gouv.vitam.storage.cold.server.simulator.filesystem.MarkerManager;
+import fr.gouv.vitam.storage.cold.server.rest.InaTapeProxyResource;
+import fr.gouv.vitam.storage.cold.server.simulator.exception.InaTapeProxyExceptionMapper;
+import fr.gouv.vitam.storage.cold.server.simulator.repository.TapeCatalogRepository;
+import fr.gouv.vitam.storage.cold.server.simulator.repository.TapeDriveRepository;
+import fr.gouv.vitam.storage.cold.server.simulator.service.InaService;
+import fr.gouv.vitam.storage.cold.server.simulator.service.TapeInitializationService;
 import jakarta.servlet.ServletConfig;
 import jakarta.ws.rs.core.Application;
 import jakarta.ws.rs.core.Context;
@@ -82,11 +85,31 @@ public class InaTapeProxyApplication extends Application {
         try {
             Set<Object> set = new HashSet<>(commonBusinessApplication.getResources());
 
-            // Initialize services directly
-            InaService service = initializeService(configuration);
+            // Initialize MongoDB connection
+            LOGGER.info("Initializing MongoDB connection...");
+            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration);
+            MongoDatabase mongoDatabase = mongoClient.getDatabase(configuration.getDbName());
+            LOGGER.info("MongoDB client created");
 
-            // Add our resource implementation with service
-            set.add(new InaTapeProxyResourceImpl(service));
+            // Initialize repositories
+            TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(
+                mongoDatabase.getCollection("tape_catalog")
+            );
+            TapeDriveRepository tapeDriveRepository = new TapeDriveRepository(
+                mongoDatabase.getCollection("tape_drive")
+            );
+
+            // Initialize services
+            TapeInitializationService tapeInitializationService = new TapeInitializationService(
+                configuration,
+                tapeCatalogRepository,
+                tapeDriveRepository
+            );
+
+            InaService service = tapeInitializationService.initializeService();
+
+            set.add(new InaTapeProxyResource(service));
+            set.add(new InaTapeProxyExceptionMapper());
 
             LOGGER.info("Resources initialized");
             return set;
@@ -94,39 +117,6 @@ public class InaTapeProxyApplication extends Application {
             LOGGER.error("Failed to initialize resources", e);
             throw new VitamRuntimeException("Failed to initialize resources", e);
         }
-    }
-
-    private InaService initializeService(InaTapeProxyConfiguration configuration) throws IOException {
-        // 1. Initialize filesystem manager
-        LOGGER.info("Initializing FileSystemManager...");
-        FileSystemManager fileSystemManager = new FileSystemManager(configuration);
-        fileSystemManager.initialize();
-        LOGGER.info("FileSystemManager initialized");
-
-        // 2. Initialize marker manager
-        LOGGER.info("Initializing MarkerManager...");
-        MarkerManager markerManager = new MarkerManager(fileSystemManager);
-        LOGGER.info("MarkerManager initialized");
-
-        // 3. Initialize sub-services
-        LOGGER.info("Initializing sub-services...");
-        InaIoService ioService = new InaIoService(configuration, fileSystemManager, markerManager);
-        LOGGER.info("  - InaIoService initialized");
-
-        InaLibraryService roboticService = new InaLibraryService(configuration);
-        LOGGER.info("  - InaLibraryService initialized");
-
-        InaStatusService statusService = new InaStatusService(configuration);
-        LOGGER.info("  - InaStatusService initialized");
-
-        LOGGER.info("All sub-services initialized");
-
-        // 4. Create main service
-        LOGGER.info("Initializing main InaService...");
-        InaService service = new InaService(configuration, ioService, roboticService, statusService);
-        LOGGER.info("InaService initialized");
-
-        return service;
     }
 
     @Override
