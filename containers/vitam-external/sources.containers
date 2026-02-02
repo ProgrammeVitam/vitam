@@ -6,7 +6,7 @@ kibana:9.2.2
 elastic/filebeat:9.2.2
 grafana/grafana:12.3.1
 restic/restic:0.17.2
-hashicorp/consul:1.20.6-ubi
+hashicorp/consul:1.22.3-ubi
 lmenezes/cerebro:0.9.4
 untergeek/curator:8.0.21
 prom/prometheus:v3.9.1
