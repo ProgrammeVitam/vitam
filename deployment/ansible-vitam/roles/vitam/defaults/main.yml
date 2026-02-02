@@ -48,3 +48,10 @@ default_eliminationReportExtraFields: "{{ extendedConfiguration.default.eliminat
 default_ingestReportUnitExtraFields: "{{ extendedConfiguration.default.ingestReportUnitExtraFields | default(['PersistentIdentifier']) }}"
 default_ingestReportObjectExtraFields: "{{ extendedConfiguration.default.ingestReportObjectExtraFields | default(['PersistentIdentifier']) }}"
 default_objectGroupBlackListedFields: "{{ extendedConfiguration.default.objectGroupBlackListedFields | default(['Filename']) }}"
+
+default_vitam_force_chunk_mode: "{{ vitam_defaults.vitam_force_chunk_mode | default(false) }}"
+default_keywordMaxLength: "{{ vitam_defaults.keywordMaxLength | default(32766) }}"
+default_textMaxLength: "{{ vitam_defaults.textMaxLength | default(32766) }}"
+default_ontologyCacheMaxEntries: "{{ vitam_defaults.ontologyCacheMaxEntries | default(100) }}"
+default_ontologyCacheTimeoutInSeconds: "{{ vitam_defaults.ontologyCacheTimeoutInSeconds | default(300) }}"
+default_elasticSearchScrollTimeoutInMilliseconds: "{{ vitam_defaults.elasticSearchScrollTimeoutInMilliseconds | default(300000) }}"
