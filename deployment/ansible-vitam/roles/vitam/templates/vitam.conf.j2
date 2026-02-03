@@ -21,7 +21,7 @@ maxDelayUnusedConnection : 5000
 delayValidationAfterInactivity : 2500
 tenants: [ "{{ vitam_tenant_ids | join('", "') }}" ]
 adminTenant : {{ vitam_tenant_admin | default(1) }}
-forceChunkModeInputStream : {{ vitam_defaults.vitam_force_chunk_mode | default(false) }}
+forceChunkModeInputStream : {{ vitam_struct.vitam_force_chunk_mode | default(default_vitam_force_chunk_mode) | bool | lower }}
 
 {% if vitam_struct.vitam_component == vitam.worker.vitam_component %}
 reclassificationMaxBulkThreshold: 1000
@@ -61,8 +61,8 @@ ingestReportObjectExtraFields:
 {% endfor %}
 {% endif %}
 
-keywordMaxLength: {{ vitam_defaults.keywordMaxLength | default(32766) }}
-textMaxLength: {{ vitam_defaults.textMaxLength | default(32766) }}
+keywordMaxLength: {{ vitam_struct.keywordMaxLength | default(default_keywordMaxLength) }}
+textMaxLength: {{ vitam_struct.textMaxLength | default(default_textMaxLength) }}
 
 classificationLevel :
   allowList : [{% for classification in classificationList %}{{ classification }}{% if not loop.last %},{% endif %}{% endfor %}]
@@ -71,18 +71,18 @@ classificationLevel :
 indexInheritedRulesWithAPIV2OutputByTenant: [ "{{ vitam.worker.api_output_index_tenants | join('", "') }}" ]
 indexInheritedRulesWithRulesIdByTenant: [ "{{ vitam.worker.rules_index_tenants | join('", "') }}" ]
 
-environmentName: {{ vitam_prefix_offer|default(vitam_site_name) }}
+environmentName: {{ vitam_prefix_offer | default(vitam_site_name) }}
 
-acceptableRequestTime: {{ acceptableRequestTime|default(10) }}
-criticalRequestTime: {{ criticalRequestTime|default(60) }}
-requestTimeAlertThrottlingDelay: {{ requestTimeAlertThrottlingDelay|default(60) }}
+acceptableRequestTime: {{ acceptableRequestTime | default(10) }}
+criticalRequestTime: {{ criticalRequestTime | default(60) }}
+requestTimeAlertThrottlingDelay: {{ requestTimeAlertThrottlingDelay | default(60) }}
 
 # Ontology cache settings (max entries in cache & retention timeout in seconds)
-ontologyCacheMaxEntries: {{ vitam_defaults.ontologyCacheMaxEntries | default(100) }}
-ontologyCacheTimeoutInSeconds: {{ vitam_defaults.ontologyCacheTimeoutInSeconds | default(300) }}
+ontologyCacheMaxEntries: {{ vitam_struct.ontologyCacheMaxEntries | default(default_ontologyCacheMaxEntries) }}
+ontologyCacheTimeoutInSeconds: {{ vitam_struct.ontologyCacheTimeoutInSeconds | default(default_ontologyCacheTimeoutInSeconds) }}
 
 # Elasticsearch scroll timeout settings
-elasticSearchScrollTimeoutInMilliseconds: {{ vitam_defaults.elasticSearchScrollTimeoutInMilliseconds | default(300000) }}
+elasticSearchScrollTimeoutInMilliseconds: {{ vitam_struct.elasticSearchScrollTimeoutInMilliseconds | default(default_elasticSearchScrollTimeoutInMilliseconds) }}
 
 {% if vitam_struct.vitam_component == vitam.processing.vitam_component %}
 processEngineWaitForStepTimeout: 172800
@@ -90,4 +90,4 @@ processEngineWaitForStepTimeout: 172800
 
 restoreBulkSize: {{ restoreBulkSize | default(10000) }}
 
-ignoreAntivirusCheckForWorker: {{ vitam.worker.ignore_antivirus_check | default(false) }}
+ignoreAntivirusCheckForWorker: {{ vitam.worker.ignore_antivirus_check | default(false) | bool | lower }}
