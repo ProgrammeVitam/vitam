@@ -509,7 +509,7 @@ public class InternalSecurityFilterTest {
     public void whenEnableControlAndAccessExternalLogbookOperationsThenNoContractOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
+        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
             new X509Certificate[] { cert }
         );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
@@ -534,7 +534,7 @@ public class InternalSecurityFilterTest {
     public void whenEnableControlAndAccessExternalAdminFormatsThenNoContractOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
+        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
             new X509Certificate[] { cert }
         );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
