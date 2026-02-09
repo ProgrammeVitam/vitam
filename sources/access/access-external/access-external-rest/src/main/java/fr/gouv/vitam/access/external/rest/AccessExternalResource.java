@@ -37,7 +37,6 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServer
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -65,6 +64,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
+import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
@@ -145,6 +145,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.OBJECTS_PERSISTENT_
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.OBJECTS_PERSISTENT_IDENTIFIER_READ_BINARY;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.OBJECTS_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.OBJECTS_STREAM;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ORIGINATING_AGENCY_REASSIGNMENT_ACTION;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PRESERVATION_UPDATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.RECLASSIFICATION_UPDATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.REVERT_UPDATE;
@@ -998,7 +999,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 )
                 .build();
         } catch (NoWritingPermissionException e) {
-            LOGGER.debug(WRITING_PERMISSIONS_INVALID, e);
+            LOGGER.error(WRITING_PERMISSIONS_INVALID, e);
             status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status)
                 .entity(
@@ -1009,7 +1010,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 )
                 .build();
         } catch (AccessUnauthorizedException e) {
-            LOGGER.debug(CONTRACT_ACCESS_NOT_ALLOW, e);
+            LOGGER.error(CONTRACT_ACCESS_NOT_ALLOW, e);
             status = Status.UNAUTHORIZED;
             return Response.status(status)
                 .entity(
@@ -2127,37 +2128,79 @@ public class AccessExternalResource extends ApplicationStatusResource {
         }
     }
 
-    private JsonNode findUnitByPersistentIdentifier(String persistentIdentifier, List<String> projectionFields)
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, InvalidCreateOperationException {
-        // Select "Object from ArchiveUNit persistentIdentifier
-        ParametersChecker.checkParameter("persistent Identifier is required", persistentIdentifier);
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
-            SelectParserMultiple query = new SelectParserMultiple();
-            SelectMultiQuery selectMultiQuery = query.getRequest();
-            selectMultiQuery.addQueries(
-                QueryHelper.and()
-                    .add(
-                        QueryHelper.eq(
-                            PERSISTENT_IDENTIFIERS + "." + PERSISTENT_IDENTIFIER_CONTENT,
-                            persistentIdentifier
-                        ),
-                        QueryHelper.exists(OBJECT_TAG)
-                    )
+    @Path("/originatingAgencyReassignment")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(
+        permission = ORIGINATING_AGENCY_REASSIGNMENT_ACTION,
+        description = "Lancer le processus de réattribution de service producteur"
+    )
+    public Response originatingAgencyReassignment(OriginatingAgencyReassignmentRequest reassignmentRequest) {
+        Status status;
+        try {
+            ParametersChecker.checkParameter("Missing dslRequest request", reassignmentRequest.getDslRequest());
+            ParametersChecker.checkParameter(
+                "Missing source originating agency",
+                reassignmentRequest.getSourceOriginatingAgency()
             );
-            selectMultiQuery.addUsedProjection(VitamFieldsHelper.id());
-            if (projectionFields != null && !projectionFields.isEmpty()) {
-                for (String projectionField : projectionFields) {
-                    selectMultiQuery.addUsedProjection(projectionField);
-                }
-            }
+            ParametersChecker.checkParameter(
+                "Missing target originating agency",
+                reassignmentRequest.getTargetOriginatingAgency()
+            );
 
-            RequestResponse<JsonNode> response = client.selectUnits(selectMultiQuery.getFinalSelect());
-            SanityChecker.checkJsonAll(response.toJsonNode());
-            if (response.isOk()) {
-                return ((RequestResponseOK<JsonNode>) response).getFirstResult();
-            } else {
-                throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
-            }
+            DslValidator validator = new BatchProcessingQuerySchemaValidator();
+            validator.validate(reassignmentRequest.getDslRequest());
+        } catch (IllegalArgumentException | IOException | ValidationException e) {
+            LOGGER.error(COULD_NOT_VALIDATE_REQUEST, e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(
+                    VitamCodeHelper.toVitamError(
+                        VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_WITH_INHERITED_RULES_ERROR,
+                        e.getLocalizedMessage()
+                    ).setHttpCode(status.getStatusCode())
+                )
+                .build();
+        }
+
+        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+            RequestResponse<JsonNode> requestResponse = client.originatingAgencyReassignment(reassignmentRequest);
+            int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+            return Response.status(st).entity(requestResponse).build();
+        } catch (AccessInternalClientServerException e) {
+            LOGGER.error("Error on originating agency reassignment request", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(
+                    VitamCodeHelper.toVitamError(
+                        VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR,
+                        e.getLocalizedMessage()
+                    ).setHttpCode(status.getStatusCode())
+                )
+                .build();
+        } catch (NoWritingPermissionException e) {
+            LOGGER.error(WRITING_PERMISSIONS_INVALID, e);
+            status = Status.METHOD_NOT_ALLOWED;
+            return Response.status(status)
+                .entity(
+                    VitamCodeHelper.toVitamError(
+                        VitamCode.ACCESS_EXTERNAL_ORIGINATING_AGENCY_REASSIGNMENT_ERROR,
+                        e.getLocalizedMessage()
+                    ).setHttpCode(status.getStatusCode())
+                )
+                .build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(CONTRACT_ACCESS_NOT_ALLOW, e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status)
+                .entity(
+                    VitamCodeHelper.toVitamError(
+                        VitamCode.ACCESS_EXTERNAL_ORIGINATING_AGENCY_REASSIGNMENT_ERROR,
+                        e.getLocalizedMessage()
+                    ).setHttpCode(status.getStatusCode())
+                )
+                .build();
         }
     }
 

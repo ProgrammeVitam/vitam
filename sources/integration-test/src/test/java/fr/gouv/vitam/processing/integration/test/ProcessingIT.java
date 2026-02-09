@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -101,6 +102,7 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -111,6 +113,8 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectio
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookTransformData;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookExecutionException;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
@@ -157,6 +161,8 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -171,7 +177,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -185,6 +193,7 @@ import static com.mongodb.client.model.Filters.exists;
 import static fr.gouv.vitam.common.TestZipUtils.zipFolder;
 import static fr.gouv.vitam.common.VitamTestHelper.computeInheritedRules;
 import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFiles;
+import static fr.gouv.vitam.common.VitamTestHelper.reassignOriginatingAgencyForUnits;
 import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.verifyProcessState;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
@@ -224,6 +233,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public static final String INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON =
         "integration-ingest-external/expected-logbook.json";
     public static final String OPERATION_ID_REPLACE = "OPERATION_ID_REPLACE";
+    private static final Logger log = LoggerFactory.getLogger(ProcessingIT.class);
 
     @ClassRule
     public static VitamServerRunner runner = new VitamServerRunner(
@@ -2386,6 +2396,124 @@ public class ProcessingIT extends VitamRuleRunner {
         );
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowOriginatingAgencyReassignment() throws Exception {
+        prepareVitamSession();
+
+        // Given ingest
+        final String ingestOperation = ingestSIP(SIP_COMPLEX_RULES_V2, DEFAULT_WORKFLOW.name(), StatusCode.OK);
+
+        MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+        SelectMultiQuery ingestSelect = new SelectMultiQuery();
+        CompareQuery operationQuery = QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperation);
+        ingestSelect.setQuery(operationQuery);
+
+        JsonNode selectUnitsAfterIngest = metaDataClient.selectUnits(ingestSelect.getFinalSelect()).get(TAG_RESULTS);
+        assertThat(selectUnitsAfterIngest.elements())
+            .toIterable()
+            .extracting(unit -> unit.get(VitamFieldsHelper.validComputedInheritedRules()))
+            .allMatch(Objects::isNull);
+        assertThat(selectUnitsAfterIngest.elements())
+            .toIterable()
+            .extracting(unit -> unit.get(VitamFieldsHelper.computedInheritedRules()))
+            .allMatch(Objects::isNull);
+
+        // When
+        computeInheritedRules(ingestSelect);
+
+        // Then
+        JsonNode selectUnitsAfterComputedInheritedRules = metaDataClient
+            .selectUnits(ingestSelect.getFinalSelect())
+            .get(TAG_RESULTS);
+
+        assertThat(selectUnitsAfterComputedInheritedRules.elements())
+            .toIterable()
+            .extracting(unit -> unit.get(VitamFieldsHelper.validComputedInheritedRules()))
+            .allMatch(JsonNode::booleanValue);
+        assertThat(selectUnitsAfterComputedInheritedRules.elements())
+            .toIterable()
+            .extracting(unit -> unit.get(VitamFieldsHelper.computedInheritedRules()))
+            .allMatch(Objects::nonNull);
+
+        // update originating agencies
+        String currentOriginatingAgency = "RATP";
+        String targetOriginatingAgency = "FRAN_NP_050239";
+        SelectMultiQuery partialSelect = new SelectMultiQuery();
+        BooleanQuery orQuery = QueryHelper.or();
+        List<String> unitTitlesToUpdate = List.of("3_Gallieni", "4_ Porte de Clignancourt", "Botzaris");
+        for (String title : unitTitlesToUpdate) {
+            orQuery.add(QueryHelper.eq("Title", title));
+        }
+
+        BooleanQuery andQuery = QueryHelper.and();
+        andQuery.add(orQuery);
+        andQuery.add(operationQuery);
+
+        partialSelect.setQuery(andQuery);
+
+        // When
+        String reassignOperationId = reassignOriginatingAgencyForUnits(
+            currentOriginatingAgency,
+            targetOriginatingAgency,
+            partialSelect
+        );
+
+        // Then
+        Map<String, JsonNode> unitsByTitle = new HashMap<>();
+
+        JsonNode results = metaDataClient.selectUnits(ingestSelect.getFinalSelect()).get("$results");
+        for (JsonNode result : results) {
+            unitsByTitle.put(result.get("Title").asText(), result);
+        }
+
+        List<JsonNode> unitsWithSpToUpdate = new ArrayList<>();
+        for (Map.Entry<String, JsonNode> titleToUnitEntry : unitsByTitle.entrySet()) {
+            JsonNode unitNode = titleToUnitEntry.getValue();
+            String title = titleToUnitEntry.getKey();
+
+            if (unitTitlesToUpdate.contains(title)) {
+                unitsWithSpToUpdate.add(unitNode);
+            }
+        }
+        LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
+        //Units that should have SP replaced by target SP
+        unitsWithSpToUpdate.forEach(unitNode -> {
+            String unitId = unitNode.get(VitamFieldsHelper.id()).asText();
+            String originatingAgency = unitNode.get(VitamFieldsHelper.originatingAgency()).asText();
+            Boolean validComputedInheritedRules = unitNode
+                .get(VitamFieldsHelper.validComputedInheritedRules())
+                .asBoolean();
+            JsonNode computedInheritedRulesNode = unitNode.get(VitamFieldsHelper.computedInheritedRules());
+            List<String> originatingAgencies = getUnitOriginatingAgencies(unitNode);
+            assertThat(originatingAgency).isEqualTo(targetOriginatingAgency);
+            assertThat(originatingAgencies).contains(targetOriginatingAgency);
+            assertThat(validComputedInheritedRules).isFalse();
+            assertThat(computedInheritedRulesNode).isNull();
+            List<String> operations = getUnitOperations(unitNode);
+            assertThat(operations).contains(reassignOperationId);
+            try {
+                //Check lfc
+                JsonNode unitLfc = null;
+
+                unitLfc = logbookLifeCyclesClient.selectUnitLifeCycleById(unitId, new Select().getFinalSelectById());
+
+                JsonNode lfcEvents = unitLfc.get("$results").get(0).get("events");
+                final JsonNode lastEvent = lfcEvents.get(lfcEvents.size() - 1);
+                JsonNode evDetData = lastEvent.get("evDetData");
+                JsonNode jsoned = JsonHandler.getFromString(evDetData.textValue());
+
+                String expectedAddSp = "+  \"_sp\" : \"FRAN_NP_050239\"";
+                String expectedRemoveSp = "-  \"_sp\" : \"RATP\"";
+
+                assertThat(jsoned.get("Event").textValue()).contains(expectedAddSp);
+                assertThat(jsoned.get("Event").textValue()).contains(expectedRemoveSp);
+            } catch (InvalidParseOperationException | LogbookClientException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
     private void checkComputedInheritedRules(
         JsonNode selectUnitsAfterComputedInheritedRules,
         String title,
@@ -4111,5 +4239,17 @@ public class ProcessingIT extends VitamRuleRunner {
             .filter(e -> e.asText().equals(s))
             .collect(Collectors.toList());
         assertThat(massUpdateFinalized.size()).isGreaterThan(0);
+    }
+
+    private List<String> getUnitOriginatingAgencies(JsonNode unit) {
+        return StreamSupport.stream(unit.get(VitamFieldsHelper.originatingAgencies()).spliterator(), false)
+            .map(JsonNode::asText)
+            .toList();
+    }
+
+    private List<String> getUnitOperations(JsonNode unit) {
+        return StreamSupport.stream(unit.get(VitamFieldsHelper.operations()).spliterator(), false)
+            .map(JsonNode::asText)
+            .toList();
     }
 }

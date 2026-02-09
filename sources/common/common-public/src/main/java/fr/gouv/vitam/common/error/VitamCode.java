@@ -1237,6 +1237,13 @@ public enum VitamCode {
         "00",
         Status.BAD_REQUEST,
         "JSON body could be parsed"
+    ),
+    ACCESS_EXTERNAL_ORIGINATING_AGENCY_REASSIGNMENT_ERROR(
+        ServiceName.EXTERNAL_ACCESS,
+        DomainName.IO,
+        "54",
+        Status.BAD_REQUEST,
+        "Access external client error in Originating agency Reassignment method."
     );
 
     private final ServiceName service;

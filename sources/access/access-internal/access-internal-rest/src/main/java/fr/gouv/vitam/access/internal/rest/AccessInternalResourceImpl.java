@@ -68,6 +68,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -162,6 +163,7 @@ import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES_DELETE;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DELETE_GOT_VERSIONS;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.ORIGINATING_AGENCY_REASSIGNMENT;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.TRANSFER_REPLY;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -2383,6 +2385,121 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                     getErrorEntity(
                         INTERNAL_SERVER_ERROR,
                         String.format("An error occurred during %s workflow", DELETE_GOT_VERSIONS.getEventType())
+                    )
+                )
+                .build();
+        }
+    }
+
+    @Path("/originatingAgencyReassignment")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response originatingAgencyReassignment(OriginatingAgencyReassignmentRequest reassignmentRequest) {
+        try (
+            ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+            LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()
+        ) {
+            ParametersChecker.checkParameter("Missing request", reassignmentRequest);
+            if (!isAuthorized()) {
+                return Response.status(UNAUTHORIZED)
+                    .entity(getErrorEntity(UNAUTHORIZED, WRITE_PERMISSION_NOT_ALLOWED))
+                    .build();
+            }
+            AccessContractModel contract = getVitamSession().getContract();
+
+            OriginatingAgencyReassignmentRequest reassignmentRequestWithRestriction =
+                new OriginatingAgencyReassignmentRequest(
+                    applyAccessContractRestrictionForUnitForSelect(
+                        reassignmentRequest.getDslRequest().deepCopy(),
+                        contract
+                    ),
+                    reassignmentRequest.getSourceOriginatingAgency(),
+                    reassignmentRequest.getTargetOriginatingAgency()
+                );
+
+            String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+            String message =
+                VitamLogbookMessages.getLabelOp(ORIGINATING_AGENCY_REASSIGNMENT.getEventType() + ".STARTED") +
+                " : " +
+                GUIDReader.getGUID(operationId);
+            LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
+                GUIDReader.getGUID(operationId),
+                ORIGINATING_AGENCY_REASSIGNMENT.getEventType(),
+                GUIDReader.getGUID(operationId),
+                LogbookTypeProcess.ORIGINATING_AGENCY_REASSIGNMENT,
+                STARTED,
+                message,
+                GUIDReader.getGUID(operationId)
+            );
+
+            addRightsStatementIdentifier(initParameters);
+            logbookOperationsClient.create(initParameters);
+
+            workspaceClient.createContainer(operationId);
+
+            workspaceClient.putObject(
+                operationId,
+                "request.json",
+                writeToInpustream(reassignmentRequestWithRestriction)
+            );
+
+            //Saved for threshold common plugin
+            workspaceClient.putObject(
+                operationId,
+                QUERY_FILE,
+                writeToInpustream(reassignmentRequestWithRestriction.getDslRequest())
+            );
+
+            // store original query in workspace
+            workspaceClient.putObject(
+                operationId,
+                OperationContextMonitor.OperationContextFileName,
+                writeToInpustream(OperationContextModel.get(reassignmentRequest.getDslRequest()))
+            );
+
+            // compress file to backup
+            OperationContextMonitor.compressInWorkspace(
+                workspaceClientFactory,
+                operationId,
+                Contexts.ORIGINATING_AGENCY_REASSIGNMENT.getLogbookTypeProcess(),
+                OperationContextMonitor.OperationContextFileName
+            );
+
+            processingClient.initVitamProcess(new ProcessingEntry(operationId, ORIGINATING_AGENCY_REASSIGNMENT.name()));
+
+            RequestResponse<ItemStatus> response = processingClient.executeOperationProcess(
+                operationId,
+                ORIGINATING_AGENCY_REASSIGNMENT.name(),
+                RESUME.getValue()
+            );
+            return response.toResponse();
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            return Response.status(BAD_REQUEST).entity(getErrorEntity(BAD_REQUEST, e.getMessage())).build();
+        } catch (BadRequestException e) {
+            LOGGER.error(EMPTY_QUERY_IS_IMPOSSIBLE, e);
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
+        } catch (
+            InvalidGuidOperationException
+            | LogbookClientBadRequestException
+            | LogbookClientAlreadyExistsException
+            | LogbookClientServerException
+            | ContentAddressableStorageServerException
+            | OperationContextException
+            | InternalServerException
+            | VitamClientException e
+        ) {
+            LOGGER.error(e);
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(
+                    getErrorEntity(
+                        INTERNAL_SERVER_ERROR,
+                        String.format(
+                            "An error occurred during %s workflow",
+                            ORIGINATING_AGENCY_REASSIGNMENT.getEventType()
+                        )
                     )
                 )
                 .build();

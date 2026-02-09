@@ -1,0 +1,14 @@
+{
+  "sourceOriginatingAgency": "source SP",
+  "targetOriginatingAgency": "target SP",
+  "dslRequest": {
+    "$roots": [ "id0" ],
+    "$query": [
+      {
+        "$match": { "Title": "titre" },
+        "$depth": 4
+      }
+    ],
+    "$threshold": 10000
+  }
+}

@@ -1,0 +1,149 @@
+{
+  "id": "ORIGINATING_AGENCY_REASSIGNMENT",
+  "name": "originating agency reassignment workflow",
+  "identifier": "ORIGINATING_AGENCY_REASSIGNMENT",
+  "typeProc": "ORIGINATING_AGENCY_REASSIGNMENT",
+  "comment": "originating agency reassignment workflow",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_PREPARATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_CONCURRENT_WORKFLOW_LOCK",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "workflowIds",
+                "uri": "VALUE:RECLASSIFICATION,ELIMINATION_ACTION,ORIGINATING_AGENCY_REASSIGNMENT,TRANSFER_REPLY,INGEST_CLEANUP"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_DISTRIBUTION_THRESHOLD",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "queryType",
+                "uri": "VALUE:SELECT"
+              },
+              {
+                "name": "queryUri",
+                "uri": "VALUE:query.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_PREPARATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_UNITS_UPDATE",
+      "behavior": "BLOCKING",
+      "cancellable": false,
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "units_to_update.jsonl",
+        "type": "Units",
+        "statusOnEmptyDistribution": "KO"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_UNITS_UPDATE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "FLUSH_LFC"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "UNIT_METADATA_STORAGE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+       ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_CHILDREN_UNITS_UPDATE_PREPARATION",
+      "behavior": "BLOCKING",
+      "cancellable": false,
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_CHILDREN_UNITS_UPDATE_PREPARATION",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED",
+            "in": [
+              {
+                "name": "units_to_update.jsonl",
+                "uri": "WORKSPACE:units_to_update.jsonl"
+              }
+            ],
+            "out": [
+              {
+                "name": "unitsChildrenToUpdateSps.jsonl",
+                "uri": "WORKSPACE:unitsChildrenToUpdateSps.jsonl"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ORIGINATING_AGENCIES_REASSIGNMENT_UNITS_UPDATE",
+      "behavior": "BLOCKING",
+      "cancellable": false,
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "unitsChildrenToUpdateSps.jsonl",
+        "type": "Units",
+        "statusOnEmptyDistribution": "OK"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ORIGINATION_AGENCY_REASSIGNMENT_AGENCIES_UPDATE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ORIGINATION_AGENCY_REASSIGNMENT_FINALIZATION",
+      "cancellable": false,
+      "behavior": "FINALLY",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ORIGINATION_AGENCY_REASSIGNMENT_FINALIZATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }
+  ]
+}

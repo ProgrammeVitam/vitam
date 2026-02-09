@@ -58,6 +58,7 @@ import fr.gouv.vitam.batch.report.rest.repository.DeleteGotVersionsReportReposit
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.ExtractedMetadataRepository;
+import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentUnitsUpdateRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
@@ -196,6 +197,9 @@ public class BatchReportServiceImplTest {
     @Mock
     private DeleteGotVersionsReportRepository deleteGotVersionsReportRepository;
 
+    @Mock
+    private OriginatingAgencyReassignmentUnitsUpdateRepository originatingAgencyReassignmentUnitsUpdateRepository;
+
     private BatchReportServiceImpl batchReportServiceImpl;
 
     private final String PROCESS_ID = "123456789";
@@ -219,7 +223,8 @@ public class BatchReportServiceImplTest {
             traceabilityReportRepository,
             extractedMetadataRepository,
             deleteGotVersionsReportRepository,
-            workspaceClientFactory
+            workspaceClientFactory,
+            originatingAgencyReassignmentUnitsUpdateRepository
         );
     }
 

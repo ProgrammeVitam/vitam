@@ -471,6 +471,7 @@ public class VitamConfiguration {
      * Threshold for computed inherited rules nocturne batch
      */
     private static long computedInheritedRulesThreshold = 100_000_000L;
+
     private static int ontologyCacheMaxEntries = 100;
     private static int ontologyCacheTimeoutInSeconds = 300;
     /**

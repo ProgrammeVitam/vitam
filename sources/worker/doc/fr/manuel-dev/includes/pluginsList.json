@@ -443,5 +443,20 @@
   "CHECK_OBJECT_GROUP_SCHEMA": {
     "className": "fr.gouv.vitam.worker.core.plugin.CheckObjectGroupSchemaActionPlugin",
     "propertiesFile": "check_object_group_schema_plugin.properties"
+  },
+  "ORIGINATING_AGENCY_REASSIGNMENT_PREPARATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentPreparationPlugin"
+  },
+  "ORIGINATING_AGENCY_REASSIGNMENT_UNITS_UPDATE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentUnitUpdatePlugin"
+  },
+  "ORIGINATING_AGENCY_REASSIGNMENT_CHILDREN_UNITS_UPDATE_PREPARATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentChildrenUnitsPreparationPlugin"
+  },
+  "ORIGINATION_AGENCY_REASSIGNMENT_AGENCIES_UPDATE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentAgenciesUpdatePlugin"
+  },
+  "ORIGINATION_AGENCY_REASSIGNMENT_FINALIZATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentFinalizationPlugin"
   }
 }

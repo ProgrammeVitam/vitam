@@ -20,7 +20,7 @@
             "in": [
               {
                 "name": "workflowIds",
-                "uri": "VALUE:RECLASSIFICATION,ELIMINATION_ACTION,TRANSFER_REPLY,INGEST_CLEANUP"
+                "uri": "VALUE:RECLASSIFICATION,ELIMINATION_ACTION,TRANSFER_REPLY,INGEST_CLEANUP,ORIGINATING_AGENCY_REASSIGNMENT"
               }
             ]
           }

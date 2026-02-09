@@ -78,6 +78,16 @@ public interface BatchReportClient extends BasicClient {
     ) throws VitamClientInternalException;
 
     /**
+     * Generate units to compute and update SPS by process Id.
+     * Report is stored in JSONL format without duplicates.
+     */
+    void exportUnitsToComputeOriginatingAgencies(
+        String processId,
+        ReportExportRequest reportExportRequest,
+        WorkFlowExecutionContext executionContext
+    ) throws VitamClientInternalException;
+
+    /**
      * Generate elimination action accession register for deleted units by status and process Id.
      * Report is stored in JSONL format in workspace ORDERED BY opi.
      *

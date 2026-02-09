@@ -55,7 +55,7 @@ types:
              "$roots": [ "id0" ],
              "$query": [
                {
-                 "$match": { "title": "titre" },
+                 "$match": { "Title": "titre" },
                  "$depth": 4
                }
              ],
@@ -568,3 +568,49 @@ types:
         },
         "accessRequestStatus": "NOT_FOUND"
       }
+
+  OriginatingAgencyReassignmentRequest:
+      displayName: Requête DSL multiple de traitement de masse pour réattribution de service producteur
+      description: Requête DSL multiple Vitam de traitement de masse pour réattribution de service producteur
+      type: object
+      properties:
+        dslRequest:
+          description: Contient la requête de recherche
+          type: DslTypes.DslBatchProcessionQuery
+        sourceOriginatingAgency:
+          description: Le service producteur source à remplacer
+          required: true
+          type: string
+        targetOriginatingAgency:
+          description: Le service producteur cible
+          required: true
+          type: string
+
+      example:
+        {
+           "sourceOriginatingAgency": "source SP",
+           "targetOriginatingAgency": "target SP",
+           "dslRequest": {
+             "$roots": [ "id0" ],
+             "$query": [
+               {
+                 "$match": { "Title": "titre" },
+                 "$depth": 4
+               }
+             ],
+             "$threshold": 10000
+           }
+        }
+
+  OriginatingAgencyReassignmentResponse:
+      displayName: Requête DSL multiple de traitement de masse pour réattribution de service producteur
+      description: Requête DSL multiple Vitam de traitement de masse pour réattribution de service producteur
+      type: object
+      properties:
+        httpCode:
+          description: Http status code la reponse
+          type: integer
+      example:
+        {
+           "httpCode" : 202
+        }

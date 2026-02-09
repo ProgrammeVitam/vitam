@@ -1,0 +1,57 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 2,
+    "offset": 0,
+    "limit": 0,
+    "size": 2,
+    "scrollId": null
+  },
+  "$results": [
+    {
+      "DescriptionLevel": "Item",
+      "Title": "The Open Archival Information System (OAIS) Reference Model: Introductory Guide (2nd Edition)",
+      "Descriptions": {},
+      "#id": "unit1",
+      "#tenant": 0,
+      "#min": 1,
+      "#max": 2,
+      "#unitType": "INGEST",
+      "#operations": [
+        "aedaaaaaacdf6mc4aathcak7tmtfxiiaaaba"
+      ],
+      "#originating_agency": "sourceOriginatingAgency",
+      "#originating_agencies": [
+        "sourceOriginatingAgency"
+      ],
+      "#version": 1
+    },
+    {
+      "DescriptionLevel": "Item",
+      "Title": "The Open Archival Information System (OAIS) Reference Model: Introductory Guide (2nd Edition)",
+      "Descriptions": {},
+      "#id": "unit2",
+      "#tenant": 0,
+      "#min": 1,
+      "#max": 2,
+      "#unitType": "INGEST",
+      "#operations": [
+        "aedaaaaaacdf6mc4aathcak7tmtfxiiaaaba"
+      ],
+      "#originating_agency": "sourceOriginatingAgency",
+      "#originating_agencies": [
+        "sourceOriginatingAgency"
+      ],
+      "#version": 1
+    }
+  ],
+  "$context": {
+    "$query": {
+      "$eq": {
+        "#operations": "aedaaaaaacdf6mc4aathcak7tmtfxiiaaaba"
+      }
+    },
+    "$filter": {},
+    "$projection": {}
+  }
+}

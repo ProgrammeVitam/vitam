@@ -641,3 +641,30 @@ traits:
       200:
         description: |
           Succès du traitement de la requête.
+
+
+  OriginatingAgecyReassignmentResponseAsync:
+    description: Requête de réatribution de service prodcuteur
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader202 ]
+    body:
+      application/json:
+        description: |
+          Body contient la requête DSL **multiple** au format JSON.
+          Le service producteur source à remplacer
+          Le service producteur cible.
+        type: AccessTypes.OriginatingAgencyReassignmentRequest
+        example: !include examples/originatingAgencyReassignmentRequest.json
+    responses:
+      202:
+        description: |
+          Renvoie le statut de l'opération de réatribution
+        body:
+          application/json:
+            description: Operation de réatribution acceptée
+            type: AccessTypes.OriginatingAgencyReassignmentResponse
+            example: !include examples/originatingAgencyReassignmentResponse.json
+      500:
+        description: Renvoie le statut final de l'opération de réatribution en KO
+        body:
+          application/json:
+            description: Rapport final de l'opération de réatribution

@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.JsonLineIterator;
+import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -863,6 +864,22 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             .withBody(transferReply)
             .withXMLContentType()
             .withJsonAccept();
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> launchOriginatingAgencyReassignment(
+        VitamContext vitamContext,
+        OriginatingAgencyReassignmentRequest reassignmentRequest
+    ) throws VitamClientException {
+        VitamRequestBuilder request = post()
+            .withPath("/originatingAgencyReassignment")
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(reassignmentRequest)
+            .withJson();
         try (Response response = make(request)) {
             check(response);
             return RequestResponse.parseFromResponse(response, JsonNode.class);

@@ -66,6 +66,7 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     private static final String UNITS_AND_PROGENY_INVALIDATION = "/computedInheritedRulesInvalidation/";
     private static final String STORE_EXTRACTED_METADATA_FOR_AU = "/storeExtractedMetadataForAu/";
     private static final String CREATE_DISTRIBUTION_FILE_FOR_AU = "/createExtractedMetadataDistributionFileForAu/";
+    private static final String UNITS_AND_PROGENY_SPS_COMPUTING = "/originatingAgencyReassignmentAgenciesUpdate/";
 
     @VisibleForTesting
     BatchReportClientRest(VitamClientFactoryInterface<?> factory) {
@@ -204,6 +205,24 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException | InvalidParseOperationException e) {
             throw new BatchReportException(e);
+        }
+    }
+
+    @Override
+    public void exportUnitsToComputeOriginatingAgencies(
+        String processId,
+        ReportExportRequest reportExportRequest,
+        WorkFlowExecutionContext executionContext
+    ) throws VitamClientInternalException {
+        ParametersChecker.checkParameter("processId parameter should be filled", processId);
+
+        VitamRequestBuilder request = post()
+            .withPath(UNITS_AND_PROGENY_SPS_COMPUTING + processId)
+            .withBody(new ReportRequestWrapper<>(reportExportRequest, executionContext))
+            .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
         }
     }
 

@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -117,6 +118,7 @@ import static fr.gouv.vitam.common.model.VitamConstants.JSON_EXTENSION;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.OB_ID;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.ORIGINATING_AGENCY_REASSIGNMENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.assertEquals;
@@ -652,6 +654,80 @@ public class VitamTestHelper {
             assertEquals(COMPLETED, cirWorkflow.getState());
             assertEquals(StatusCode.OK, cirWorkflow.getStatus());
         }
+    }
+
+    public static String reassignOriginatingAgencyForUnits(
+        String sourceOriginatingAgency,
+        String newOriginatingAgency,
+        SelectMultiQuery select
+    )
+        throws ContentAddressableStorageServerException, InvalidParseOperationException, InternalServerException, BadRequestException, VitamClientException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException {
+        GUID operationId;
+        try (
+            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance(
+                WorkFlowExecutionContext.VITAM
+            ).getClient();
+            ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
+        ) {
+            int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            operationId = GUIDFactory.newRequestIdGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationId);
+
+            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
+                operationId,
+                Contexts.ORIGINATING_AGENCY_REASSIGNMENT.getEventType(),
+                operationId,
+                LogbookTypeProcess.ORIGINATING_AGENCY_REASSIGNMENT,
+                StatusCode.STARTED,
+                operationId.toString(),
+                operationId
+            );
+            ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
+            rightsStatementIdentifier.put("AccessContract", VitamThreadUtils.getVitamSession().getContractId());
+            initParameters.putParameterValue(
+                LogbookParameterName.rightsStatementIdentifier,
+                rightsStatementIdentifier.toString()
+            );
+            logbookOperationsClient.create(initParameters);
+
+            workspaceClient.createContainer(operationId.toString());
+
+            OriginatingAgencyReassignmentRequest originatingAgencyReassignmentRequest =
+                new OriginatingAgencyReassignmentRequest();
+
+            JsonNode queryNode = JsonHandler.getFromInputStream(writeToInpustream(select.getFinalSelect()));
+
+            originatingAgencyReassignmentRequest.setDslRequest(queryNode);
+            originatingAgencyReassignmentRequest.setTargetOriginatingAgency(newOriginatingAgency);
+            originatingAgencyReassignmentRequest.setSourceOriginatingAgency(sourceOriginatingAgency);
+            workspaceClient.putObject(
+                operationId.toString(),
+                "request.json",
+                JsonHandler.writeToInpustream(originatingAgencyReassignmentRequest)
+            );
+
+            workspaceClient.putObject(operationId.toString(), "query.json", writeToInpustream(select.getFinalSelect()));
+
+            processingClient.initVitamProcess(
+                new ProcessingEntry(operationId.toString(), ORIGINATING_AGENCY_REASSIGNMENT.name())
+            );
+            RequestResponse<ItemStatus> cirResponse = processingClient.executeOperationProcess(
+                operationId.toString(),
+                ORIGINATING_AGENCY_REASSIGNMENT.name(),
+                RESUME.getValue()
+            );
+            assertNotNull(cirResponse);
+            assertTrue(cirResponse.isOk());
+            assertEquals(Response.Status.ACCEPTED.getStatusCode(), cirResponse.getStatus());
+            waitOperation(operationId.toString());
+            ProcessWorkflow cirWorkflow = ProcessMonitoringImpl.getInstance()
+                .findOneProcessWorkflow(operationId.toString(), tenantId);
+            assertNotNull(cirWorkflow);
+            assertEquals(COMPLETED, cirWorkflow.getState());
+            assertEquals(StatusCode.OK, cirWorkflow.getStatus());
+        }
+        return operationId.toString();
     }
 
     public static LogbookOperation selectLogbookOperation(String operationId)

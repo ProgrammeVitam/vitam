@@ -278,9 +278,6 @@ public class ProcessManagementImpl implements ProcessManagement {
                 case INGEST_TEST:
                 case AUDIT:
                 case DATA_MIGRATION:
-                case COLLECT_RECLASSIFICATION:
-                case COLLECT_ELIMINATION_ACTION:
-                case COLLECT_DELETION_ACTION:
                 case COLLECT_SIP_INGEST:
                     LOGGER.debug(
                         "Backup operation context. No operation context for the process type " +

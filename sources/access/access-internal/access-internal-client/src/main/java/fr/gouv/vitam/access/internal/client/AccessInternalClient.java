@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
+import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -482,4 +483,14 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     void removeAccessRequest(AccessRequestReference accessRequestReference)
         throws AccessInternalClientServerException, AccessInternalClientIllegalOperationException;
+
+    /**
+     * Perform originating agency reassignment workflow
+     *
+     * @param request
+     * @return
+     * @throws AccessInternalClientServerException,AccessUnauthorizedException,NoWritingPermissionException
+     */
+    RequestResponse<JsonNode> originatingAgencyReassignment(OriginatingAgencyReassignmentRequest request)
+        throws AccessInternalClientServerException, AccessUnauthorizedException, NoWritingPermissionException;
 }
