@@ -38,6 +38,17 @@ Puis exécutez le playbook suivant **sur tous les sites** :
 
 ..
 
+Workaround pour la mise à jour de MongoDB en cas de saut de versions
+--------------------------------------------------------------------
+
+Si vous effectuez une montée de version depuis une version antérieure à la V5.1 (ou inférieure) ou à la V6.rc.1 (ou inférieure) vers la V7.0.X (ou supérieure), vous devrez appliquer le playbook suivant avant de procéder à l'étape ``Montée de version vers mongo 4.4`` de la procédure de migration vers la V6RC.
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-migration/pre_migration_mongodb_44.yml --tags update_systemd_configuration --ask-vault-pass
+
+..
+
 Arrêt complet de Vitam
 ----------------------
 

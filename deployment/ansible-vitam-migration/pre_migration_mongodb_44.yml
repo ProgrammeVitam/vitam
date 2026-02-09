@@ -1,0 +1,56 @@
+---
+# Example: ansible-playbook -i environments/<hosts_file> --ask-vault-pass ansible-vitam-migration/pre_migration_mongodb_44.yml --tags update_systemd_configuration
+
+# Confirm launching this playbook
+- hosts: localhost
+  any_errors_fatal: yes
+  gather_facts: no
+  vars_prompt:
+    name: "confirmation"
+    prompt: "This playbook will remove former vitam-mongo* packages and replace them by systemd scripts provided by Ansible.\n\nAre you sure you want to run this playbook ?\nAnswer with 'YES'"
+    default: "NO"
+    private: no
+  tasks:
+    - name: Check Confirmation
+      fail: msg="Playbook run confirmation failed"
+      when: confirmation|upper != "YES"
+      tags: always
+
+# mongoc
+- hosts: hosts_mongoc_data,hosts_mongoc_offer
+
+  pre_tasks:
+    - name: Remove former vitam-mongoc package
+      package:
+        name: vitam-mongoc
+        state: absent
+      tags: update_systemd_configuration
+
+  roles:
+    - mongoc
+
+# mongod
+- hosts: hosts_mongod_data,hosts_mongod_offer
+
+  pre_tasks:
+    - name: Remove former vitam-mongod package
+      package:
+        name: vitam-mongod
+        state: absent
+      tags: update_systemd_configuration
+
+  roles:
+    - mongod
+
+# mongos
+- hosts: hosts_mongos_data,hosts_mongos_offer
+
+  pre_tasks:
+    - name: Remove former vitam-mongos package
+      package:
+        name: vitam-mongos
+        state: absent
+      tags: update_systemd_configuration
+
+  roles:
+    - mongos
