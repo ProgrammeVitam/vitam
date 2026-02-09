@@ -238,7 +238,7 @@ public class FluxService {
         } catch (Exception e) {
             throw CollectErrorDetailHelper.generateException(
                 CollectErrorMessagesEnum.UNEXPECTED_ERROR_OCCURS_WHEN_TRY_UPLOAD_ZIP,
-                Map.of(CollectErrorParamEnum.MESSAGE, e.getMessage()),
+                Map.of(CollectErrorParamEnum.MESSAGE, Optional.ofNullable(e.getMessage()).orElse("")),
                 e
             );
         }
