@@ -43,6 +43,7 @@
     group: root
     mode: "0644"
   notify: "mongoc - restart service"
+  tags: update_systemd_configuration
 
 #### Configuration ####
 
