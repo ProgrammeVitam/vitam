@@ -1,0 +1,20 @@
+{
+  "processId": "123456789",
+  "reportType": "ORIGINATING_AGENCY_REASSIGNMENT_UNIT_AGENCIES_COMPUTING",
+  "entries": [
+    {
+      "id": "unitId1"
+    },{
+      "id": "unitId2"
+    },{
+      "id": "unitId3"
+    },{
+      "id": "unitId4"
+    },{
+      "id": "unitId5"
+    },{
+      "id": "unitId6"
+    }
+  ]
+}
+

@@ -53,3 +53,7 @@ db.TraceabilityReport.createIndex( { "processId" : 1, "_tenant" : 1 } )
 
 // Create indexes TraceabilityReport
 db.UpdateUnitReport.createIndex( { "processId" : 1, "_tenant" : 1 } )
+
+
+// Create index for OriginatingAgencyReassignmentUnitsReport
+db.OriginatingAgencyReassignmentUnitsReport.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )

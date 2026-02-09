@@ -83,6 +83,7 @@ public final class BackgroundLogbookTypeProcessHelper {
             case COLLECT_ELIMINATION_ACTION:
             case COLLECT_DELETION_ACTION:
             case COLLECT_SIP_INGEST:
+            case ORIGINATING_AGENCY_REASSIGNMENT:
                 return false;
             default:
                 // /:\ Please ensure that any new LogbookTypeProcess is identified properly configured

@@ -41,6 +41,7 @@ import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsComputedDetails;
 import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentUpdateReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
@@ -117,6 +118,12 @@ public class BatchReportResource extends ApplicationStatusResource {
     >() {};
     private static final TypeReference<ReportBody<DeleteGotVersionsReportEntry>> reportDeleteGotVersionsType =
         new TypeReference<>() {};
+
+    private static final TypeReference<
+        ReportBody<OriginatingAgencyReassignmentUpdateReportEntry>
+    > originatingAgencyReassignmentComputingType = new TypeReference<
+        ReportBody<OriginatingAgencyReassignmentUpdateReportEntry>
+    >() {};
 
     private final BatchReportServiceImpl batchReportServiceImpl;
 
@@ -246,6 +253,19 @@ public class BatchReportResource extends ApplicationStatusResource {
                         JsonHandler.getFromJsonNode(body, reportDeleteGotVersionsType);
                     batchReportServiceImpl.appendDeleteGotVersionsReport(
                         deleteGotVersionsReportEntryReportBody.getEntries()
+                    );
+                    break;
+                case ORIGINATING_AGENCY_REASSIGNMENT_UNIT_AGENCIES_COMPUTING:
+                    ReportBody<
+                        OriginatingAgencyReassignmentUpdateReportEntry
+                    > unitOriginatingAgencyReassignmentReportEntry = JsonHandler.getFromJsonNode(
+                        body,
+                        originatingAgencyReassignmentComputingType
+                    );
+                    batchReportServiceImpl.appendOriginatingAgencyAssignmentComputingReport(
+                        unitOriginatingAgencyReassignmentReportEntry.getProcessId(),
+                        unitOriginatingAgencyReassignmentReportEntry.getEntries(),
+                        tenantId
                     );
                     break;
                 default:
@@ -407,6 +427,9 @@ public class BatchReportResource extends ApplicationStatusResource {
                 case DELETE_GOT_VERSIONS:
                     batchReportServiceImpl.deleteGotVersionsByIdAndTenant(processId, tenantId);
                     break;
+                case ORIGINATING_AGENCY_REASSIGNMENT_UNIT_AGENCIES_COMPUTING:
+                    batchReportServiceImpl.deleteOriginatingAgencyReassignmentReportByIdAndTenant(processId, tenantId);
+                    break;
                 default:
                     Response.Status status = Response.Status.BAD_REQUEST;
                     VitamError vitamError = new VitamError(status.name())
@@ -476,5 +499,19 @@ public class BatchReportResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @Path("originatingAgencyReassignmentAgenciesUpdate/{processId}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response exportUnitsToComputeSps(
+        @PathParam("processId") String processId,
+        ReportRequestWrapper<ReportExportRequest> reportRequestWrapper
+    ) throws Exception {
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+
+        batchReportServiceImpl.exportUnitsToComputeSps(processId, tenantId, reportRequestWrapper.getRequest());
+        return Response.status(Response.Status.CREATED).build();
     }
 }

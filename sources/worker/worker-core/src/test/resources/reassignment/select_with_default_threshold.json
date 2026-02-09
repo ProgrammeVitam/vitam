@@ -1,0 +1,29 @@
+{
+  "$query": [
+    {
+      "$or": [
+        {
+          "$eq": {
+            "#validComputedInheritedRules": false
+          }
+        },
+        {
+          "$and": [
+            {
+              "$not": [
+                {
+                  "$exists": "#computedInheritedRules"
+                }
+              ]
+            },
+            {
+              "$exists": "#validComputedInheritedRules"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "$filter": {},
+  "$projection": {}
+}

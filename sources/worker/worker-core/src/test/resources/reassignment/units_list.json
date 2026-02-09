@@ -1,0 +1,21 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 10,
+    "size": 1
+  },
+  "$results": [
+    {
+      "#id": "id_unit_1",
+      "#originating_agency": "oldOriginatingAgency",
+      "#originating_agencies": ["oldOriginatingAgency"],
+      "#allunitups": [],
+      "#unitups": [],
+      "#max": 1
+    }
+  ],
+  "$facetResults": [],
+  "$context": {}
+}

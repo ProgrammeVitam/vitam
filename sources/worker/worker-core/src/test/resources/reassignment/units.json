@@ -1,0 +1,47 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 4,
+    "offset": 0,
+    "limit": 4,
+    "size": 4
+  },
+  "$results": [
+    {
+      "#id": "id_unit_1",
+      "#originating_agency": "sourceOriginatingAgency",
+      "#originating_agencies": ["sourceOriginatingAgency"],
+      "#allunitups": [],
+      "#unitups": [],
+      "#max": 1
+    },
+    {
+      "#id": "id_unit_2",
+      "#originating_agency": "sourceOriginatingAgency",
+      "#originating_agencies": ["sourceOriginatingAgency"],
+      "#max": 1,
+      "#validComputedInheritedRules": true,
+      "#allunitups": [],
+      "#unitups": []
+    },
+    {
+      "#id": "id_unit_3",
+      "#originating_agency": "sourceOriginatingAgency",
+      "#originating_agencies": ["sourceOriginatingAgency"],
+      "#max": 2,
+      "#allunitups": ["id_unit_1"],
+      "#validComputedInheritedRules": true,
+      "#unitups": ["id_unit_1"]
+    },
+    {
+      "#id": "id_unit_5",
+      "#originating_agency": "sourceOriginatingAgency",
+      "#max": 3,
+      "#validComputedInheritedRules": true,
+      "#allunitups": ["id_unit_1","id_unit_3"],
+      "#unitups": ["id_unit_3"]
+    }
+  ],
+  "$facetResults": [],
+  "$context": {}
+}

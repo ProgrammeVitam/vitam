@@ -41,6 +41,7 @@ import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentUpdateReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
@@ -438,11 +439,53 @@ public class ReportManagementIT extends VitamRuleRunner {
         String unitsJsonlFileName = "myFileName.jsonl";
 
         // When
-        batchReportClient.appendReportEntries(getReportBody(processId, ids1));
-        batchReportClient.appendReportEntries(getReportBody(processId, ids2));
-        batchReportClient.appendReportEntries(getReportBody(processId, ids3));
-        batchReportClient.appendReportEntries(getReportBody(processId, ids4));
+        batchReportClient.appendReportEntries(getUnitComputedInvalidationReportBody(processId, ids1));
+        batchReportClient.appendReportEntries(getUnitComputedInvalidationReportBody(processId, ids2));
+        batchReportClient.appendReportEntries(getUnitComputedInvalidationReportBody(processId, ids3));
+        batchReportClient.appendReportEntries(getUnitComputedInvalidationReportBody(processId, ids4));
         batchReportClient.exportUnitsToInvalidate(
+            processId,
+            new ReportExportRequest(unitsJsonlFileName),
+            WorkFlowExecutionContext.VITAM
+        );
+
+        // Then
+        try (
+            InputStream reportIS = new VitamAsyncInputStream(workspaceClient.getObject(processId, unitsJsonlFileName));
+            JsonLineIterator<JsonLineModel> lineGenericIterator = new JsonLineIterator<>(reportIS, TYPE_REFERENCE)
+        ) {
+            Set<String> expectedDeduplicatedIds = new HashSet<>();
+            expectedDeduplicatedIds.addAll(ids1);
+            expectedDeduplicatedIds.addAll(ids2);
+            expectedDeduplicatedIds.addAll(ids3);
+            expectedDeduplicatedIds.addAll(ids4);
+
+            assertThat(
+                lineGenericIterator.stream().map(JsonLineModel::getId).collect(Collectors.toList())
+            ).containsExactlyInAnyOrder(expectedDeduplicatedIds.toArray(new String[0]));
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_store_units_to_update_originating_agencies_on_unit_children_for_distribution_file()
+        throws Exception {
+        // Given
+        String processId = VitamThreadUtils.getVitamSession().getRequestId();
+        workspaceClient.createContainer(processId);
+
+        List<String> ids1 = Arrays.asList("id1", "id2");
+        List<String> ids2 = Arrays.asList("id1", "id3");
+        List<String> ids3 = Collections.emptyList();
+        List<String> ids4 = Collections.singletonList("id4");
+        String unitsJsonlFileName = "myFileName.jsonl";
+
+        // When
+        batchReportClient.appendReportEntries(getOriginatingAgencyReassignmentUnitsChildrenReportBody(processId, ids1));
+        batchReportClient.appendReportEntries(getOriginatingAgencyReassignmentUnitsChildrenReportBody(processId, ids2));
+        batchReportClient.appendReportEntries(getOriginatingAgencyReassignmentUnitsChildrenReportBody(processId, ids3));
+        batchReportClient.appendReportEntries(getOriginatingAgencyReassignmentUnitsChildrenReportBody(processId, ids4));
+        batchReportClient.exportUnitsToComputeOriginatingAgencies(
             processId,
             new ReportExportRequest(unitsJsonlFileName),
             WorkFlowExecutionContext.VITAM
@@ -486,12 +529,24 @@ public class ReportManagementIT extends VitamRuleRunner {
         ).doesNotThrowAnyException();
     }
 
-    private ReportBody getReportBody(String processId, List<String> unitsIds) {
+    private ReportBody getUnitComputedInvalidationReportBody(String processId, List<String> unitsIds) {
         List<UnitComputedInheritedRulesInvalidationReportEntry> entries = unitsIds
             .stream()
             .distinct()
             .map(UnitComputedInheritedRulesInvalidationReportEntry::new)
             .collect(Collectors.toList());
         return new ReportBody<>(processId, ReportType.UNIT_COMPUTED_INHERITED_RULES_INVALIDATION, entries);
+    }
+
+    private ReportBody getOriginatingAgencyReassignmentUnitsChildrenReportBody(
+        String processId,
+        List<String> unitsIds
+    ) {
+        List<OriginatingAgencyReassignmentUpdateReportEntry> entries = unitsIds
+            .stream()
+            .distinct()
+            .map(OriginatingAgencyReassignmentUpdateReportEntry::new)
+            .collect(Collectors.toList());
+        return new ReportBody<>(processId, ReportType.ORIGINATING_AGENCY_REASSIGNMENT_UNIT_AGENCIES_COMPUTING, entries);
     }
 }

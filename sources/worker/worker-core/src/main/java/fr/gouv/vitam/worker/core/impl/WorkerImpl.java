@@ -265,6 +265,7 @@ public class WorkerImpl implements Worker {
             ComputedInheritedRulesCheckDistributionThreshold.getId(),
             ComputedInheritedRulesCheckDistributionThreshold::new
         );
+
         actions.put(CollectDeletionUnitPreparationHandler.getId(), CollectDeletionUnitPreparationHandler::new);
     }
 

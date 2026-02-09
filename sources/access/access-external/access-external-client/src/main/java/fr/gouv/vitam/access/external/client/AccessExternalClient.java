@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientIllegalAccessRequestOperationOnSyncOfferException;
 import fr.gouv.vitam.common.external.client.BasicClient;
 import fr.gouv.vitam.common.model.JsonLineIterator;
+import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -478,4 +479,9 @@ public interface AccessExternalClient extends BasicClient {
 
     RequestResponse<JsonNode> transferReply(VitamContext vitamContext, InputStream transferReply)
         throws VitamClientException;
+
+    RequestResponse<JsonNode> launchOriginatingAgencyReassignment(
+        VitamContext vitamContext,
+        OriginatingAgencyReassignmentRequest reassignmentRequest
+    ) throws VitamClientException;
 }

@@ -34,6 +34,7 @@ import fr.gouv.vitam.batch.report.rest.repository.DeleteGotVersionsReportReposit
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.ExtractedMetadataRepository;
+import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentUnitsUpdateRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
@@ -92,6 +93,8 @@ public class BusinessApplication extends ConfigurationApplication {
             AuditReportRepository auditReportRepository = new AuditReportRepository(mongoDbAccess);
             UnitComputedInheritedRulesInvalidationRepository unitComputedInheritedRulesInvalidationRepository =
                 new UnitComputedInheritedRulesInvalidationRepository(mongoDbAccess);
+            OriginatingAgencyReassignmentUnitsUpdateRepository originatingAgencyReassignmentUnitsUpdateRepository =
+                new OriginatingAgencyReassignmentUnitsUpdateRepository(mongoDbAccess);
             WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl(), WorkFlowExecutionContext.VITAM);
             WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance(
                 WorkFlowExecutionContext.VITAM
@@ -123,7 +126,8 @@ public class BusinessApplication extends ConfigurationApplication {
                 evidenceAuditReportRepository,
                 traceabilityReportRepository,
                 extractedMetadataRepository,
-                deleteGotVersionsReportRepository
+                deleteGotVersionsReportRepository,
+                originatingAgencyReassignmentUnitsUpdateRepository
             );
 
             commonBusinessApplication = new CommonBusinessApplication();

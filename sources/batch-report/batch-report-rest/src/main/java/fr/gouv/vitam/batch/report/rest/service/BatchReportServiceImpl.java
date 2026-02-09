@@ -36,6 +36,7 @@ import fr.gouv.vitam.batch.report.model.EvidenceAuditObjectModel;
 import fr.gouv.vitam.batch.report.model.EvidenceStatus;
 import fr.gouv.vitam.batch.report.model.MergeSortedIterator;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
+import fr.gouv.vitam.batch.report.model.OriginatingAgencyReassignmentUpdateModel;
 import fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel;
 import fr.gouv.vitam.batch.report.model.PurgeObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.PurgeUnitModel;
@@ -52,6 +53,7 @@ import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsComputedDetails;
 import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentUpdateReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
@@ -65,6 +67,7 @@ import fr.gouv.vitam.batch.report.rest.repository.DeleteGotVersionsReportReposit
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.ExtractedMetadataRepository;
+import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentUnitsUpdateRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
@@ -136,6 +139,7 @@ public class BatchReportServiceImpl {
     private final ExtractedMetadataRepository extractedMetadataRepository;
     private final DeleteGotVersionsReportRepository deleteGotVersionsReportRepository;
     private final WorkspaceClientFactory workspaceClientFactory;
+    private final OriginatingAgencyReassignmentUnitsUpdateRepository originatingAgencyReassignmentUnitsUpdateRepository;
 
     public BatchReportServiceImpl(
         WorkspaceClientFactory workspaceClientFactory,
@@ -151,7 +155,8 @@ public class BatchReportServiceImpl {
         EvidenceAuditReportRepository evidenceAuditReportRepository,
         TraceabilityReportRepository traceabilityReportRepository,
         ExtractedMetadataRepository extractedMetadataRepository,
-        DeleteGotVersionsReportRepository deleteGotVersionsReportRepository
+        DeleteGotVersionsReportRepository deleteGotVersionsReportRepository,
+        OriginatingAgencyReassignmentUnitsUpdateRepository originatingAgencyReassignmentUnitsUpdateRepository
     ) {
         this(
             eliminationActionUnitRepository,
@@ -167,7 +172,8 @@ public class BatchReportServiceImpl {
             traceabilityReportRepository,
             extractedMetadataRepository,
             deleteGotVersionsReportRepository,
-            workspaceClientFactory
+            workspaceClientFactory,
+            originatingAgencyReassignmentUnitsUpdateRepository
         );
     }
 
@@ -186,7 +192,8 @@ public class BatchReportServiceImpl {
         TraceabilityReportRepository traceabilityReportRepository,
         ExtractedMetadataRepository extractedMetadataRepository,
         DeleteGotVersionsReportRepository deleteGotVersionsReportRepository,
-        WorkspaceClientFactory workspaceClientFactory
+        WorkspaceClientFactory workspaceClientFactory,
+        OriginatingAgencyReassignmentUnitsUpdateRepository originatingAgencyReassignmentUnitsUpdateRepository
     ) {
         this.eliminationActionUnitRepository = eliminationActionUnitRepository;
         this.purgeUnitRepository = purgeUnitRepository;
@@ -201,6 +208,7 @@ public class BatchReportServiceImpl {
         this.traceabilityReportRepository = traceabilityReportRepository;
         this.extractedMetadataRepository = extractedMetadataRepository;
         this.deleteGotVersionsReportRepository = deleteGotVersionsReportRepository;
+        this.originatingAgencyReassignmentUnitsUpdateRepository = originatingAgencyReassignmentUnitsUpdateRepository;
         this.workspaceClientFactory = workspaceClientFactory;
     }
 
@@ -321,7 +329,7 @@ public class BatchReportServiceImpl {
             ) {
                 while (units.hasNext()) {
                     Document unit = units.next();
-                    jsonLineWriter.addEntry(new JsonLineModel((String) unit.get("id")));
+                    jsonLineWriter.addEntry(new JsonLineModel(unit.getString("id")));
                 }
             }
 
@@ -796,6 +804,10 @@ public class BatchReportServiceImpl {
         deleteGotVersionsReportRepository.deleteReportByIdAndTenant(processId, tenantId);
     }
 
+    public void deleteOriginatingAgencyReassignmentReportByIdAndTenant(String processId, int tenantId) {
+        originatingAgencyReassignmentUnitsUpdateRepository.deleteReportByIdAndTenant(processId, tenantId);
+    }
+
     private void deleteQuietly(File directory) {
         try {
             FileUtils.deleteDirectory(directory);
@@ -831,6 +843,52 @@ public class BatchReportServiceImpl {
             extractedMetadataRepository.deleteExtractedMetadataByProcessId(processId, tenant);
         } finally {
             deleteQuietly(tempFile.getParentFile());
+        }
+    }
+
+    public void appendOriginatingAgencyAssignmentComputingReport(
+        String processId,
+        List<OriginatingAgencyReassignmentUpdateReportEntry> unitEntries,
+        int tenantId
+    ) throws BatchReportException {
+        List<OriginatingAgencyReassignmentUpdateModel> documents = unitEntries
+            .stream()
+            .map(
+                entry ->
+                    new OriginatingAgencyReassignmentUpdateModel(
+                        processId,
+                        tenantId,
+                        LocalDateUtil.nowFormatted(),
+                        entry
+                    )
+            )
+            .toList();
+        originatingAgencyReassignmentUnitsUpdateRepository.bulkAppendReport(documents);
+    }
+
+    public void exportUnitsToComputeSps(String processId, int tenantId, ReportExportRequest reportExportRequest)
+        throws IOException, ContentAddressableStorageServerException, IllegalPathException {
+        File file = createTemporaryFile(processId, reportExportRequest.getFilename());
+
+        try {
+            try (
+                OutputStream outputStream = new FileOutputStream(file);
+                JsonLineWriter<JsonLineModel> jsonLineWriter = new JsonLineWriter<>(outputStream);
+                MongoCursor<Document> units =
+                    originatingAgencyReassignmentUnitsUpdateRepository.findCollectionByProcessIdTenant(
+                        processId,
+                        tenantId
+                    )
+            ) {
+                while (units.hasNext()) {
+                    Document unit = units.next();
+                    jsonLineWriter.addEntry(new JsonLineModel(unit.getString("id")));
+                }
+            }
+
+            storeFileToWorkspace(processId, reportExportRequest.getFilename(), file);
+        } finally {
+            deleteQuietly(file.getParentFile());
         }
     }
 

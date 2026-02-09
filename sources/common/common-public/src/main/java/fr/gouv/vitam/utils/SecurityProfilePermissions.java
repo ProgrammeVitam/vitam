@@ -64,6 +64,7 @@ public enum SecurityProfilePermissions {
     ACCESSCONTRACTS_ID_UPDATE("accesscontracts:id:update"),
     ACCESSIONREGISTERS_READ("accessionregisters:read"),
     ACCESSIONREGISTERS_ID_ACCESSIONREGISTERDETAILS_READ("accessionregisters:id:accessionregisterdetails:read"),
+    ORIGINATING_AGENCY_REASSIGNMENT_ACTION("originatingAgencyReassignment:action"),
     AGENCIES_CREATE("agencies:create"),
     AGENCIES_READ("agencies:read"),
     AGENCIES_ID_READ("agencies:id:read"),

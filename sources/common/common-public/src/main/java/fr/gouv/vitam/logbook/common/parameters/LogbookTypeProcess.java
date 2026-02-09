@@ -150,6 +150,15 @@ public enum LogbookTypeProcess {
      * Compute inherited rules process
      */
     COMPUTE_INHERITED_RULES,
+
+    /**
+     * Originating agency reassignment process
+     */
+    ORIGINATING_AGENCY_REASSIGNMENT,
+
+    /**
+     * Transfer reply process
+     */
     TRANSFER_REPLY,
     /**
      * Compute inherited rules process delete

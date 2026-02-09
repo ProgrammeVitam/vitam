@@ -1,0 +1,13 @@
+{
+  "httpCode": 302,
+  "$hits": {
+    "total": 100000002,
+    "offset": 0,
+    "limit": 0,
+    "size": 1,
+    "scrollId": null
+  },
+  "$results": [
+    {}
+  ]
+}

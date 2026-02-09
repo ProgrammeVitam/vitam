@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
+import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -1231,6 +1232,31 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             | PreconditionFailedClientException
             | AccessInternalClientNotFoundException
             | AccessUnauthorizedException e
+        ) {
+            throw new AccessInternalClientServerException(e);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> originatingAgencyReassignment(
+        OriginatingAgencyReassignmentRequest reassignmentRequest
+    ) throws AccessInternalClientServerException, AccessUnauthorizedException, NoWritingPermissionException {
+        VitamRequestBuilder request = post()
+            .withBefore(CHECK_REQUEST_ID)
+            .withPath("/originatingAgencyReassignment")
+            .withBody(reassignmentRequest, "Missing request")
+            .withJson()
+            .withHeader(X_ACCESS_CONTRAT_ID, getVitamSession().getContractId());
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (
+            BadRequestException
+            | AccessInternalClientNotFoundException
+            | VitamClientInternalException
+            | ForbiddenClientException
+            | ExpectationFailedClientException
+            | PreconditionFailedClientException e
         ) {
             throw new AccessInternalClientServerException(e);
         }
