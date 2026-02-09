@@ -36,8 +36,8 @@
     owner: root
     group: root
     mode: "0644"
-  notify:
-    - "mongos - restart service"
+  notify: "mongos - restart service"
+  tags: update_systemd_configuration
 
 #### Configuration ####
 
