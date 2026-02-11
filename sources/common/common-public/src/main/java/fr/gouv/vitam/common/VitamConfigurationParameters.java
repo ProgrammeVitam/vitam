@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.configuration.EliminationReportConfiguration;
 import fr.gouv.vitam.common.configuration.IngestReportExportedObjectGroupFieldConfiguration;
 import fr.gouv.vitam.common.configuration.IngestReportExportedUnitFieldConfiguration;
+import fr.gouv.vitam.common.configuration.TenantTraceabilityVersionConfiguration;
 import fr.gouv.vitam.common.model.dip.BinarySizePlatformThreshold;
 import fr.gouv.vitam.common.model.dip.BinarySizeTenantThreshold;
 
@@ -1637,5 +1638,17 @@ public class VitamConfigurationParameters {
 
     public void setIgnoreAntivirusCheckForWorker(Boolean ignoreAntivirusCheckForWorker) {
         this.ignoreAntivirusCheckForWorker = ignoreAntivirusCheckForWorker;
+    }
+
+    private List<TenantTraceabilityVersionConfiguration> traceabilityVersionConfiguration;
+
+    public List<TenantTraceabilityVersionConfiguration> getTraceabilityVersionConfiguration() {
+        return traceabilityVersionConfiguration;
+    }
+
+    public void setTraceabilityVersionConfiguration(
+        List<TenantTraceabilityVersionConfiguration> traceabilityVersionConfiguration
+    ) {
+        this.traceabilityVersionConfiguration = traceabilityVersionConfiguration;
     }
 }

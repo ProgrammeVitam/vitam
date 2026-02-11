@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.configuration.EliminationReportConfiguration;
 import fr.gouv.vitam.common.configuration.IngestReportExportedObjectGroupFieldConfiguration;
 import fr.gouv.vitam.common.configuration.IngestReportExportedUnitFieldConfiguration;
+import fr.gouv.vitam.common.configuration.TenantTraceabilityVersionConfiguration;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -154,6 +155,10 @@ public class VitamConfiguration {
      * Default strategy id
      */
     private static final String DEFAULT_STRATEGY = "default";
+    private static final String DEFAULT_TRACEABILITY_VERSION = "V1";
+    private static Map<Integer, String> logbookOperationTraceabilityVersionMap = new HashMap<>();
+    private static Map<Integer, String> lfcUnitTraceabilityVersionMap = new HashMap<>();
+    private static Map<Integer, String> lfcGotTraceabilityVersionMap = new HashMap<>();
 
     /**
      * OTHERS ATTRIBUTES
@@ -1243,6 +1248,31 @@ public class VitamConfiguration {
         if (null != parameters.isIgnoreAntivirusCheckForWorker()) {
             setIgnoreAntivirusCheckForWorker(parameters.isIgnoreAntivirusCheckForWorker());
         }
+
+        // Handle consolidated traceability configuration
+        if (null != parameters.getTraceabilityVersionConfiguration()) {
+            List<TenantTraceabilityVersionConfiguration> tenantVersions =
+                parameters.getTraceabilityVersionConfiguration();
+            if (tenantVersions != null) {
+                for (TenantTraceabilityVersionConfiguration tenantVersion : tenantVersions) {
+                    if (tenantVersion.getTenant() != null) {
+                        // Handle consolidated format with separate fields
+                        if (tenantVersion.getLogbookOperation() != null) {
+                            setLogbookOperationTraceabilityVersion(
+                                tenantVersion.getTenant(),
+                                tenantVersion.getLogbookOperation()
+                            );
+                        }
+                        if (tenantVersion.getLfcUnit() != null) {
+                            setLfcUnitTraceabilityVersion(tenantVersion.getTenant(), tenantVersion.getLfcUnit());
+                        }
+                        if (tenantVersion.getLfcGot() != null) {
+                            setLfcGotTraceabilityVersion(tenantVersion.getTenant(), tenantVersion.getLfcGot());
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static void checkEliminationReportExtraFieldsValues(
@@ -1401,6 +1431,73 @@ public class VitamConfiguration {
      */
     public static String getDefaultStrategy() {
         return DEFAULT_STRATEGY;
+    }
+
+    /**
+     * @return the default traceability version
+     */
+    public static String getDefaultTraceabilityVersion() {
+        return DEFAULT_TRACEABILITY_VERSION;
+    }
+
+    /**
+     * Set the securisation version for a tenant
+     *
+     * @param tenantId The tenant ID
+     * @param version The securisation version
+     */
+    public static void setLogbookOperationTraceabilityVersion(int tenantId, String version) {
+        logbookOperationTraceabilityVersionMap.put(tenantId, version);
+    }
+
+    /**
+     * Get the securisation version for a tenant
+     *
+     * @param tenantId The tenant ID
+     * @return The securisation version for the tenant, or DEFAULT_SECURISATION_VERSION if not found
+     */
+    public static String getLogbookOperationTraceabilityVersion(int tenantId) {
+        return logbookOperationTraceabilityVersionMap.getOrDefault(tenantId, DEFAULT_TRACEABILITY_VERSION);
+    }
+
+    /**
+     * Set LFC unit traceability version for a specific tenant
+     *
+     * @param tenantId the tenant id
+     * @param version  the version
+     */
+    public static void setLfcUnitTraceabilityVersion(int tenantId, String version) {
+        lfcUnitTraceabilityVersionMap.put(tenantId, version);
+    }
+
+    /**
+     * Get LFC unit traceability version for a specific tenant
+     *
+     * @param tenantId the tenant id
+     * @return the version or default version if not found
+     */
+    public static String getLfcUnitTraceabilityVersion(int tenantId) {
+        return lfcUnitTraceabilityVersionMap.getOrDefault(tenantId, DEFAULT_TRACEABILITY_VERSION);
+    }
+
+    /**
+     * Set LFC GOT traceability version for a specific tenant
+     *
+     * @param tenantId the tenant id
+     * @param version  the version
+     */
+    public static void setLfcGotTraceabilityVersion(int tenantId, String version) {
+        lfcGotTraceabilityVersionMap.put(tenantId, version);
+    }
+
+    /**
+     * Get LFC GOT traceability version for a specific tenant
+     *
+     * @param tenantId the tenant id
+     * @return the version or default version if not found
+     */
+    public static String getLfcGotTraceabilityVersion(int tenantId) {
+        return lfcGotTraceabilityVersionMap.getOrDefault(tenantId, DEFAULT_TRACEABILITY_VERSION);
     }
 
     /**

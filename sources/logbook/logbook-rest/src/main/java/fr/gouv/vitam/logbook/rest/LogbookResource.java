@@ -86,6 +86,7 @@ import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
 import fr.gouv.vitam.logbook.common.model.RawLifecycleByLastPersistedDateRequest;
 import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
@@ -2662,8 +2663,19 @@ public class LogbookResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findLastLifecycleTraceabilityOperation(@PathParam("eventType") String eventType) {
         try {
+            String securisationVersion;
+            if (Contexts.UNIT_LFC_TRACEABILITY.getEventType().equals(eventType)) {
+                securisationVersion = VitamConfiguration.getLfcUnitTraceabilityVersion(
+                    VitamThreadUtils.getVitamSession().getTenantId()
+                );
+            } else {
+                securisationVersion = VitamConfiguration.getLfcGotTraceabilityVersion(
+                    VitamThreadUtils.getVitamSession().getTenantId()
+                );
+            }
+
             LogbookOperation lastLifecycleTraceabilityOperation =
-                this.logbookOperation.findLastLifecycleTraceabilityOperation(eventType, true);
+                this.logbookOperation.findLastLifecycleTraceabilityOperation(eventType, securisationVersion, true);
 
             RequestResponseOK<LogbookOperation> requestResponseOK = new RequestResponseOK<>();
             requestResponseOK.setHttpCode(Status.OK.getStatusCode());

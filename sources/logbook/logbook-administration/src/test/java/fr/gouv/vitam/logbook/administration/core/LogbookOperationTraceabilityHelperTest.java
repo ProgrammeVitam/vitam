@@ -36,6 +36,9 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper;
@@ -72,6 +75,7 @@ public class LogbookOperationTraceabilityHelperTest {
     private static final String LOGBOOK_OPERATION_START_DATE = "2017-10-31T15:11:15.405";
     public static final int TRACEABILITY_EXPIRATION_IN_SECONDS = 24 * 60 * 60;
     private static final int OPERATION_TRACEABILITY_MAX_ENTRIES = 100_000;
+    private static final String DEFAULT_TRACEABILITY_VERSION = VitamConfiguration.getDefaultTraceabilityVersion();
     private static LocalDateTime LOGBOOK_OPERATION_EVENT_DATE;
 
     private static final String LAST_OPERATION_HASH =
@@ -79,6 +83,11 @@ public class LogbookOperationTraceabilityHelperTest {
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @BeforeClass
     public static void init() throws ParseException {
@@ -114,7 +123,17 @@ public class LogbookOperationTraceabilityHelperTest {
     @Test
     @RunWithCustomExecutor
     public void should_extract_correctly_startDate_from_last_event() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(0, "V2");
+        should_extract_correctly_startDate_from_last_event_with_version("V2");
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(0, DEFAULT_TRACEABILITY_VERSION);
+        should_extract_correctly_startDate_from_last_event_with_version(DEFAULT_TRACEABILITY_VERSION);
+    }
+
+    public void should_extract_correctly_startDate_from_last_event_with_version(String traceabilityVersion)
+        throws Exception {
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         LogbookOperations logbookOperations = mock(LogbookOperations.class);
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
@@ -130,7 +149,7 @@ public class LogbookOperationTraceabilityHelperTest {
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
         LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
 
-        given(logbookOperations.findLastTraceabilityOperationOK()).willReturn(logbookOperation);
+        given(logbookOperations.findLastTraceabilityOperationOK(traceabilityVersion)).willReturn(logbookOperation);
 
         // When
         LocalDateTime beforeInit = LocalDateUtil.now();
@@ -150,6 +169,7 @@ public class LogbookOperationTraceabilityHelperTest {
     @RunWithCustomExecutor
     public void should_extract_correctly_startDate_from_no_event() throws Exception {
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         LogbookOperations logbookOperations = mock(LogbookOperations.class);
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
@@ -161,7 +181,7 @@ public class LogbookOperationTraceabilityHelperTest {
             OPERATION_TRACEABILITY_MAX_ENTRIES
         );
 
-        given(logbookOperations.findLastTraceabilityOperationOK()).willReturn(null);
+        given(logbookOperations.findLastTraceabilityOperationOK(DEFAULT_TRACEABILITY_VERSION)).willReturn(null);
 
         // When
         helper.initialize();
@@ -282,6 +302,7 @@ public class LogbookOperationTraceabilityHelperTest {
     @RunWithCustomExecutor
     public void should_extract_correctly_date_and_token_from_last_event() throws Exception {
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         LogbookOperations logbookOperations = mock(LogbookOperations.class);
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
@@ -297,7 +318,9 @@ public class LogbookOperationTraceabilityHelperTest {
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
         LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
 
-        given(logbookOperations.findLastTraceabilityOperationOK()).willReturn(logbookOperation);
+        given(logbookOperations.findLastTraceabilityOperationOK(DEFAULT_TRACEABILITY_VERSION)).willReturn(
+            logbookOperation
+        );
         helper.initialize();
 
         // When
@@ -355,6 +378,7 @@ public class LogbookOperationTraceabilityHelperTest {
     public void should_not_require_logbook_operation_traceability_when_last_traceability_not_expired_and_no_activity()
         throws Exception {
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         LogbookOperations logbookOperations = mock(LogbookOperations.class);
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
@@ -377,7 +401,12 @@ public class LogbookOperationTraceabilityHelperTest {
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
         LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
 
-        given(logbookOperations.findLastTraceabilityOperationOK()).willReturn(logbookOperation);
+        given(logbookOperations.findLastTraceabilityOperationOK(DEFAULT_TRACEABILITY_VERSION)).willReturn(
+            logbookOperation
+        );
+        given(logbookOperations.findLastTraceabilityOperationOK(DEFAULT_TRACEABILITY_VERSION)).willReturn(
+            logbookOperation
+        );
         given(
             logbookOperations.checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(any(), any())
         ).willReturn(false);
@@ -397,6 +426,7 @@ public class LogbookOperationTraceabilityHelperTest {
     public void should_require_logbook_operation_traceability_when_last_traceability_not_expired_and_existing_activity()
         throws Exception {
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         LogbookOperations logbookOperations = mock(LogbookOperations.class);
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
@@ -419,7 +449,9 @@ public class LogbookOperationTraceabilityHelperTest {
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
         LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
 
-        given(logbookOperations.findLastTraceabilityOperationOK()).willReturn(logbookOperation);
+        given(logbookOperations.findLastTraceabilityOperationOK(DEFAULT_TRACEABILITY_VERSION)).willReturn(
+            logbookOperation
+        );
         given(
             logbookOperations.checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(any(), any())
         ).willReturn(true);
@@ -438,6 +470,8 @@ public class LogbookOperationTraceabilityHelperTest {
     @RunWithCustomExecutor
     public void should_require_logbook_operation_traceability_when_last_traceability_expired() throws Exception {
         // Given
+
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         LogbookOperations logbookOperations = mock(LogbookOperations.class);
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
@@ -453,7 +487,9 @@ public class LogbookOperationTraceabilityHelperTest {
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
         LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
 
-        given(logbookOperations.findLastTraceabilityOperationOK()).willReturn(logbookOperation);
+        given(logbookOperations.findLastTraceabilityOperationOK(DEFAULT_TRACEABILITY_VERSION)).willReturn(
+            logbookOperation
+        );
 
         helper.initialize();
 

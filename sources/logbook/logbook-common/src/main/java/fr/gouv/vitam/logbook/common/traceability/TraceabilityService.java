@@ -61,7 +61,6 @@ public class TraceabilityService {
     private final LogbookTraceabilityHelper helper;
     private final File tmpFolder;
     private final DateTimeFormatter formatter;
-    private static final String SECURISATION_VERSION = "V1";
 
     private File zipFile = null;
 
@@ -80,7 +79,6 @@ public class TraceabilityService {
         this.timestampGenerator = timestampGenerator;
         this.tenantId = tenantId;
         this.helper = traceabilityHelper;
-
         this.tmpFolder = tmpFolder;
         formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
         tmpFolder.mkdir();
@@ -92,7 +90,7 @@ public class TraceabilityService {
      *
      * @throws TraceabilityException if any error or problem occurs
      */
-    public void secureData(String strategyId) throws TraceabilityException {
+    public void secureData(String strategyId, String securisationVersion) throws TraceabilityException {
         helper.startTraceability();
 
         TraceabilityEvent event;
@@ -119,18 +117,22 @@ public class TraceabilityService {
                 String rootHash = BaseXx.getBase64(merkleRootHash);
 
                 // Compute and store token
-                byte[] timestampToken = computeAndStoreTimestampToken(traceabilityFile, merkleRootHash);
+                byte[] timestampToken = computeAndStoreTimestampToken(
+                    traceabilityFile,
+                    merkleRootHash,
+                    securisationVersion
+                );
 
                 final long numberOfLine = helper.getDataSize();
                 final String startDate = helper.getTraceabilityStartDate();
                 final String endDate = helper.getTraceabilityEndDate();
 
-                traceabilityFile.storeAdditionalInformation(numberOfLine, startDate, endDate);
+                traceabilityFile.storeAdditionalInformation(numberOfLine, startDate, endDate, securisationVersion);
 
                 // fill traceability event
                 String previousDate = helper.getPreviousStartDate();
-                String previousMonthDate = helper.getPreviousMonthStartDate();
-                String previousYearDate = helper.getPreviousYearStartDate();
+                String previousMonthDate = helper.getPreviousMonthStartDate(securisationVersion);
+                String previousYearDate = helper.getPreviousYearStartDate(securisationVersion);
                 long size = zipFile.length();
                 boolean maxEntriesReached = helper.getMaxEntriesReached();
                 TraceabilityStatistics traceabilityStatistics = helper.getTraceabilityStatistics();
@@ -149,7 +151,7 @@ public class TraceabilityService {
                     size,
                     VitamConfiguration.getDefaultDigestType(),
                     maxEntriesReached,
-                    SECURISATION_VERSION,
+                    securisationVersion,
                     traceabilityStatistics
                 );
             } else {
@@ -181,13 +183,16 @@ public class TraceabilityService {
         return fileName;
     }
 
-    private byte[] computeAndStoreTimestampToken(TraceabilityFile file, byte[] merkleRootHash)
-        throws IOException, TraceabilityException, InvalidParseOperationException {
+    private byte[] computeAndStoreTimestampToken(
+        TraceabilityFile file,
+        byte[] merkleRootHash,
+        String securisationVersion
+    ) throws IOException, TraceabilityException, InvalidParseOperationException {
         final String rootHash = BaseXx.getBase64(merkleRootHash);
 
         final byte[] timestampToken1 = helper.getPreviousTimestampToken();
-        final byte[] timestampToken2 = helper.getPreviousMonthTimestampToken();
-        final byte[] timestampToken3 = helper.getPreviousYearTimestampToken();
+        final byte[] timestampToken2 = helper.getPreviousMonthTimestampToken(securisationVersion);
+        final byte[] timestampToken3 = helper.getPreviousYearTimestampToken(securisationVersion);
 
         final String timestampToken1Base64 = (timestampToken1 == null) ? null : BaseXx.getBase64(timestampToken1);
         final String timestampToken2Base64 = (timestampToken2 == null) ? null : BaseXx.getBase64(timestampToken2);

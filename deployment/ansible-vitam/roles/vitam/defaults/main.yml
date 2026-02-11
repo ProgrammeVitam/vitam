@@ -50,3 +50,8 @@ default_textMaxLength: "{{ vitam_defaults.textMaxLength | default(32766) }}"
 default_ontologyCacheMaxEntries: "{{ vitam_defaults.ontologyCacheMaxEntries | default(100) }}"
 default_ontologyCacheTimeoutInSeconds: "{{ vitam_defaults.ontologyCacheTimeoutInSeconds | default(300) }}"
 default_elasticSearchScrollTimeoutInMilliseconds: "{{ vitam_defaults.elasticSearchScrollTimeoutInMilliseconds | default(300000) }}"
+
+default_traceabilityVersion_logbookOperation: "{{ extendedConfiguration.default.traceabilityVersion.logbookOperation | default('V1') }}"
+default_traceabilityVersion_lfcUnit: "{{ extendedConfiguration.default.traceabilityVersion.lfcUnit | default('V1') }}"
+default_traceabilityVersion_lfcGot: "{{ extendedConfiguration.default.traceabilityVersion.lfcGot | default('V1') }}"
+

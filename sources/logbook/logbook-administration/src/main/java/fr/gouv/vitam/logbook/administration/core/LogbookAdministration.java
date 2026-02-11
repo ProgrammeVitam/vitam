@@ -163,7 +163,10 @@ public class LogbookAdministration {
 
         TraceabilityService generator = new TraceabilityService(timestampGenerator, helper, tenantId, tmpFolder);
 
-        generator.secureData(VitamConfiguration.getDefaultStrategy());
+        String securisationVersion = VitamConfiguration.getLogbookOperationTraceabilityVersion(
+            VitamThreadUtils.getVitamSession().getTenantId()
+        );
+        generator.secureData(VitamConfiguration.getDefaultStrategy(), securisationVersion);
 
         LOGGER.info("Traceability operation succeeded for tenant " + tenantId);
         return guid.getId();

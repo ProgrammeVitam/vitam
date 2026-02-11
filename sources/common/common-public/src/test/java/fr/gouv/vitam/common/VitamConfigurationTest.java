@@ -160,6 +160,7 @@ public class VitamConfigurationTest {
             assertThat(VitamConfiguration.getRequestTimeAlertThrottlingDelay()).isEqualTo(120);
             assertThat(VitamConfiguration.getDefaultDigestType()).isEqualTo(DigestType.SHA384);
             assertThat(VitamConfiguration.getEnvironmentName()).isEqualTo("ENV");
+            assertEquals("V2", VitamConfiguration.getLogbookOperationTraceabilityVersion(0));
         }
     }
 }

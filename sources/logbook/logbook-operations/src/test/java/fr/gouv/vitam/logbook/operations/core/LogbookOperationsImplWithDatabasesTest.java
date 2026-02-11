@@ -103,6 +103,7 @@ import static org.mockito.Mockito.when;
 public class LogbookOperationsImplWithDatabasesTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
+    private static final String DEFAULT_TRACEABILITY_VERSION = VitamConfiguration.getDefaultTraceabilityVersion();
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
@@ -466,7 +467,8 @@ public class LogbookOperationsImplWithDatabasesTest {
 
         logbookOperationsImpl.update(eip4.getId(), securityEvent);
         final LogbookOperation secureOperation = logbookOperationsImpl.findFirstTraceabilityOperationOKAfterDate(
-            LocalDateTime.parse("2017-08-02T12:01:00")
+            LocalDateTime.parse("2017-08-02T12:01:00"),
+            DEFAULT_TRACEABILITY_VERSION
         );
 
         assertEquals(secureOperation.get("evTypeProc"), LogbookTypeProcess.TRACEABILITY.toString());

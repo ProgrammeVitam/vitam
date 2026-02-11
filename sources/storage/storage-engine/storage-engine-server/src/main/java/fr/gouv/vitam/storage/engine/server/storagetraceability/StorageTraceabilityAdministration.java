@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.engine.server.storagetraceability;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
@@ -207,7 +208,8 @@ public class StorageTraceabilityAdministration {
                 tmpFolder
             );
 
-            service.secureData(strategyId);
+            // Hardcoded to V1 as storagetraceability are not versioned/configurable by design
+            service.secureData(strategyId, VitamConfiguration.getDefaultTraceabilityVersion());
 
             return new StorageLogTraceabilityResult().setTenantId(tenantId).setOperationId(requestId.getId());
         } catch (Exception e) {
