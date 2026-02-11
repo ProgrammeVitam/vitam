@@ -10,16 +10,34 @@
   delay: "{{ packages_install_retries_delay }}"
   notify:
     - "siegfried - restart service"
+  when: install_mode != "container"
 
 - name: Deploy systemd service file for siegfried
   template:
-    src: vitam-siegfried.service.j2
+    src: "vitam-{{ 'container-' if install_mode == 'container' else '' }}siegfried.service.j2"
     dest: "{{ '/lib/systemd/system' if ansible_os_family == 'Debian' else '/usr/lib/systemd/system' }}/vitam-siegfried.service"
     owner: root
     group: root
     mode: "0644"
   notify:
     - "siegfried - restart service"
+
+- block:
+
+    - name: Check Siegfried signature file
+      stat:
+        path: "{{ vitam_defaults.folder.root_path }}/app/siegfried/default.sig"
+      register: siegfried_signature
+
+    - name: Initialize Siegfried signature file (containerized)
+      shell: >
+        /usr/bin/docker run --rm --net=host
+        -v "{{ vitam_defaults.folder.root_path }}/app/siegfried:{{ vitam_defaults.folder.root_path }}/app/siegfried:rw"
+        {{ container_repository.registry_url }}/vitam-external/ghcr.io/keeps/siegfried:v1.11.2
+        sf -update -home {{ vitam_defaults.folder.root_path }}/app/siegfried
+      when: not siegfried_signature.stat.exists
+
+  when: install_mode == "container"
 
 #### Configuration ####
 
@@ -29,7 +47,7 @@
     state: directory
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
-    mode: "{{ vitam_defaults.folder.folder_permission }}"
+    mode: "{{ '0777' if install_mode == 'container' else vitam_defaults.folder.folder_permission }}"
   with_items:
     - app
     - bin
@@ -44,7 +62,7 @@
     dest: "{{ vitam_defaults.folder.root_path }}/conf/siegfried/sysconfig.conf"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
-    mode: "{{ vitam_defaults.folder.script_permission }}"
+    mode: "{{ '0644' if install_mode == 'container' else vitam_defaults.folder.script_permission }}"
   notify:
     - "siegfried - restart service"
 

@@ -1,0 +1,31 @@
+[Unit]
+Description=Siegfried is a signature-based file format identification tool (Docker version)
+Documentation=http://www.itforarchivists.com/siegfried
+Requires=docker.service
+After=docker.service
+
+[Service]
+EnvironmentFile={{ vitam_defaults.folder.root_path }}/conf/siegfried/sysconfig.conf
+ExecStartPre=-/usr/bin/docker pull {{ container_repository.registry_url }}/vitam-external/ghcr.io/keeps/siegfried:v1.11.2
+ExecStartPre=-/usr/bin/docker stop vitam-siegfried
+ExecStartPre=-/usr/bin/docker rm vitam-siegfried
+ExecStart=/usr/bin/docker run --rm --net=host --name vitam-siegfried --user {{ getent_passwd[vitam_defaults.users.vitam | default('vitam')].1 }}:{{ getent_passwd[vitam_defaults.users.vitam | default('vitam')].2 }} \
+        -v "{{ vitam_defaults.folder.root_path }}/app/siegfried:{{ vitam_defaults.folder.root_path }}/app/siegfried:rw" \
+        -v "{{ vitam_defaults.folder.root_path }}/conf/siegfried:{{ vitam_defaults.folder.root_path }}/conf/siegfried:rw" \
+{% if inventory_hostname in groups.get('hosts_ingest_external', []) %}
+        -v "{{ vitam_defaults.folder.root_path }}/data/ingest-external:{{ vitam_defaults.folder.root_path }}/data/ingest-external:rw" \
+{% endif %}
+{% if inventory_hostname in groups.get('hosts_worker', []) %}
+        -v "{{ vitam_defaults.folder.root_path }}/data/worker:{{ vitam_defaults.folder.root_path }}/data/worker:rw" \
+{% endif %}
+        {{ container_repository.registry_url }}/vitam-external/ghcr.io/keeps/siegfried:v1.11.2 \
+        sf -home {{ vitam_defaults.folder.root_path }}/app/siegfried -serve $LISTEN
+
+ExecStop=/usr/bin/docker stop -t 85 vitam-siegfried
+ExecReload=/usr/bin/docker restart -t 85 vitam-siegfried
+TimeoutStartSec=60
+TimeoutStopSec=30
+StartLimitBurst=6
+
+[Install]
+WantedBy=multi-user.target
