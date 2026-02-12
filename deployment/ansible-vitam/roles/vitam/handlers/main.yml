@@ -4,7 +4,7 @@
   systemd:
     name: "{{ package_name }}"
     state: restarted
-    daemon_reload: yes
+    daemon_reload: true
   when: ( primary_site | lower == "true" ) or
         ( vitam_struct.vitam_component in vitam_secondary_site_components )
 
