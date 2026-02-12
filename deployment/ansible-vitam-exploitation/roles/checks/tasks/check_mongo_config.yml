@@ -1,0 +1,15 @@
+---
+
+- name: Ensure no mongo_arbiter is present in production environments
+  fail:
+    msg: "ERROR: mongo_arbiter is enabled for server {{ inventory_hostname }} and it's not recommended on Production environments. Please follow the exploitation documentation to remove arbiter from your cluster."
+  when:
+    - mongo_arbiter | default(false) | bool
+    - deployment_mode | default('prod') == 'prod'
+
+- name: Check if mongo_rs_bootstrap is not set as mongo_arbiter
+  fail:
+    msg: "ERROR: mongo_rs_bootstrap node can't be mongo_arbiter !"
+  when:
+    - mongo_arbiter | default(false) | bool
+    - mongo_rs_bootstrap | default(false) | bool
