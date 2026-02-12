@@ -374,22 +374,25 @@
   tags: always
 
 - name: "Ensure {{ package_name }} service is disabled and stopped on secondary site"
-  service:
+  systemd:
     name: "{{ package_name }}"
     enabled: false
     state: stopped
+    daemon_reload: true
   tags: always
-  when: ( primary_site | lower == "false" ) and
-    ( vitam_struct.vitam_component not in vitam_secondary_site_components )
+  when:
+    - not ( primary_site | bool )
+    - vitam_struct.vitam_component not in vitam_secondary_site_components
 
 - name: test service & debug if necessary
   block:
 
     - name: "Ensure {{ package_name }} service is started at boot"
-      service:
+      systemd:
         name: "{{ package_name }}"
         state: started
         enabled: "{{ vitam_struct.at_boot | default(service_at_boot) }}"
+        daemon_reload: true
 
     - name: "Check if {{ package_name }} service is listening on service port (tcp check)"
       wait_for:
