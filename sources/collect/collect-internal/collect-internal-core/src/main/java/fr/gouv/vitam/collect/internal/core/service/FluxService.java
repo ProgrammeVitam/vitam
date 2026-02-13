@@ -279,7 +279,7 @@ public class FluxService {
                     if (!FilenameUtils.equals(entry.getName(), path)) {
                         throw CollectErrorDetailHelper.generateException(
                             CollectErrorMessagesEnum.PATH_IS_NOT_CANONICAL,
-                            Map.of(CollectErrorParamEnum.PATH, path)
+                            Map.of(CollectErrorParamEnum.PATH, Optional.ofNullable(path).orElse(""))
                         );
                     }
                     path = FilenameUtils.normalizeNoEndSeparator(path);
@@ -289,9 +289,9 @@ public class FluxService {
                                 CollectErrorMessagesEnum.MULTIPLES_METADATA_UPDATE_FILES_IN_ZIP,
                                 Map.of(
                                     CollectErrorParamEnum.ID,
-                                    projectModel.getId(),
+                                    Optional.ofNullable(projectModel.getId()).orElse(""),
                                     CollectErrorParamEnum.TRANSACTION_ID,
-                                    transactionId
+                                    Optional.ofNullable(transactionId).orElse("")
                                 )
                             );
                         }
@@ -317,7 +317,7 @@ public class FluxService {
         } catch (ZipException e) {
             throw CollectErrorDetailHelper.generateException(
                 CollectErrorMessagesEnum.INVALID_ZIP_ARCHIVE,
-                Map.of(CollectErrorParamEnum.MESSAGE, e.getMessage()),
+                Map.of(CollectErrorParamEnum.MESSAGE, Optional.ofNullable(e.getMessage()).orElse("")),
                 e
             );
         }
@@ -468,7 +468,7 @@ public class FluxService {
                         if (unitMetadata == null) {
                             throw CollectErrorDetailHelper.generateException(
                                 CollectErrorMessagesEnum.INVALID_METADATA_FILE_NO_SUCH_FILE,
-                                Map.of(CollectErrorParamEnum.UPLOAD_PATH, uploadPath)
+                                Map.of(CollectErrorParamEnum.UPLOAD_PATH, Optional.ofNullable(uploadPath).orElse(""))
                             );
                         }
 
@@ -565,7 +565,7 @@ public class FluxService {
         } catch (InvalidJstlTransformerException e) {
             throw CollectErrorDetailHelper.generateException(
                 CollectErrorMessagesEnum.JSLT_TRANSFORMATION_FAILED,
-                Map.of(CollectErrorParamEnum.MESSAGE, e.getMessage()),
+                Map.of(CollectErrorParamEnum.MESSAGE, Optional.ofNullable(e.getMessage()).orElse("")),
                 e
             );
         }
@@ -655,7 +655,7 @@ public class FluxService {
                 if (duplicatePaths.contains(uploadPath)) {
                     throw CollectErrorDetailHelper.generateException(
                         CollectErrorMessagesEnum.DUPLICATE_FILE_UPLOAD_PATH_SELECTOR_DECLARATION,
-                        Map.of(CollectErrorParamEnum.UPLOAD_PATH, uploadPath)
+                        Map.of(CollectErrorParamEnum.UPLOAD_PATH, Optional.ofNullable(uploadPath).orElse(""))
                     );
                 }
                 duplicatePaths.add(uploadPath);
@@ -663,7 +663,7 @@ public class FluxService {
                 if (!initialUploadPathToUnitId.containsKey(uploadPath)) {
                     throw CollectErrorDetailHelper.generateException(
                         CollectErrorMessagesEnum.INVALID_FILE_UPLOAD_PATH_NO_FILE_DIRECTORY,
-                        Map.of(CollectErrorParamEnum.UPLOAD_PATH, uploadPath)
+                        Map.of(CollectErrorParamEnum.UPLOAD_PATH, Optional.ofNullable(uploadPath).orElse(""))
                     );
                 }
 
@@ -708,7 +708,7 @@ public class FluxService {
                             CollectErrorParamEnum.OBJECT_FILES_PATH,
                             objectFilesPath,
                             CollectErrorParamEnum.UPLOAD_PATH,
-                            uploadPath
+                            Optional.ofNullable(uploadPath).orElse("")
                         )
                     );
                 }
@@ -811,7 +811,7 @@ public class FluxService {
         if (!entry.isDirectory() && entry.getSize() == 0L) {
             throw CollectErrorDetailHelper.generateException(
                 CollectErrorMessagesEnum.CANNOT_UPLOAD_EMPTY_FILE,
-                Map.of(CollectErrorParamEnum.FILE, entry.getName())
+                Map.of(CollectErrorParamEnum.FILE, Optional.ofNullable(entry.getName()).orElse(""))
             );
         }
     }
