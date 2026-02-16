@@ -246,21 +246,20 @@ hosts_mongod_offer
 #  - mongo_shard_id=x ; increment by 1 from 0 to n to create multiple shards
 # Optional params
 #  - mongo_rs_bootstrap=true (default: false); mandatory for 1 node of the shard, some init commands will be executed on it
-#  - mongo_arbiter=true (default: false); the node will be only an arbiter, it will not store data ; do not add this parameter on a mongo_rs_bootstrap node, maximum 1 node per shard
 #  - mongod_memory=x (default: unset); this will force the wiredtiger cache size to x (unit is GB)
 #  - is_small=true (default: false); this will force the priority for this server to be lower when electing master ; hardware can be downgraded for this machine
 # Recommended practice in production: use 3 instances per shard
-# IMPORTANT : Updating cluster configuration is NOT supported. Do NOT add/remove a host to an existing replica set, update shard id, arbiter mode or PSSmin configuration.
+# IMPORTANT : Updating cluster configuration is NOT supported. Do NOT add/remove a host to an existing replica set, update shard id or PSSmin configuration.
 # Example :
 # vitam-mongo-swift-offer-01   mongo_cluster_name=offer-swift-1   mongo_shard_id=0   mongo_rs_bootstrap=true
 # vitam-mongo-swift-offer-02   mongo_cluster_name=offer-swift-1   mongo_shard_id=0
-# vitam-swift-offer            mongo_cluster_name=offer-swift-1   mongo_shard_id=0   mongo_arbiter=true
+# vitam-swift-offer            mongo_cluster_name=offer-swift-1   mongo_shard_id=0
 # vitam-mongo-fs-offer-01      mongo_cluster_name=offer-fs-1      mongo_shard_id=0   mongo_rs_bootstrap=true
 # vitam-mongo-fs-offer-02      mongo_cluster_name=offer-fs-1      mongo_shard_id=0
-# vitam-fs-offer               mongo_cluster_name=offer-fs-1      mongo_shard_id=0   mongo_arbiter=true
+# vitam-fs-offer               mongo_cluster_name=offer-fs-1      mongo_shard_id=0
 # vitam-mongo-s3-offer-01      mongo_cluster_name=offer-s3-1      mongo_shard_id=0   mongo_rs_bootstrap=true
 # vitam-mongo-s3-offer-02      mongo_cluster_name=offer-s3-1      mongo_shard_id=0   is_small=true # PSSmin, this machine needs less hardware
-# vitam-s3-offer               mongo_cluster_name=offer-s3-1      mongo_shard_id=0   mongo_arbiter=true
+# vitam-s3-offer               mongo_cluster_name=offer-s3-1      mongo_shard_id=0
 
 
 ##### Zone data
@@ -328,18 +327,17 @@ hosts_mongod_data
 #  - mongo_shard_id=x ; increment by 1 from 0 to n to create multiple shards
 # Optional params
 #  - mongo_rs_bootstrap=true (default: false); mandatory for 1 node of the shard, some init commands will be executed on it
-#  - mongo_arbiter=true (default: false); the node will be only an arbiter, it will not store data ; do not add this parameter on a mongo_rs_bootstrap node, maximum 1 node per shard
 #  - mongod_memory=x (default: unset); this will force the wiredtiger cache size to x (unit is GB) ; can be usefull when colocalization with elasticsearch
 #  - is_small=true (default: false); this will force the priority for this server to be lower when electing master ; hardware can be downgraded for this machine
 # Recommended practice in production: use 3 instances per shard
-# IMPORTANT : Updating cluster configuration is NOT supported. Do NOT add/remove a host to an existing replica set, update shard id, arbiter mode or PSSmin configuration.
+# IMPORTANT : Updating cluster configuration is NOT supported. Do NOT add/remove a host to an existing replica set, update shard id or PSSmin configuration.
 # Example:
 # vitam-mdbd-01  mongo_cluster_name=mongo-data   mongo_shard_id=0   mongo_rs_bootstrap=true
 # vitam-mdbd-02  mongo_cluster_name=mongo-data   mongo_shard_id=0
 # vitam-mdbd-03  mongo_cluster_name=mongo-data   mongo_shard_id=0   is_small=true # PSSmin, this machine needs less hardware
 # vitam-mdbd-04  mongo_cluster_name=mongo-data   mongo_shard_id=1   mongo_rs_bootstrap=true
 # vitam-mdbd-05  mongo_cluster_name=mongo-data   mongo_shard_id=1
-# vitam-mdbd-06  mongo_cluster_name=mongo-data   mongo_shard_id=1   mongo_arbiter=true
+# vitam-mdbd-06  mongo_cluster_name=mongo-data   mongo_shard_id=1
 
 
 ###### Zone admin
