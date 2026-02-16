@@ -27,9 +27,11 @@
 package fr.gouv.vitam.logbook.operations.core;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.client.MongoCursor;
+import com.google.common.collect.Iterators;
 import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
@@ -72,6 +74,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
@@ -174,13 +177,17 @@ public class LogbookOperationsImplTest {
     @Test
     public void selectOperationsByLastPersistenceDateIntervalTest() throws Exception {
         reset(mongoDbAccess);
-        doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(any(), anyBoolean());
-        MongoCursor cursor = logbookOperationsImpl.selectOperationsByLastPersistenceDateInterval(
-            LocalDateUtil.now(),
-            LocalDateUtil.now()
-        );
-        assertNotNull(cursor);
-        assertTrue(cursor.hasNext());
+        doReturn(createFakeIterator())
+            .when(mongoDbAccess)
+            .selectRawByLastPersistenceDateInterval(any(), any(), any(), anyInt());
+        CloseableIterator<LogbookOperation> iterator =
+            logbookOperationsImpl.selectOperationsByLastPersistenceDateInterval(
+                LocalDateUtil.now(),
+                LocalDateUtil.now(),
+                100000
+            );
+        assertNotNull(iterator);
+        assertTrue(iterator.hasNext());
     }
 
     @Test
@@ -297,5 +304,11 @@ public class LogbookOperationsImplTest {
         GUID guid = GUIDFactory.newEventGUID(0);
         ObjectNode data = JsonHandler.createObjectNode().put("_id", guid.getId());
         return new VitamMongoCursor<>(new FakeMongoCursor<>(List.of(new LogbookOperation(data))));
+    }
+
+    private CloseableIterator<LogbookOperation> createFakeIterator() {
+        GUID guid = GUIDFactory.newEventGUID(0);
+        ObjectNode data = JsonHandler.createObjectNode().put("_id", guid.getId());
+        return CloseableIteratorUtils.toCloseableIterator(Iterators.singletonIterator(new LogbookOperation(data)));
     }
 }

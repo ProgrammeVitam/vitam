@@ -132,7 +132,6 @@ import jakarta.ws.rs.core.Response.Status;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -157,7 +156,6 @@ public class LogbookResource extends ApplicationStatusResource {
 
     private static final String LOGBOOK = "logbook";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResource.class);
-    private static final int OVERFLOW_LIMIT = 10_000;
     public static final String CODE_VITAM = "code_vitam";
     private final LogbookOperations logbookOperation;
     private final LogbookLifeCycles logbookLifeCycle;
@@ -235,7 +233,8 @@ public class LogbookResource extends ApplicationStatusResource {
             configuration.getOperationTraceabilityTemporizationDelay(),
             configuration.getOperationTraceabilityMaxRenewalDelay(),
             configuration.getOperationTraceabilityMaxRenewalDelayUnit(),
-            configuration.getOperationTraceabilityThreadPoolSize()
+            configuration.getOperationTraceabilityThreadPoolSize(),
+            configuration.getOperationTraceabilityMaxEntries()
         );
 
         final ProcessingManagementClientFactory processClientFactory = ProcessingManagementClientFactory.getInstance();
@@ -1296,15 +1295,14 @@ public class LogbookResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response exportRawUnitLifecyclesByLastPersistedDate(RawLifecycleByLastPersistedDateRequest request) {
         File file = null;
-        int softLimit = request.getLimit() + OVERFLOW_LIMIT;
         try (
             CloseableIterator<JsonNode> lfcIterator = logbookLifeCycle.getRawUnitLifecyclesByLastPersistedDate(
                 request.getStartDate(),
                 request.getEndDate(),
-                softLimit
+                request.getSoftLimit()
             )
         ) {
-            file = exportLifecyclesToTempFile(request.getLimit(), lfcIterator);
+            file = exportLifecyclesToTempFile(lfcIterator);
 
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
@@ -2048,16 +2046,15 @@ public class LogbookResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response exportRawObjectGroupLifecyclesByLastPersistedDate(RawLifecycleByLastPersistedDateRequest request) {
-        int softLimit = request.getLimit() + OVERFLOW_LIMIT;
         File file = null;
         try (
             CloseableIterator<JsonNode> lfcIterator = logbookLifeCycle.getRawObjectGroupLifecyclesByLastPersistedDate(
                 request.getStartDate(),
                 request.getEndDate(),
-                softLimit
+                request.getSoftLimit()
             )
         ) {
-            file = exportLifecyclesToTempFile(request.getLimit(), lfcIterator);
+            file = exportLifecyclesToTempFile(lfcIterator);
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
             headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(), Long.toString(file.length()));
@@ -2186,7 +2183,7 @@ public class LogbookResource extends ApplicationStatusResource {
     }
 
     @Nonnull
-    private File exportLifecyclesToTempFile(int limit, CloseableIterator<JsonNode> lfcIterator) throws IOException {
+    private File exportLifecyclesToTempFile(CloseableIterator<JsonNode> lfcIterator) throws IOException {
         try {
             File tmpFile = SafeFileChecker.checkSafeFilePath(
                 VitamConfiguration.getVitamTmpFolder(),
@@ -2198,29 +2195,9 @@ public class LogbookResource extends ApplicationStatusResource {
                 JsonLineWriter<JsonNode> jsonLineWriter = new JsonLineWriter<>(fileOutputStream)
             ) {
                 // Export entries until no more items OR max limit reached
-                String maxLastPersistedDate = null;
-                int cpt = 0;
-                while (lfcIterator.hasNext() && cpt < limit) {
-                    cpt++;
+                while (lfcIterator.hasNext()) {
                     JsonNode entry = lfcIterator.next();
                     jsonLineWriter.addEntry(entry);
-
-                    maxLastPersistedDate = entry.get(LogbookDocument.LAST_PERSISTED_DATE).asText();
-                }
-
-                // If max limit reached, export next lifecycles with exact same last persisted date
-                boolean maxEntriesReached = cpt >= limit;
-                if (maxEntriesReached) {
-                    while (lfcIterator.hasNext()) {
-                        JsonNode entry = lfcIterator.next();
-                        String entryLastPersistedDate = entry.get(LogbookDocument.LAST_PERSISTED_DATE).asText();
-
-                        if (!StringUtils.equals(maxLastPersistedDate, entryLastPersistedDate)) {
-                            break;
-                        }
-
-                        jsonLineWriter.addEntry(entry);
-                    }
                 }
             }
 

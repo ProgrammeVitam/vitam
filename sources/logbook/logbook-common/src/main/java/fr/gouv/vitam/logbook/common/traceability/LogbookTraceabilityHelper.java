@@ -125,9 +125,8 @@ public interface LogbookTraceabilityHelper {
      * Warning: This method MUST be used after "saveDataInZip" witch initialize traceabilityIterator
      *
      * @return the number of items secured in traceabilityIterator
-     * @throws TraceabilityException if the traceabilityIterator isn't yet initialized
      */
-    long getDataSize() throws TraceabilityException;
+    long getDataSize();
 
     /**
      * Get the last traceability (in logbook) event and return the timestampToken of the entry
