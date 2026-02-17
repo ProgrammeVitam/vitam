@@ -23,4 +23,4 @@
   roles:
     - upgrade_R10_migrate_ingestcontracts
   vars:
-    - vitam_struct: "{{ vitam.accessexternal }}"
+    - vitam_struct: "{{ vitam.access_external }}"

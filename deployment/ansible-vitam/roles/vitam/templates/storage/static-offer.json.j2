@@ -6,10 +6,10 @@
 {% else %}
     "id" : "{{ item.name }}.service.{{ item.vitam_site_name | default(vitam_site_name) }}.{{ consul_domain }}",
 {% endif %}
-    "baseUrl" : "http{% if vitam.storageofferdefault.https_enabled | bool == true %}s{% endif %}://{{ item.name }}.service.{{ item.vitam_site_name | default(vitam_site_name) }}.{{ consul_domain }}:{{ vitam.storageofferdefault.port_service }}",
+    "baseUrl" : "http{% if vitam.offer.https_enabled | bool == true %}s{% endif %}://{{ item.name }}.service.{{ item.vitam_site_name | default(vitam_site_name) }}.{{ consul_domain }}:{{ vitam.offer.port_service }}",
     {% if item.asyncRead is defined %} "asyncRead": {{item.asyncRead|lower }}, {% endif %}
     "parameters" : {
-        {% if vitam.storageofferdefault.https_enabled | bool == true %}
+        {% if vitam.offer.https_enabled | bool == true %}
         "keyStore-keyPath": "{{ vitam_folder_conf }}/keystore_storage.p12",
         "keyStore-keyPassword": "{{ keystores.client_storage.storage }}",
         "trustStore-keyPath": "{{ vitam_folder_conf }}/truststore_storage.jks",

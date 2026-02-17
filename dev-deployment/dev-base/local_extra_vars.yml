@@ -2,7 +2,7 @@
 # Specific conf for xsmall
 
 vitam:
-    ingestexternal:
+    ingest_external:
         antivirus: "dev"
     ihm_demo:
         secure_cookie: false

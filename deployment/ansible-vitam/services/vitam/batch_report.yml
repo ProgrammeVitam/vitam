@@ -5,5 +5,5 @@
   roles:
     - vitam
   vars:
-    vitam_struct: "{{ vitam.batchreport }}"
+    vitam_struct: "{{ vitam.batch_report }}"
   tags: batch_report

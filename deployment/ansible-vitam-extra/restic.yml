@@ -1,8 +1,8 @@
 ---
 
-# To enable backup functionality on storage_offer
+# To enable backup functionality on offer
 
-- hosts: hosts_storage_offer_default
-  any_errors_fatal: yes
+- hosts: hosts_offer
+  any_errors_fatal: true
   roles:
-    - { role: restic, when: "restic_enabled | default(false) | bool == true" }
+    - { role: restic, when: restic_enabled | default(false) | bool }

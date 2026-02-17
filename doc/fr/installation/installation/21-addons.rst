@@ -70,7 +70,7 @@ Il est possible d'appliquer un paramétrage spécifique pour chaque composant VI
 Éditer le fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml`` (et ``extra_vars.yml``, dans le cas des extra) et appliquer le paramétrage dans le bloc ``logback_total_size_cap`` de chaque composant sur lequel appliquer la modification de paramétrage.
 Pour chaque **APPENDER**, la valeur associée doit être exprimée en taille et unité (exemple : 14GB ; représente 14 gigabytes).
 
-.. note :: des *appenders* supplémentaires existent pour le composant storage-engine (appender offersync) et offer (offer_tape et offer_tape_backup).
+.. note :: des *appenders* supplémentaires existent pour le composant storage (appender offersync) et offer (offer_tape et offer_tape_backup).
 
 
 Cas des accesslog
@@ -87,8 +87,8 @@ Paramétrage de l'antivirus (ingest-external)
 
 L'antivirus utilisé par ingest-external est modifiable (par défaut, ClamAV) ; pour cela :
 
-* Éditer la variable ``vitam.ingestexternal.antivirus`` dans le fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml`` pour indiquer le nom de l'antivirus à utiliser.
-* Créer un script shell (dont l'extension doit être ``.sh``) sous ``environments/antivirus/`` (norme : scan-<vitam.ingestexternal.antivirus>.sh) ; prendre comme modèle le fichier ``scan-clamav.sh``. Ce script shell doit respecter le contrat suivant :
+* Éditer la variable ``vitam.ingest_external.antivirus`` dans le fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml`` pour indiquer le nom de l'antivirus à utiliser.
+* Créer un script shell (dont l'extension doit être ``.sh``) sous ``environments/antivirus/`` (norme : scan-<vitam.ingest_external.antivirus>.sh) ; prendre comme modèle le fichier ``scan-clamav.sh``. Ce script shell doit respecter le contrat suivant :
 
     * Argument : chemin absolu du fichier à analyser
     * Sémantique des codes de retour
@@ -118,7 +118,7 @@ Extra: Avast Business Antivirus for Linux
 
 À la place de clamAV, il est possible de déployer l'antivirus **Avast Business Antivirus for Linux**.
 
-Pour se faire, il suffit d'éditer la variable ``vitam.ingestexternal.antivirus: avast`` dans le fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml``.
+Pour se faire, il suffit d'éditer la variable ``vitam.ingest_external.antivirus: avast`` dans le fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml``.
 
 Il sera nécessaire de fournir le fichier de licence sous ``deployment/environments/antivirus/license.avastlic`` pour pouvoir déployer et utiliser l'antivirus Avast.
 
@@ -174,8 +174,8 @@ Sous ``deployment/environments/host_vars``, créer ou éditer un fichier nommé 
 
 Il faut également modifier le fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml`` en remplaçant :
 
-* dans le bloc ``accessexternal``, la directive ``host: "access-external.service.{{ consul_domain }}"`` par ``host: "<adresse IP de access-external>"`` (l'adresse IP peut être une :term:`FIP`)
-* dans le bloc ``ingestexternal``, la directive ``host: "ingest-external.service.{{ consul_domain }}"`` par ``host: "<adresse IP de ingest-external>"`` (l'adresse IP peut être une :term:`FIP`)
+* dans le bloc ``access_external``, la directive ``host: "access-external.service.{{ consul_domain }}"`` par ``host: "<adresse IP de access-external>"`` (l'adresse IP peut être une :term:`FIP`)
+* dans le bloc ``ingest_external``, la directive ``host: "ingest-external.service.{{ consul_domain }}"`` par ``host: "<adresse IP de ingest-external>"`` (l'adresse IP peut être une :term:`FIP`)
 
 
 A l'issue, le déploiement n'installera pas l'agent Consul. Le composant ihm-demo appellera, alors, par l'adresse :term:`IP` de service les composants "access-external" et "ingest-external".
@@ -320,7 +320,7 @@ Augmenter la précision sur le nombre de résultats retournés dépassant 10000
 
 Suite à une évolution d'ElasticSearch (à partir de la version 7.6), le nombre maximum de résultats retournés est limité à 10000. Ceci afin de limiter la consommation de ressources sur le cluster elasticsearch.
 
-Pour permettre de retourner le nombre exact de résultats, il est possible d'éditer le paramètre ``vitam.accessexternal.authorizeTrackTotalHits`` dans le fichier de configuration ``environments/group_vars/all/vitam_vars.yml``
+Pour permettre de retourner le nombre exact de résultats, il est possible d'éditer le paramètre ``vitam.access_external.authorizeTrackTotalHits`` dans le fichier de configuration ``environments/group_vars/all/vitam_vars.yml``
 
 Il sera nécessaire de réappliquer la configuration sur le groupe hosts_access_external:
 
@@ -740,7 +740,7 @@ Installation de restic
 
 restic est un addon (beta) de la solution :term:`VITAM`.
 
-restic sera déployé sur l'ensemble des machines du groupe ``[hosts_storage_offer_default]`` qui possèdent le paramètre ``restic_enabled=true``. Attention à ne renseigner qu'une seule fois ce paramètre par ``offer_conf``.
+restic sera déployé sur l'ensemble des machines du groupe ``[hosts_offer]`` qui possèdent le paramètre ``restic_enabled=true``. Attention à ne renseigner qu'une seule fois ce paramètre par ``offer_conf``.
 
 Pour se faire, il suffit d'exécuter le playbook associé :
 

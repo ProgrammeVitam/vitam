@@ -68,7 +68,7 @@ Site 3:
           wan: ["dc2-host-1","dc2-host-2","dc2-host-3"]
 
 
-Il faut également prévoir de déclarer, lors de l'installation de chaque site distant, la variable ``ip_wan`` pour les partitions hébergeant les serveurs Consul (groupe ansible ``hosts_consul_server``) et les offres de stockage (groupe ansible ``hosts_storage_offer_default``, considérées distantes par le site primaire).
+Il faut également prévoir de déclarer, lors de l'installation de chaque site distant, la variable ``ip_wan`` pour les partitions hébergeant les serveurs Consul (groupe ansible ``hosts_consul_server``) et les offres de stockage (groupe ansible ``hosts_offer``, considérées distantes par le site primaire).
 Ces ajouts sont à faire dans ``environments/host_vars/<nom partition>``.
 
 Exemple:
@@ -300,7 +300,7 @@ Ensuite:
 Flux entre Storage et Offer
 ===========================
 
-Dans le cas **d'appel en https entre les composants Storage et Offer**, il faut modifier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml`` et indiquer ``https_enabled: true`` dans ``storageofferdefault``.
+Dans le cas **d'appel en https entre les composants Storage et Offer**, il faut modifier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml`` et indiquer ``https_enabled: true`` dans ``offer``.
 
 Il convient également également d'ajouter:
 

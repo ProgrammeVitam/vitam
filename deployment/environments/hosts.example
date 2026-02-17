@@ -95,7 +95,7 @@ hosts_functional_administration
 hosts_scheduler
 hosts_logbook
 hosts_workspace
-hosts_storage_engine
+hosts_storage
 hosts_security_internal
 hosts_collect_internal
 hosts_metadata_collect
@@ -141,8 +141,8 @@ hosts_workspace_collect
 # WARNING: put only one server for this service, not more !
 
 
-[hosts_storage_engine]
-# TODO: Put here servers where this service will be deployed : storage-engine
+[hosts_storage]
+# TODO: Put here servers where this service will be deployed : storage
 
 
 [hosts_batch_report]
@@ -171,11 +171,11 @@ hosts_workspace_collect
 ##### Zone storage
 
 [zone_storage:children] # DO NOT MODIFY
-hosts_storage_offer_default
+hosts_offer
 hosts_mongodb_offer
 
-[hosts_storage_offer_default]
-# TODO: Put here servers where this service will be deployed : storage-offer-default
+[hosts_offer]
+# TODO: Put here servers where this service will be deployed : offer
 # LIMIT : only 1 offer per machine
 # LIMIT and 1 machine per offer when filesystem or filesystem-hash provider
 # Possibility to declare multiple machines with same provider only when provider is s3 or swift.
@@ -198,7 +198,7 @@ hosts_mongod_offer
 
 [hosts_mongos_offer]
 # WARNING : DO NOT COLLOCATE WITH [hosts_mongos_data]
-# TODO: put here servers where this service will be deployed : mongos cluster for storage offers
+# TODO: put here servers where this service will be deployed : mongos cluster for offers
 # Mandatory params
 #  - mongo_cluster_name=<offer_name> ; name of the cluster (should exist on vitam_strategy configuration in offer_opts.yml)
 # The recommended practice is to install the mongos instance on the same servers as the mongoc instances
@@ -213,7 +213,7 @@ hosts_mongod_offer
 
 [hosts_mongoc_offer]
 # WARNING : DO NOT COLLOCATE WITH [hosts_mongoc_data]
-# TODO: put here servers where this service will be deployed : mongoc cluster for storage offers
+# TODO: put here servers where this service will be deployed : mongoc cluster for offers
 # Mandatory params
 #  - mongo_cluster_name=<offer_name> ; name of the cluster (should exist on vitam_strategy configuration in offer_opts.yml)
 # Optional params
@@ -235,7 +235,7 @@ hosts_mongod_offer
 
 [hosts_mongod_offer]
 # WARNING : DO NOT COLLOCATE WITH [hosts_mongod_data]
-# TODO: put here servers where this service will be deployed : mongod cluster for storage offers
+# TODO: put here servers where this service will be deployed : mongod cluster for offers
 # Mandatory params
 #  - mongo_cluster_name=<offer_name> ; name of the cluster (should exist on vitam_strategy configuration in offer_opts.yml)
 #  - mongo_shard_id=x ; increment by 1 from 0 to n to create multiple shards

@@ -79,20 +79,20 @@
     ProxyPassReverse  /{{ vitam.collect_internal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.collect_internal.port_admin }}/admin/v1
     {% endfor %}
     {% for host in groups['hosts_access_internal'] %}
-    ProxyPass /{{ vitam.accessinternal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.accessinternal.port_admin }}/admin/v1 {{ reverse_connection_params }}
-    ProxyPassReverse  /{{ vitam.accessinternal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.accessinternal.port_admin }}/admin/v1
+    ProxyPass /{{ vitam.access_internal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.access_internal.port_admin }}/admin/v1 {{ reverse_connection_params }}
+    ProxyPassReverse  /{{ vitam.access_internal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.access_internal.port_admin }}/admin/v1
     {% endfor %}
     {% for host in groups['hosts_access_external'] %}
-    ProxyPass /{{ vitam.accessexternal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.accessexternal.port_admin }}/admin/v1 {{ reverse_connection_params }}
-    ProxyPassReverse  /{{ vitam.accessexternal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.accessexternal.port_admin }}/admin/v1
+    ProxyPass /{{ vitam.access_external.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.access_external.port_admin }}/admin/v1 {{ reverse_connection_params }}
+    ProxyPassReverse  /{{ vitam.access_external.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.access_external.port_admin }}/admin/v1
     {% endfor %}
     {% for host in groups['hosts_ingest_internal'] %}
-    ProxyPass /{{ vitam.ingestinternal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.ingestinternal.port_admin }}/admin/v1 {{ reverse_connection_params }}
-    ProxyPassReverse  /{{ vitam.ingestinternal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.ingestinternal.port_admin }}/admin/v1
+    ProxyPass /{{ vitam.ingest_internal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.ingest_internal.port_admin }}/admin/v1 {{ reverse_connection_params }}
+    ProxyPassReverse  /{{ vitam.ingest_internal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.ingest_internal.port_admin }}/admin/v1
     {% endfor %}
     {% for host in groups['hosts_ingest_external'] %}
-    ProxyPass /{{ vitam.ingestexternal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.ingestexternal.port_admin }}/admin/v1 {{ reverse_connection_params }}
-    ProxyPassReverse  /{{ vitam.ingestexternal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.ingestexternal.port_admin }}/admin/v1
+    ProxyPass /{{ vitam.ingest_external.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.ingest_external.port_admin }}/admin/v1 {{ reverse_connection_params }}
+    ProxyPassReverse  /{{ vitam.ingest_external.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.ingest_external.port_admin }}/admin/v1
     {% endfor %}
     {% for host in groups['hosts_metadata'] %}
     ProxyPass /{{ vitam.metadata.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.metadata.port_admin }}/admin/v1 {{ reverse_connection_params }}
@@ -122,13 +122,13 @@
     ProxyPass /{{ vitam.worker.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.worker.port_admin }}/admin/v1 {{ reverse_connection_params }}
     ProxyPassReverse  /{{ vitam.worker.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.worker.port_admin }}/admin/v1
     {% endfor %}
-    {% for host in groups['hosts_storage_engine'] %}
-    ProxyPass /{{ vitam.storageengine.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.storageengine.port_admin }}/admin/v1 {{ reverse_connection_params }}
-    ProxyPassReverse  /{{ vitam.storageengine.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.storageengine.port_admin }}/admin/v1
+    {% for host in groups['hosts_storage'] %}
+    ProxyPass /{{ vitam.storage.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.storage.port_admin }}/admin/v1 {{ reverse_connection_params }}
+    ProxyPassReverse  /{{ vitam.storage.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.storage.port_admin }}/admin/v1
     {% endfor %}
-    {% for host in groups['hosts_storage_offer_default'] %}
-    ProxyPass /{{ vitam.storageofferdefault.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.storageofferdefault.port_admin }}/admin/v1 {{ reverse_connection_params }}
-    ProxyPassReverse  /{{ vitam.storageofferdefault.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.storageofferdefault.port_admin }}/admin/v1
+    {% for host in groups['hosts_offer'] %}
+    ProxyPass /{{ vitam.offer.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.offer.port_admin }}/admin/v1 {{ reverse_connection_params }}
+    ProxyPassReverse  /{{ vitam.offer.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.offer.port_admin }}/admin/v1
     {% endfor %}
     {% for host in groups['hosts_functional_administration'] %}
     ProxyPass /{{ vitam.functional_administration.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.functional_administration.port_admin }}/admin/v1 {{ reverse_connection_params }}
@@ -175,16 +175,16 @@
 
     # External API for ingest-external
     {% for host in groups['hosts_ingest_external'] %}
-    ProxyPass /{{ vitam.ingestexternal.baseuri }} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.ingestexternal.port_service }}/{{ vitam.ingestexternal.baseuri }} {{ reverse_connection_params }}
-    ProxyPassReverse  /{{ vitam.ingestexternal.baseuri}} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.ingestexternal.port_service }}/{{ vitam.ingestexternal.baseuri }}
+    ProxyPass /{{ vitam.ingest_external.baseuri }} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.ingest_external.port_service }}/{{ vitam.ingest_external.baseuri }} {{ reverse_connection_params }}
+    ProxyPassReverse  /{{ vitam.ingest_external.baseuri}} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.ingest_external.port_service }}/{{ vitam.ingest_external.baseuri }}
     {% endfor %}
 
     # External API for access-external / admin-external
     {% for host in groups['hosts_access_external'] %}
-    ProxyPass /{{ vitam.accessexternal.baseuri}} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.accessexternal.port_service }}/{{ vitam.accessexternal.baseuri}} {{ reverse_connection_params }}
-    ProxyPassReverse  /{{ vitam.accessexternal.baseuri}} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.accessexternal.port_service }}/{{ vitam.accessexternal.baseuri}}
-    ProxyPass /admin-external  https://{{ hostvars[host]['ip_service'] }}:{{ vitam.accessexternal.port_service }}/admin-external {{ reverse_connection_params }}
-    ProxyPassReverse  /admin-external  https://{{ hostvars[host]['ip_service'] }}:{{ vitam.accessexternal.port_service }}/admin-external
+    ProxyPass /{{ vitam.access_external.baseuri}} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.access_external.port_service }}/{{ vitam.access_external.baseuri}} {{ reverse_connection_params }}
+    ProxyPassReverse  /{{ vitam.access_external.baseuri}} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.access_external.port_service }}/{{ vitam.access_external.baseuri}}
+    ProxyPass /admin-external  https://{{ hostvars[host]['ip_service'] }}:{{ vitam.access_external.port_service }}/admin-external {{ reverse_connection_params }}
+    ProxyPassReverse  /admin-external  https://{{ hostvars[host]['ip_service'] }}:{{ vitam.access_external.port_service }}/admin-external
     {% endfor %}
 {% endif %}
 {# </ExternalAPIs> #}
@@ -341,10 +341,10 @@
     ProxyPassReverse /nodes/{{ host }}/processing/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.processing.port_admin }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     {% endfor %}
 
-    # Storage Engine metrics
-    {% for host in groups['hosts_storage_engine'] %}
-    ProxyPass /nodes/{{ host }}/storage/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.storageengine.port_admin }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
-    ProxyPassReverse /nodes/{{ host }}/storage/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.storageengine.port_admin }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    # Storage metrics
+    {% for host in groups['hosts_storage'] %}
+    ProxyPass /nodes/{{ host }}/storage/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.storage.port_admin }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    ProxyPassReverse /nodes/{{ host }}/storage/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.storage.port_admin }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     {% endfor %}
 
     {% if prometheus.node_exporter.enabled | default(false) | bool == true %}

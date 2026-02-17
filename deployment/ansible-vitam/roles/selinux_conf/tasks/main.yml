@@ -42,21 +42,21 @@
 
   # For each vitam component, set the ports mapped to it's setype
 
-  - name: Set accessexternal ports
+  - name: Set access_external ports
     seport:
       proto: tcp
-      setype: "vitam_{{ vitam.accessexternal.vitam_component | regex_replace('-','_') }}_port_t"
+      setype: "vitam_{{ vitam.access_external.vitam_component | regex_replace('-','_') }}_port_t"
       ports:
-        - "{{ vitam.accessexternal.port_service }}"
-        - "{{ vitam.accessexternal.port_admin }}"
+        - "{{ vitam.access_external.port_service }}"
+        - "{{ vitam.access_external.port_admin }}"
 
-  - name: Set accessinternal ports
+  - name: Set access_internal ports
     seport:
       proto: tcp
-      setype: "vitam_{{ vitam.accessinternal.vitam_component | regex_replace('-','_') }}_port_t"
+      setype: "vitam_{{ vitam.access_internal.vitam_component | regex_replace('-','_') }}_port_t"
       ports:
-        - "{{ vitam.accessinternal.port_service }}"
-        - "{{ vitam.accessinternal.port_admin }}"
+        - "{{ vitam.access_internal.port_service }}"
+        - "{{ vitam.access_internal.port_admin }}"
 
   - name: Set functional_administration ports
     seport:
@@ -66,37 +66,37 @@
         - "{{ vitam.functional_administration.port_service }}"
         - "{{ vitam.functional_administration.port_admin }}"
 
-  - name: Set elastickibanainterceptor ports
+  - name: Set elastic_kibana_interceptor ports
     seport:
       proto: tcp
-      setype: "vitam_{{ vitam.elastickibanainterceptor.vitam_component | regex_replace('-','_') }}_port_t"
+      setype: "vitam_{{ vitam.elastic_kibana_interceptor.vitam_component | regex_replace('-','_') }}_port_t"
       ports:
-        - "{{ vitam.elastickibanainterceptor.port_service }}"
-        - "{{ vitam.elastickibanainterceptor.port_admin }}"
+        - "{{ vitam.elastic_kibana_interceptor.port_service }}"
+        - "{{ vitam.elastic_kibana_interceptor.port_admin }}"
 
-  - name: Set batchreport ports
+  - name: Set batch_report ports
     seport:
       proto: tcp
-      setype: "vitam_{{ vitam.batchreport.vitam_component | regex_replace('-','_') }}_port_t"
+      setype: "vitam_{{ vitam.batch_report.vitam_component | regex_replace('-','_') }}_port_t"
       ports:
-        - "{{ vitam.batchreport.port_service }}"
-        - "{{ vitam.batchreport.port_admin }}"
+        - "{{ vitam.batch_report.port_service }}"
+        - "{{ vitam.batch_report.port_admin }}"
 
-  - name: Set ingestexternal ports
+  - name: Set ingest_external ports
     seport:
       proto: tcp
-      setype: "vitam_{{ vitam.ingestexternal.vitam_component | regex_replace('-','_') }}_port_t"
+      setype: "vitam_{{ vitam.ingest_external.vitam_component | regex_replace('-','_') }}_port_t"
       ports:
-        - "{{ vitam.ingestexternal.port_service }}"
-        - "{{ vitam.ingestexternal.port_admin }}"
+        - "{{ vitam.ingest_external.port_service }}"
+        - "{{ vitam.ingest_external.port_admin }}"
 
-  - name: Set ingestinternal ports
+  - name: Set ingest_internal ports
     seport:
       proto: tcp
-      setype: "vitam_{{ vitam.ingestinternal.vitam_component | regex_replace('-','_') }}_port_t"
+      setype: "vitam_{{ vitam.ingest_internal.vitam_component | regex_replace('-','_') }}_port_t"
       ports:
-        - "{{ vitam.ingestinternal.port_service }}"
-        - "{{ vitam.ingestinternal.port_admin }}"
+        - "{{ vitam.ingest_internal.port_service }}"
+        - "{{ vitam.ingest_internal.port_admin }}"
 
   - name: Set ihm_demo ports
     seport:
@@ -138,21 +138,21 @@
         - "{{ vitam.security_internal.port_service }}"
         - "{{ vitam.security_internal.port_admin }}"
 
-  - name: Set storageengine ports
+  - name: Set storage ports
     seport:
       proto: tcp
-      setype: "vitam_{{ vitam.storageengine.vitam_component | regex_replace('-','_') }}_port_t"
+      setype: "vitam_{{ vitam.storage.vitam_component | regex_replace('-','_') }}_port_t"
       ports:
-        - "{{ vitam.storageengine.port_service }}"
-        - "{{ vitam.storageengine.port_admin }}"
+        - "{{ vitam.storage.port_service }}"
+        - "{{ vitam.storage.port_admin }}"
 
-  - name: Set storageofferdefault ports
+  - name: Set offer ports
     seport:
       proto: tcp
-      setype: "vitam_{{ vitam.storageofferdefault.vitam_component | regex_replace('-','_') }}_port_t"
+      setype: "vitam_{{ vitam.offer.vitam_component | regex_replace('-','_') }}_port_t"
       ports:
-        - "{{ vitam.storageofferdefault.port_service }}"
-        - "{{ vitam.storageofferdefault.port_admin }}"
+        - "{{ vitam.offer.port_service }}"
+        - "{{ vitam.offer.port_admin }}"
 
   - name: Set worker ports
     seport:

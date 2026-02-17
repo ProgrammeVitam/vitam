@@ -221,9 +221,9 @@ if [ ! -f "${ENVIRONNEMENT_FILE}" ]; then
 fi
 
 # Get consul_domain
-CONSUL_DOMAIN=$(read_ansible_var "consul_domain" "hosts_storage_offer_default[0]")
+CONSUL_DOMAIN=$(read_ansible_var "consul_domain" "hosts_offer[0]")
 # Get vitam_site_name
-VITAM_SITE_NAME=$(read_ansible_var "vitam_site_name" "hosts_storage_offer_default[0]")
+VITAM_SITE_NAME=$(read_ansible_var "vitam_site_name" "hosts_offer[0]")
 
 # Cleaning or creating vault file for certs
 initVault certs
@@ -240,7 +240,7 @@ pki_logger "Génération des certificats serveurs"
 # Method                                    # Component name         # Host group name
 generateHostCertAndStorePassphrase          ingest-external          hosts_ingest_external
 generateHostCertAndStorePassphrase          access-external          hosts_access_external
-generateHostCertAndStorePassphrase          offer                    hosts_storage_offer_default
+generateHostCertAndStorePassphrase          offer                    hosts_offer
 generateHostCertAndStorePassphrase          ihm-recette              hosts_ihm_recette
 generateHostCertAndStorePassphrase          ihm-demo                 hosts_ihm_demo
 generateHostCertAndStorePassphrase          collect-external         hosts_collect_external

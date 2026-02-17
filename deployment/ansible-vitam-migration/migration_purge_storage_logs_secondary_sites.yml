@@ -14,7 +14,7 @@
       when: confirmation|upper != "YES"
       tags: always
 
-- hosts: hosts_storage_engine
+- hosts: hosts_storage
   any_errors_fatal: true
   roles:
     - migration_purge_storage_logs_secondary_sites

@@ -26,7 +26,7 @@ reconstructionMetricsCacheDurationInMinutes: {{ vitam.metadata.reconstructionMet
 reconstructionPoolSize: {{ vitam.metadata.reconstructionPoolSize | default(16) }}
 # Reconstruction bulk size
 reconstructionBatchSize: {{ vitam.metadata.reconstructionBatchSize | default(1000) }}
-# Timeout for batch metadata loading from storage offers
+# Timeout for batch metadata loading from offers
 reconstructionBatchLoadingTimeoutInSeconds: {{ vitam.metadata.reconstructionBatchLoadingTimeoutInSeconds | default(600) }}
 {% endif %}
 

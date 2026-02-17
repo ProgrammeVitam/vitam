@@ -78,7 +78,7 @@ hosts_functional_administration
 hosts_scheduler
 hosts_logbook
 hosts_workspace
-hosts_storage_engine
+hosts_storage
 hosts_security_internal
 hosts_collect_internal
 hosts_metadata_collect
@@ -123,7 +123,7 @@ xlarge-app-vm-11
 [hosts_processing]
 xlarge-app-vm-9
 
-[hosts_storage_engine]
+[hosts_storage]
 xlarge-app-vm-22
 xlarge-app-vm-23
 xlarge-app-vm-24
@@ -159,10 +159,10 @@ xlarge-app-vm-10
 ##### Zone storage
 
 [zone_storage:children]
-hosts_storage_offer_default
+hosts_offer
 hosts_mongodb_offer
 
-[hosts_storage_offer_default]
+[hosts_offer]
 xlarge-storage-vm-1 offer_conf=offer-s3-1
 xlarge-storage-vm-2 offer_conf=offer-s3-1
 

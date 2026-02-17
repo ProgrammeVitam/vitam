@@ -6,6 +6,56 @@ Notes et procédures spécifiques V9.1
 Adaptation des sources de déploiement ansible
 =============================================
 
+Renommage de variables pour mise en cohérence des noms et groupes
+-----------------------------------------------------------------
+
+Afin de faciliter la maintenance et les évolutions autour de l'ansiblerie, certaines variables et groupes d'hôtes ont étés renommés pour correspondre à la convention de nommage établie.
+
+Les variables de configuration suivantes ont étés renommées ainsi:
+
+.. code-block:: yaml
+
+  vitam:
+    accessexternal: -> access_external
+    accessinternal: -> access_internal
+    batchreport: -> batch_report
+    ingestexternal: -> ingest_external
+    ingestinternal: -> ingest_internal
+    elastickibanainterceptor: -> elastic_kibana_interceptor
+    storageengine: -> storage
+    storageofferdefault: -> offer
+
+..
+
+Les groupes d'hôtes suivants du fichier d'inventaire ont étés renommés ainsi:
+
+.. code-block:: ini
+
+  [hosts_storage_engine] -> [hosts_storage]
+  [hosts_storage_offer_default] -> [hosts_offer]
+
+..
+
+Ces modifications sont à reporter dans vos configurations, vous pouvez effectuer cette opération en exécutant les commandes sed suivantes:
+
+.. code-block:: bash
+
+    sed -i 's/accessexternal/access_external/g' environments/group_vars/all/*/*.yml
+    sed -i 's/accessinternal/access_internal/g' environments/group_vars/all/*/*.yml
+    sed -i 's/batchreport/batch_report/g' environments/group_vars/all/*/*.yml
+    sed -i 's/ingestexternal/ingest_external/g' environments/group_vars/all/*/*.yml
+    sed -i 's/ingestinternal/ingest_internal/g' environments/group_vars/all/*/*.yml
+    sed -i 's/elastickibanainterceptor/elastic_kibana_interceptor/g' environments/group_vars/all/*/*.yml
+    sed -i 's/storageengine/storage/g' environments/group_vars/all/*/*.yml
+    sed -i 's/storageofferdefault/offer/g' environments/group_vars/all/*/*.yml
+
+    sed -i 's/hosts_storage_engine/hosts_storage/g' environments/<inventaire>
+    sed -i 's/hosts_storage_offer_default/hosts_offer/g' environments/<inventaire>
+
+..
+
+Pour information, le playbook ``ansible-vitam/services/vitam/storage-engine.yml`` a été renommé en ``ansible-vitam/services/vitam/storage.yml``.
+
 Configuration du nombre de shards/replicas pour chaque indices elasticsearch-log
 --------------------------------------------------------------------------------
 

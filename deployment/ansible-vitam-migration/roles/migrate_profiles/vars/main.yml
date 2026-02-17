@@ -3,10 +3,10 @@
 
 default_seda_version: "2.3"
 
-_base_url: "http{% if vitam.accessexternal.https_enabled | bool == true %}s{% endif %}://{{ vitam.accessexternal.host }}:{{ vitam.accessexternal.port_service }}/admin-external/v1"
+_base_url: "http{% if vitam.access_external.https_enabled | bool == true %}s{% endif %}://{{ vitam.access_external.host }}:{{ vitam.access_external.port_service }}/admin-external/v1"
 _archive_unit_profiles_base_url: "{{ _base_url }}/archiveunitprofiles"
 _archive_profiles_base_url: "{{ _base_url }}/profiles"
 _seda_version_pattern: "seda:v(\\d+\\.\\d+)"
 _p12: "{{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.p12"
 _pem: "{{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.pem"
-_tmp_pem: "{{ vitam_defaults.folder.root_path }}/tmp/{{ vitam.accessexternal.vitam_component }}/keystore_vitam-admin-int.pem"
+_tmp_pem: "{{ vitam_defaults.folder.root_path }}/tmp/{{ vitam.access_external.vitam_component }}/keystore_vitam-admin-int.pem"

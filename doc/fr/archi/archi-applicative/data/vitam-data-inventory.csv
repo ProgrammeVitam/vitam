@@ -16,7 +16,7 @@
 "métier","Stratégies de stockage","storage","/vitam/conf",,,,,"REF : X"
 "métier","Journal des écritures","storage","REF : /vitam/log",,,,,
 "métier","Sécurisation du journal des écritures","storage",,,,"REF : X",,
-"technico-métier","Log des écritures dans une offre de stockage","storage-offer",,,,,"MongoDB (offres)",
+"technico-métier","Log des écritures dans une offre de stockage","offer",,,,,"MongoDB (offres)",
 "technique","Logs logiciels","(tous)","/vitam/log",,,,"ES (log)",
 "technique","Métriques applicatives","(tous)",,,,,"REF : ES (log)",
 "technique","Données de configuration (incl. certificats)","(tous)","/vitam/conf",,,,,"REF : X"

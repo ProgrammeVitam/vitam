@@ -1489,7 +1489,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum by(tenant, strategy) (rate(vitam_requests_size_bytes_sum{job=\"vitam-storage-offer-default\"}[5m]) /rate(vitam_requests_size_bytes_count{job=\"vitam-storage-offer-default\"}[5m])) / 1024",
+          "expr": "sum by(tenant, strategy) (rate(vitam_requests_size_bytes_sum{job=\"vitam-offer\"}[5m]) /rate(vitam_requests_size_bytes_count{job=\"vitam-offer\"}[5m])) / 1024",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -1663,7 +1663,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum by(tenant, strategy) (rate(vitam_responses_size_bytes_sum{job=\"vitam-storage-offer-default\"}[5m]) /rate(vitam_responses_size_bytes_count{job=\"vitam-storage-offer-default\"}[5m])) / 1024",
+          "expr": "sum by(tenant, strategy) (rate(vitam_responses_size_bytes_sum{job=\"vitam-offer\"}[5m]) /rate(vitam_responses_size_bytes_count{job=\"vitam-offer\"}[5m])) / 1024",
           "interval": "",
           "legendFormat": "",
           "refId": "A"

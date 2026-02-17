@@ -1,7 +1,7 @@
 authentication: false
 jettyConfig: jetty-config.xml
 tenantFilter : true
-authorizeTrackTotalHits : {{ vitam.accessexternal.authorizeTrackTotalHits | default(false) }}
+authorizeTrackTotalHits : {{ vitam.access_external.authorizeTrackTotalHits | default(false) }}
 
 objectGroupBlackListedFieldsForVisualizationByTenant:
 {% for tenant_id in vitam_tenant_ids %}

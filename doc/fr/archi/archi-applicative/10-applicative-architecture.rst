@@ -24,7 +24,7 @@ Services
 
 La solution logicielle :term:`VITAM` est découpée en services autonomes interagissant pour permettre de rendre le service global ; ce découpage applicatif suit en grande partie le découpage présenté plus haut dans l'architecture fonctionnelle.
 
-Les schémas suivants présentent l'architecture applicative et les flux d'informations entre composants. Tous les composants qui sont en jaune, sont fournis dans le cadre de la solution logicielle VITAM ; tous sont requis pour le bon fonctionnement de la solution, à l'exception de deux d'entre eux : ``ihm-demo`` et ``storage-offer-default`` (selon les choix de déploiement). Enfin, chaque service possède un nom propre qui l'identifie de manière unique au sein de la solution logicielle :term:`VITAM`.
+Les schémas suivants présentent l'architecture applicative et les flux d'informations entre composants. Tous les composants qui sont en jaune, sont fournis dans le cadre de la solution logicielle VITAM ; tous sont requis pour le bon fonctionnement de la solution, à l'exception de deux d'entre eux : ``ihm-demo`` et ``offer`` (selon les choix de déploiement). Enfin, chaque service possède un nom propre qui l'identifie de manière unique au sein de la solution logicielle :term:`VITAM`.
 
 
 .. figure:: images/vitam-applicative-architecture-legend.*

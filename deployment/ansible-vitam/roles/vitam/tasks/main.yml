@@ -415,7 +415,7 @@
 
     - name: "Check {{ vitam_struct.vitam_component }} service health in local consul agent"
       uri:
-        url: "http://{{ (inventory_hostname in groups['hosts_consul_server']) | ternary(hostvars[inventory_hostname]['ip_admin'], '127.0.0.1') }}:8500/v1/agent/health/service/name/{{ (vitam_struct.vitam_component == vitam.storageofferdefault.vitam_component) | ternary(offer_conf, vitam_struct.vitam_component) }}"
+        url: "http://{{ (inventory_hostname in groups['hosts_consul_server']) | ternary(hostvars[inventory_hostname]['ip_admin'], '127.0.0.1') }}:8500/v1/agent/health/service/name/{{ (vitam_struct.vitam_component == vitam.offer.vitam_component) | ternary(offer_conf, vitam_struct.vitam_component) }}"
       register: result
       until:
         - result.status is defined
