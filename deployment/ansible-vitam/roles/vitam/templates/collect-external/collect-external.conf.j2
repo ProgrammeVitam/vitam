@@ -1,6 +1,6 @@
 authentication: false
 jettyConfig: jetty-config.xml
-authorizeTrackTotalHits : {{ vitam.collect_external.authorizeTrackTotalHits | default(false) }}
-allowSslClientHeader: {{ vitam_defaults.trust_client_certificate_header | default(false) | bool }}
-ingestionThreadPoolSize: {{ vitam.collect_external.ingestionThreadPoolSize | default(4)}}
-ingestionThreadFrequencySeconds: {{ vitam.collect_external.ingestionThreadFrequencySeconds | default(5)}}
+authorizeTrackTotalHits: {{ vitam.collect_external.authorizeTrackTotalHits | default(false) | bool | lower }}
+allowSslClientHeader: {{ vitam_defaults.trust_client_certificate_header | default(false) | bool | lower }}
+ingestionThreadPoolSize: {{ vitam.collect_external.ingestionThreadPoolSize | default(4) }}
+ingestionThreadFrequencySeconds: {{ vitam.collect_external.ingestionThreadFrequencySeconds | default(5) }}

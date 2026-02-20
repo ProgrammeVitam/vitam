@@ -2,8 +2,8 @@
 # Configuration MongoDB
 mongoDbNodes:
 {% for host in groups['hosts_mongos_data'] %}
-- dbHost: {{ hostvars[host]['ip_service'] }}
-  dbPort: {{ mongodb.mongos_port }}
+  - dbHost: {{ hostvars[host]['ip_service'] }}
+    dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: masterdata
 dbAuthentication: {{ mongodb.mongo_authentication }}
@@ -12,20 +12,20 @@ dbPassword: {{ mongodb['mongo-data'].functionalAdmin.password }}
 
 #Basic Authentication
 adminBasicAuth:
-- userName: {{ admin_basic_auth_user }}
-  password: {{ admin_basic_auth_password }}
+  - userName: {{ admin_basic_auth_user }}
+    password: {{ admin_basic_auth_password }}
 
 jettyConfig: jetty-config.xml
-workspaceUrl: {{vitam.workspace | client_url}}
-processingUrl: {{vitam.processing | client_url}}
+workspaceUrl: {{ vitam.workspace | client_url }}
+processingUrl: {{ vitam.processing | client_url }}
 
 # ElasticSearch
 clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchConfigurationFile: {{ vitam_folder_conf }}/elasticsearch-settings/elasticsearch-configuration.json
 elasticsearchNodes:
 {% for host in groups['hosts_elasticsearch_data'] %}
-- hostName: {{ hostvars[host]['ip_service'] }}
-  httpPort: {{ elasticsearch.data.port_http }}
+  - hostName: {{ hostvars[host]['ip_service'] }}
+    httpPort: {{ elasticsearch.data.port_http }}
 {% endfor %}
 
 # ElasticSearch tenant indexation
@@ -130,32 +130,32 @@ customSearchOnFields:
 
   dedicated_tenants:
   {% for entry in vitam_elasticsearch_tenant_indexation.dedicated_tenants %}
-  - tenants: '{{ entry.tenants }}'
+    - tenants: '{{ entry.tenants }}'
     {% if entry.unit is defined and entry.unit.customSearch is defined and entry.unit.customSearch is not none %}
-    unit:
-      fields:
+      unit:
+        fields:
       {% for entryField in entry.unit.customSearch %}
         {% if entryField.fieldPath is defined %}
-        - fieldPath: {{ entryField.fieldPath }}
+          - fieldPath: {{ entryField.fieldPath }}
           {% if entryField.types is defined and entryField.types is not none %}
-          types:
+            types:
             {% for entryType in entryField.types %}
-            - {{ entryType }}
+              - {{ entryType }}
             {% endfor %}
           {% endif %}
         {% endif %}
       {% endfor %}
     {% endif %}
     {% if entry.objectgroup is defined and entry.objectgroup.customSearch is defined and entry.objectgroup.customSearch is not none %}
-    objectgroup:
-      fields:
+      objectgroup:
+        fields:
       {% for entryField in entry.objectgroup.customSearch %}
         {% if entryField.fieldPath is defined %}
-        - fieldPath: {{ entryField.fieldPath }}
+          - fieldPath: {{ entryField.fieldPath }}
           {% if entryField.types is defined and entryField.types is not none %}
-          types:
+            types:
             {% for entryType in entryField.types %}
-            - {{ entryType }}
+              - {{ entryType }}
             {% endfor %}
           {% endif %}
         {% endif %}
@@ -167,33 +167,33 @@ customSearchOnFields:
 
   grouped_tenants:
   {% for entry in vitam_elasticsearch_tenant_indexation.grouped_tenants %}
-  - name: '{{ entry.name }}'
-    tenants: '{{ entry.tenants }}'
+    - name: '{{ entry.name }}'
+      tenants: '{{ entry.tenants }}'
     {% if entry.unit is defined and entry.unit.customSearch is defined and entry.unit.customSearch is not none %}
-    unit:
-      fields:
+      unit:
+        fields:
       {% for entryField in entry.unit.customSearch %}
         {% if entryField.fieldPath is defined %}
-        - fieldPath: {{ entryField.fieldPath }}
+          - fieldPath: {{ entryField.fieldPath }}
           {% if entryField.types is defined and entryField.types is not none %}
-          types:
+            types:
             {% for entryType in entryField.types %}
-            - {{ entryType }}
+              - {{ entryType }}
             {% endfor %}
           {% endif %}
         {% endif %}
       {% endfor %}
     {% endif %}
     {% if entry.objectgroup is defined and entry.objectgroup.customSearch is defined and entry.objectgroup.customSearch is not none %}
-    objectgroup:
-      fields:
+      objectgroup:
+        fields:
       {% for entryField in entry.objectgroup.customSearch %}
         {% if entryField.fieldPath is defined %}
-        - fieldPath: {{ entryField.fieldPath }}
+          - fieldPath: {{ entryField.fieldPath }}
           {% if entryField.types is defined and entryField.types is not none %}
-          types:
+            types:
             {% for entryType in entryField.types %}
-            - {{ entryType }}
+              - {{ entryType }}
             {% endfor %}
           {% endif %}
         {% endif %}
@@ -204,26 +204,25 @@ customSearchOnFields:
 {% endif %}
 {% endif %}
 
-
 {% if vitam_virtual_paths is defined and vitam_virtual_paths is not none %}
 # virtual Paths settings
 virtualPaths:
- {% if vitam_virtual_paths.default_fields is defined and vitam_virtual_paths.default_fields is not none %}
+  {% if vitam_virtual_paths.default_fields is defined and vitam_virtual_paths.default_fields is not none %}
   default_config:
-   source_fields :
-   {% for entry in vitam_virtual_paths.default_fields %}
-    - {{ entry }}
-   {% endfor %}
-{% endif %}
-
- {% if vitam_virtual_paths.dedicated_tenants is defined and vitam_virtual_paths.dedicated_tenants is not none %}
-  dedicated_tenants:
-   {% for entry in vitam_virtual_paths.dedicated_tenants %}
-   - tenants: '{{ entry.tenants }}'
-     source_fields:
-    {% for entryField in entry.fields %}
-      - {{ entryField }}
+    source_fields:
+    {% for entry in vitam_virtual_paths.default_fields %}
+      - {{ entry }}
     {% endfor %}
-   {% endfor %}
- {% endif %}
+  {% endif %}
+
+  {% if vitam_virtual_paths.dedicated_tenants is defined and vitam_virtual_paths.dedicated_tenants is not none %}
+  dedicated_tenants:
+    {% for entry in vitam_virtual_paths.dedicated_tenants %}
+    - tenants: '{{ entry.tenants }}'
+      source_fields:
+      {% for entryField in entry.fields %}
+        - {{ entryField }}
+      {% endfor %}
+    {% endfor %}
+  {% endif %}
 {% endif %}

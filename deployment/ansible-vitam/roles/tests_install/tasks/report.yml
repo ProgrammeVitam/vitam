@@ -15,4 +15,4 @@
   fail:
     msg: "Playbook stopped because of user input"
   delegate_to: localhost
-  when: tests_install_confirmation.user_input is defined and tests_install_confirmation.user_input|upper != "YES"
+  when: tests_install_confirmation.user_input is defined and tests_install_confirmation.user_input | upper != "YES"

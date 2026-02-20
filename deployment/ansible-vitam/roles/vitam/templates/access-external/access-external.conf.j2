@@ -1,11 +1,11 @@
 authentication: false
 jettyConfig: jetty-config.xml
-tenantFilter : true
-authorizeTrackTotalHits : {{ vitam.access_external.authorizeTrackTotalHits | default(false) }}
+tenantFilter: true
+authorizeTrackTotalHits: {{ vitam.access_external.authorizeTrackTotalHits | default(false) }}
 
 objectGroupBlackListedFieldsForVisualizationByTenant:
 {% for tenant_id in vitam_tenant_ids %}
   {{ tenant_id }}: {{ extendedConfiguration.custom[tenant_id].objectGroupBlackListedFields | default(default_objectGroupBlackListedFields) | to_json }}
 {% endfor %}
 
-allowSslClientHeader: {{ vitam_defaults.trust_client_certificate_header | default(false) | bool }}
+allowSslClientHeader: {{ vitam_defaults.trust_client_certificate_header | default(false) | bool | lower }}
