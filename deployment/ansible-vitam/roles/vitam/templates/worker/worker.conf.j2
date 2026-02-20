@@ -3,14 +3,14 @@
 registerServerHost: {{ ip_service }}
 registerServerPort: {{ vitam_struct.port_service }}
 # Configuration handler
-processingUrl: {{vitam.processing | client_url}}
-urlMetadata: {{vitam.metadata | client_url}}
+processingUrl: {{ vitam.processing | client_url }}
+urlMetadata: {{ vitam.metadata | client_url }}
 {% if groups['hosts_metadata_collect'] | length > 0 %}
-urlMetadataCollect: {{vitam.metadata_collect | client_url}}
+urlMetadataCollect: {{ vitam.metadata_collect | client_url }}
 {% endif %}
-urlWorkspace: {{vitam.workspace | client_url}}
+urlWorkspace: {{ vitam.workspace | client_url }}
 {% if groups['hosts_workspace_collect'] | length > 0 %}
-urlWorkspaceCollect: {{vitam.workspace_collect | client_url}}
+urlWorkspaceCollect: {{ vitam.workspace_collect | client_url }}
 {% endif %}
 
 # Configuration jetty
@@ -21,8 +21,8 @@ capacity: {{ vitam_worker_capacity }}
 workerFamily: {{ vitam_worker_workerFamily }}
 {% endif %}
 
-indexInheritedRulesWithAPIV2OutputByTenant: [ "{{  vitam.worker.api_output_index_tenants | join('", "') }}" ]
-indexInheritedRulesWithRulesIdByTenant: [ "{{  vitam.worker.rules_index_tenants | join('", "') }}" ]
+indexInheritedRulesWithAPIV2OutputByTenant: [ "{{ vitam.worker.api_output_index_tenants | join('", "') }}" ]
+indexInheritedRulesWithRulesIdByTenant: [ "{{ vitam.worker.rules_index_tenants | join('", "') }}" ]
 
 # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
 archiveUnitProfileCacheMaxEntries: {{ vitam.metadata.archiveUnitProfileCacheMaxEntries }}

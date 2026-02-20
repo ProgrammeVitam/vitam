@@ -1,4 +1,4 @@
-secret : {{ plateforme_secret }}
+secret: {{ plateforme_secret }}
 filterActivation: {{ vitam_struct.secret_platform | default(true) | bool | lower }}
 {% if vitam_struct.vitam_component == vitam.processing.vitam_component %}
 distributeurBatchSize: 800
@@ -12,16 +12,16 @@ deleteIncompleteReconstructedUnitDelay: 2592000
 migrationBulkSize: 10000
 workspaceFreespaceThreshold: {{ vitam.metadata.workspaceFreespaceThreshold | default(25) }}
 {% endif %}
-distributionThreshold : 100000
-eliminationAnalysisThreshold : 100000
-eliminationActionThreshold : 10000
-computedInheritedRulesThreshold : 100000000
-intervalDelayCheckIdle : 5000
-maxDelayUnusedConnection : 5000
-delayValidationAfterInactivity : 2500
+distributionThreshold: 100000
+eliminationAnalysisThreshold: 100000
+eliminationActionThreshold: 10000
+computedInheritedRulesThreshold: 100000000
+intervalDelayCheckIdle: 5000
+maxDelayUnusedConnection: 5000
+delayValidationAfterInactivity: 2500
 tenants: [ "{{ vitam_tenant_ids | join('", "') }}" ]
-adminTenant : {{ vitam_tenant_admin | default(1) }}
-forceChunkModeInputStream : {{ vitam_struct.vitam_force_chunk_mode | default(default_vitam_force_chunk_mode) | bool | lower }}
+adminTenant: {{ vitam_tenant_admin | default(1) }}
+forceChunkModeInputStream: {{ vitam_struct.vitam_force_chunk_mode | default(default_vitam_force_chunk_mode) | bool | lower }}
 
 {% if vitam_struct.vitam_component == vitam.worker.vitam_component %}
 reclassificationMaxBulkThreshold: 1000
@@ -33,8 +33,8 @@ bulkAtomicUpdateThreadPoolSize: {{ vitam.worker.bulkAtomicUpdateThreadPoolSize |
 bulkAtomicUpdateThreadPoolQueueSize: {{ vitam.worker.bulkAtomicUpdateThreadPoolQueueSize | default(16) }}
 
 binarySizePlatformThreshold: # 1 Go
- limit: {{ vitam.worker.binarySizePlatformThreshold | default(1) }}
- sizeUnit: {{ vitam.worker.binarySizePlatformThresholdSizeUnit | default('GIGABYTE') }}
+  limit: {{ vitam.worker.binarySizePlatformThreshold | default(1) }}
+  sizeUnit: {{ vitam.worker.binarySizePlatformThresholdSizeUnit | default('GIGABYTE') }}
 
 binarySizeTenantThreshold: # exemple for tenant 0 max dip/transfer size is 20 Mo, true means can exceed tenant threshold.
 #  - tenant: 0
@@ -64,8 +64,8 @@ ingestReportObjectExtraFields:
 keywordMaxLength: {{ vitam_struct.keywordMaxLength | default(default_keywordMaxLength) }}
 textMaxLength: {{ vitam_struct.textMaxLength | default(default_textMaxLength) }}
 
-classificationLevel :
-  allowList : [{% for classification in classificationList %}{{ classification }}{% if not loop.last %},{% endif %}{% endfor %}]
+classificationLevel:
+  allowList: [{% for classification in classificationList %}{{ classification }}{% if not loop.last %},{% endif %}{% endfor %}]
   authorizeNotDefined: {{ classificationLevelOptional }}
 
 indexInheritedRulesWithAPIV2OutputByTenant: [ "{{ vitam.worker.api_output_index_tenants | join('", "') }}" ]

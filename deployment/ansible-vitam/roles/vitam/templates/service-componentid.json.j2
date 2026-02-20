@@ -32,7 +32,7 @@
         "name": "{{ vitam_struct.vitam_component }} : http business service check",
         "notes": "Status business : /{{ vitam_struct.baseuri }}/v1/status",
         "http": "http://{{ ip_service }}:{{ vitam_struct.port_service }}/{{ vitam_struct.baseuri }}/v1/status",
-        "interval": "{{ vitam_struct.consul_admin_check | default(consul_admin_check) }}s"
+        "interval": "{{ vitam_struct.consul_business_check | default(consul_business_check) }}s"
       }
 {% endif %}
 {% if (vitam_struct.vitam_component == vitam.security_internal.vitam_component) %}
