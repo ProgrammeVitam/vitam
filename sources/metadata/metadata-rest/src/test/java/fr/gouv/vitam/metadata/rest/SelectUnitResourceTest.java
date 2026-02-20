@@ -291,7 +291,7 @@ public class SelectUnitResourceTest {
                         .setObjectgroup(new CollectionConfiguration(1, 0, objectGroupMapping.get().getMappingFile()))
                 )
         );
-        configuration.setWorkspaceUrl("http://localhost:8094");
+        configuration.setUrlWorkspace("http://localhost:8094");
         serverPort = junitHelper.findAvailablePort();
 
         File configurationFile = tempFolder.newFile();

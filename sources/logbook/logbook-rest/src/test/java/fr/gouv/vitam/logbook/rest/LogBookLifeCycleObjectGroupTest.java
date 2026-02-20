@@ -172,8 +172,8 @@ public class LogBookLifeCycleObjectGroupTest {
             logbookConf.setJettyConfig(JETTY_CONFIG);
             logbookConf.setP12LogbookFile("tsa.p12");
             logbookConf.setP12LogbookPassword("1234");
-            logbookConf.setWorkspaceUrl("http://localhost:8001");
-            logbookConf.setProcessingUrl("http://localhost:8002");
+            logbookConf.setUrlWorkspace("http://localhost:8001");
+            logbookConf.setUrlProcessing("http://localhost:8002");
             logbookConf.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
             logbookConf.setElasticsearchNodes(esNodes);
             VitamConfiguration.setTenants(tenantList);

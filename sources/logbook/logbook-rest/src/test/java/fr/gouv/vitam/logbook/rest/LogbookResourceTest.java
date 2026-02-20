@@ -198,8 +198,8 @@ public class LogbookResourceTest {
         realLogbook.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         realLogbook.setMongoDbNodes(nodes);
         realLogbook.setDbName(MongoRule.VITAM_DB);
-        realLogbook.setWorkspaceUrl("http://localhost:" + workspacePort);
-        realLogbook.setProcessingUrl("http://localhost:" + processingPort);
+        realLogbook.setUrlWorkspace("http://localhost:" + workspacePort);
+        realLogbook.setUrlProcessing("http://localhost:" + processingPort);
         realLogbook.setElasticsearchConfigurationFile(ElasticsearchTestHelper.loadElasticSearchSettings());
         VitamConfiguration.setTenants(tenantList);
         VitamConfiguration.setAdminTenant(TENANT_ID);

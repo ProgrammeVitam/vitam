@@ -35,8 +35,8 @@ public class IngestInternalConfigurationTest {
     @Test
     public void givenIngestConfigurationWhenSetPropertiesThenGetSameProperties() {
         final IngestInternalConfiguration config = new IngestInternalConfiguration();
-        assertEquals("processingUrl", config.setProcessingUrl("processingUrl").getProcessingUrl());
-        assertEquals("workspaceUrl", config.setWorkspaceUrl("workspaceUrl").getWorkspaceUrl());
+        assertEquals("urlProcessing", config.setUrlProcessing("urlProcessing").getUrlProcessing());
+        assertEquals("urlWorkspace", config.setUrlWorkspace("urlWorkspace").getUrlWorkspace());
         assertEquals("jettyConfig", config.setJettyConfig("jettyConfig").getJettyConfig());
     }
 }

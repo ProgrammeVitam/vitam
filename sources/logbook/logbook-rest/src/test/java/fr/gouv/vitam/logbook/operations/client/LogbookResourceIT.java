@@ -204,8 +204,8 @@ public class LogbookResourceIT {
             logbookConf.setJettyConfig(JETTY_CONFIG);
             logbookConf.setP12LogbookFile("tsa.p12");
             logbookConf.setP12LogbookPassword("1234");
-            logbookConf.setWorkspaceUrl("http://localhost:" + WORKSPACE_PORT);
-            logbookConf.setProcessingUrl("http://localhost:8097");
+            logbookConf.setUrlWorkspace("http://localhost:" + WORKSPACE_PORT);
+            logbookConf.setUrlProcessing("http://localhost:8097");
             logbookConf.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
             logbookConf.setElasticsearchNodes(esNodes);
             VitamConfiguration.setTenants(tenantList);

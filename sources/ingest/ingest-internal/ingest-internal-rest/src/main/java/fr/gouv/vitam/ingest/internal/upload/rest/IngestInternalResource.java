@@ -146,8 +146,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
      */
     public IngestInternalResource(IngestInternalConfiguration configuration) {
         this.logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
-        WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl(), WorkFlowExecutionContext.VITAM);
-        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
+        WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace(), WorkFlowExecutionContext.VITAM);
+        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
         this.workspaceClientFactory = WorkspaceClientFactory.getInstance(WorkFlowExecutionContext.VITAM);
         this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
     }

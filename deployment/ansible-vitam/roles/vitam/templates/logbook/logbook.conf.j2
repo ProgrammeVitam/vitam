@@ -12,8 +12,8 @@ dbPassword: {{ mongodb['mongo-data'].logbook.password }}
 jettyConfig: jetty-config.xml
 p12LogbookPassword: {{ keystores.timestamping.secure_logbook }}
 p12LogbookFile: keystore_secure-logbook.p12
-workspaceUrl: {{ vitam.workspace | client_url }}
-processingUrl: {{ vitam.processing | client_url }}
+urlWorkspace: {{ vitam.workspace | client_url }}
+urlProcessing: {{ vitam.processing | client_url }}
 
 # ElasticSearch
 clusterName: {{ vitam_struct.cluster_name }}

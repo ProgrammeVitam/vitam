@@ -57,7 +57,7 @@ public class WebApplicationConfig extends DbConfigurationImpl {
     private String testSystemReportDirectory;
     private int ingestMaxThread;
     private FunctionalAdminAdmin functionalAdminAdmin;
-    private String workspaceUrl;
+    private String urlWorkspace;
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
 
@@ -291,12 +291,12 @@ public class WebApplicationConfig extends DbConfigurationImpl {
         this.functionalAdminAdmin = functionalAdminAdmin;
     }
 
-    public String getWorkspaceUrl() {
-        return workspaceUrl;
+    public String getUrlWorkspace() {
+        return urlWorkspace;
     }
 
-    public WebApplicationConfig setWorkspaceUrl(String workspaceUrl) {
-        this.workspaceUrl = workspaceUrl;
+    public WebApplicationConfig setUrlWorkspace(String urlWorkspace) {
+        this.urlWorkspace = urlWorkspace;
         return this;
     }
 

@@ -45,9 +45,9 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
 
     private String p12LogbookFile;
 
-    private String workspaceUrl;
+    private String urlWorkspace;
 
-    private String processingUrl;
+    private String urlProcessing;
 
     private String clusterName;
 
@@ -202,29 +202,29 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
     /**
      * @return url workspace
      */
-    public String getWorkspaceUrl() {
-        return workspaceUrl;
+    public String getUrlWorkspace() {
+        return urlWorkspace;
     }
 
     /**
-     * @param workspaceUrl to set
+     * @param urlWorkspace to set
      */
-    public void setWorkspaceUrl(String workspaceUrl) {
-        this.workspaceUrl = workspaceUrl;
+    public void setUrlWorkspace(String urlWorkspace) {
+        this.urlWorkspace = urlWorkspace;
     }
 
     /**
      * @return url processing
      */
-    public String getProcessingUrl() {
-        return processingUrl;
+    public String getUrlProcessing() {
+        return urlProcessing;
     }
 
     /**
-     * @param processingUrl to set
+     * @param urlProcessing to set
      */
-    public void setProcessingUrl(String processingUrl) {
-        this.processingUrl = processingUrl;
+    public void setUrlProcessing(String urlProcessing) {
+        this.urlProcessing = urlProcessing;
     }
 
     /**

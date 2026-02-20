@@ -105,7 +105,7 @@ public class ProfileResource {
         this.vitamCounterService = vitamCounterService;
         this.workspaceClientFactory = WorkspaceClientFactory.getInstance(WorkFlowExecutionContext.VITAM);
         this.functionalBackupService = functionalBackupService;
-        WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl(), WorkFlowExecutionContext.VITAM);
+        WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace(), WorkFlowExecutionContext.VITAM);
         LOGGER.debug("init Admin Management Resource server");
     }
 

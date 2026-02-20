@@ -92,7 +92,7 @@ public class AdminMetadataApplication extends Application {
                 indexManager
             );
 
-            WorkspaceClientFactory.changeMode(metaDataConfiguration.getWorkspaceUrl(), WorkFlowExecutionContext.VITAM);
+            WorkspaceClientFactory.changeMode(metaDataConfiguration.getUrlWorkspace(), WorkFlowExecutionContext.VITAM);
 
             VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.get();
 

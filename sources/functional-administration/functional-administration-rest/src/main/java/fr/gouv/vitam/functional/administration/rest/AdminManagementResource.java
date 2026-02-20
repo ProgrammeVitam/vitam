@@ -238,8 +238,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         storageClientFactory = StorageClientFactory.getInstance();
         mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration, ontologyLoader, indexManager);
         vitamRuleService = new VitamRuleService(configuration.getListMinimumRuleDuration());
-        WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl(), WorkFlowExecutionContext.VITAM);
-        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
+        WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace(), WorkFlowExecutionContext.VITAM);
+        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
         ElasticsearchAccessAdminFactory.create(configuration, indexManager);
         LOGGER.debug("init Admin Management Resource server");
     }

@@ -87,7 +87,7 @@ public class WorkerRegister implements Runnable {
         } catch (final Exception e) {
             LOGGER.error(
                 "WorkerRegister failed (" +
-                configuration.getProcessingUrl() +
+                configuration.getUrlProcessing() +
                 ").Retry in " +
                 configuration.getRegisterDelay() +
                 " seconds",

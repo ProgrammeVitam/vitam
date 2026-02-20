@@ -36,7 +36,7 @@ import java.util.List;
  */
 public final class WorkerConfiguration extends DefaultVitamApplicationConfiguration {
 
-    private String processingUrl;
+    private String urlProcessing;
     private String urlMetadata;
     private String urlMetadataCollect;
     private String urlWorkspace;
@@ -67,22 +67,22 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
     }
 
     /**
-     * Get the processingUrl
+     * Get the urlProcessing
      *
-     * @return processingUrl
+     * @return urlProcessing
      */
-    public String getProcessingUrl() {
-        return processingUrl;
+    public String getUrlProcessing() {
+        return urlProcessing;
     }
 
     /**
-     * The processingUrl setter
+     * The urlProcessing setter
      *
-     * @param processingUrl the processingUrl
+     * @param urlProcessing the urlProcessing
      * @return the updated WorkerConfiguration object
      */
-    public WorkerConfiguration setProcessingUrl(String processingUrl) {
-        this.processingUrl = processingUrl;
+    public WorkerConfiguration setUrlProcessing(String urlProcessing) {
+        this.urlProcessing = urlProcessing;
         return this;
     }
 

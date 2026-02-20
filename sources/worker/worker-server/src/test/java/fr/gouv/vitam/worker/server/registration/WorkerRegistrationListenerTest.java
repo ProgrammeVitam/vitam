@@ -99,7 +99,7 @@ public class WorkerRegistrationListenerTest {
         workerConfiguration.setWorkerFamily("family_id");
         workerConfiguration.setUrlMetadata("localhost");
         workerConfiguration.setUrlWorkspace("localhost");
-        workerConfiguration.setProcessingUrl("localhost");
+        workerConfiguration.setUrlProcessing("localhost");
         workerConfiguration.setRegisterServerHost("localhost");
         workerConfiguration.setRegisterServerPort(80);
 

@@ -158,7 +158,7 @@ public class MetadataRawResourceTest {
 
         configuration.setElasticsearchConfigurationFile(ElasticsearchTestHelper.loadElasticSearchSettings());
 
-        configuration.setWorkspaceUrl("http://localhost:8094");
+        configuration.setUrlWorkspace("http://localhost:8094");
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
 

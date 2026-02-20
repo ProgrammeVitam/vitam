@@ -177,7 +177,7 @@ public class ProfileResourceTest {
         realAdminConfig.setDbName(MongoRule.VITAM_DB);
         realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
-        realAdminConfig.setWorkspaceUrl("http://localhost:" + workspacePort);
+        realAdminConfig.setUrlWorkspace("http://localhost:" + workspacePort);
 
         realAdminConfig.setElasticsearchConfigurationFile(ElasticsearchTestHelper.loadElasticSearchSettings());
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());

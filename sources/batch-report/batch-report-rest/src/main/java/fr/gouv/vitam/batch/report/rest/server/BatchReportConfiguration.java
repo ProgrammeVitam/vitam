@@ -33,19 +33,19 @@ import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl
  */
 public class BatchReportConfiguration extends DbConfigurationImpl {
 
-    private String workspaceUrl;
+    private String urlWorkspace;
 
     /**
      * @return url workspace
      */
-    public String getWorkspaceUrl() {
-        return workspaceUrl;
+    public String getUrlWorkspace() {
+        return urlWorkspace;
     }
 
     /**
-     * @param workspaceUrl to set
+     * @param urlWorkspace to set
      */
-    public void setWorkspaceUrl(String workspaceUrl) {
-        this.workspaceUrl = workspaceUrl;
+    public void setUrlWorkspace(String urlWorkspace) {
+        this.urlWorkspace = urlWorkspace;
     }
 }

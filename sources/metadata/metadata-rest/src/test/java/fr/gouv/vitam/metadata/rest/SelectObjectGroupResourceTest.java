@@ -190,7 +190,7 @@ public class SelectObjectGroupResourceTest {
                         .setObjectgroup(new CollectionConfiguration(1, 0, objectGroupMapping.get().getMappingFile()))
                 )
         );
-        configuration.setWorkspaceUrl("http://localhost:8094");
+        configuration.setUrlWorkspace("http://localhost:8094");
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
 

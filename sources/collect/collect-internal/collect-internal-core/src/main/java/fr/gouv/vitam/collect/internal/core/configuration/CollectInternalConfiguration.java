@@ -34,8 +34,8 @@ import java.util.Map;
 
 public class CollectInternalConfiguration extends DbConfigurationImpl {
 
-    private String workspaceUrl;
-    private String workspaceCollectUrl;
+    private String urlWorkspace;
+    private String urlWorkspaceCollect;
 
     private int statusTransactionThreadFrequency = 5;
 
@@ -56,12 +56,12 @@ public class CollectInternalConfiguration extends DbConfigurationImpl {
     private int maxWaitDelayForTransactionValidationInSeconds = 3600; // Default to 1 hour
 
     /**
-     * Must return the value of a 'workspaceUrl' attribute
+     * Must return the value of a 'urlWorkspace' attribute
      *
-     * @return the workspaceUrl value
+     * @return the urlWorkspace value
      */
-    public String getWorkspaceUrl() {
-        return workspaceUrl;
+    public String getUrlWorkspace() {
+        return urlWorkspace;
     }
 
     public Map<Integer, Integer> getPurgeTransactionDelayInMinutes() {
@@ -89,13 +89,13 @@ public class CollectInternalConfiguration extends DbConfigurationImpl {
     }
 
     /**
-     * @param workspaceUrl the workspace Url to set
+     * @param urlWorkspace the workspace Url to set
      * @return this
-     * @throws IllegalArgumentException if workspaceUrl is null or empty
+     * @throws IllegalArgumentException if urlWorkspace is null or empty
      */
-    public CollectInternalConfiguration setWorkspaceUrl(String workspaceUrl) {
-        ParametersChecker.checkParameter("workspaceUrl" + IS_A_MANDATORY_PARAMETER, workspaceUrl);
-        this.workspaceUrl = workspaceUrl;
+    public CollectInternalConfiguration setUrlWorkspace(String urlWorkspace) {
+        ParametersChecker.checkParameter("urlWorkspace" + IS_A_MANDATORY_PARAMETER, urlWorkspace);
+        this.urlWorkspace = urlWorkspace;
         return this;
     }
 
@@ -155,13 +155,13 @@ public class CollectInternalConfiguration extends DbConfigurationImpl {
         return this;
     }
 
-    public String getWorkspaceCollectUrl() {
-        return workspaceCollectUrl;
+    public String getUrlWorkspaceCollect() {
+        return urlWorkspaceCollect;
     }
 
-    public CollectInternalConfiguration setWorkspaceCollectUrl(String workspaceCollectUrl) {
-        ParametersChecker.checkParameter("workspaceCollectUrl" + IS_A_MANDATORY_PARAMETER, workspaceCollectUrl);
-        this.workspaceCollectUrl = workspaceCollectUrl;
+    public CollectInternalConfiguration setUrlWorkspaceCollect(String urlWorkspaceCollect) {
+        ParametersChecker.checkParameter("urlWorkspaceCollect" + IS_A_MANDATORY_PARAMETER, urlWorkspaceCollect);
+        this.urlWorkspaceCollect = urlWorkspaceCollect;
         return this;
     }
 

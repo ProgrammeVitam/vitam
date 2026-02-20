@@ -201,7 +201,7 @@ public class ContractResourceTest {
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
         realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
-        realAdminConfig.setWorkspaceUrl("http://localhost:" + workspacePort);
+        realAdminConfig.setUrlWorkspace("http://localhost:" + workspacePort);
         realAdminConfig.setElasticsearchConfigurationFile(ElasticsearchTestHelper.loadElasticSearchSettings());
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);

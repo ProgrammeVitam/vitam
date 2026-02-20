@@ -74,10 +74,10 @@ public class LogbookConfigurationTest {
         assertEquals(P2_FILE, config1.getP12LogbookFile());
         config1.setP12LogbookPassword(P2_PASSWORD);
         assertEquals(P2_PASSWORD, config1.getP12LogbookPassword());
-        config1.setWorkspaceUrl(WORKSPACE_URL);
-        assertEquals(WORKSPACE_URL, config1.getWorkspaceUrl());
-        config1.setProcessingUrl(PROCESSING_URL);
-        assertEquals(PROCESSING_URL, config1.getProcessingUrl());
+        config1.setUrlWorkspace(WORKSPACE_URL);
+        assertEquals(WORKSPACE_URL, config1.getUrlWorkspace());
+        config1.setUrlProcessing(PROCESSING_URL);
+        assertEquals(PROCESSING_URL, config1.getUrlProcessing());
         List<ElasticsearchNode> esNodes = Lists.newArrayList(
             new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
         );

@@ -3,7 +3,7 @@
 registerServerHost: {{ ip_service }}
 registerServerPort: {{ vitam_struct.port_service }}
 # Configuration handler
-processingUrl: {{ vitam.processing | client_url }}
+urlProcessing: {{ vitam.processing | client_url }}
 urlMetadata: {{ vitam.metadata | client_url }}
 {% if groups['hosts_metadata_collect'] | length > 0 %}
 urlMetadataCollect: {{ vitam.metadata_collect | client_url }}

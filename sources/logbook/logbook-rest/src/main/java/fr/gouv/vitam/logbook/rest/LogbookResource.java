@@ -227,7 +227,7 @@ public class LogbookResource extends ApplicationStatusResource {
         }
         final TimestampGenerator timestampGenerator = new TimestampGenerator(timeStampSignature);
         final WorkspaceClientFactory clientFactory = WorkspaceClientFactory.getInstance(WorkFlowExecutionContext.VITAM);
-        WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl(), WorkFlowExecutionContext.VITAM);
+        WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace(), WorkFlowExecutionContext.VITAM);
 
         logbookAdministration = new LogbookAdministration(
             logbookOperation,
@@ -239,7 +239,7 @@ public class LogbookResource extends ApplicationStatusResource {
         );
 
         final ProcessingManagementClientFactory processClientFactory = ProcessingManagementClientFactory.getInstance();
-        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
+        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
 
         logbookLifeCycle = new LogbookLifeCyclesImpl(mongoDbAccess);
 

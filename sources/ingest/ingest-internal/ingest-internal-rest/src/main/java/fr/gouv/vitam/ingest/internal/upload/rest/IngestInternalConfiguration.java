@@ -36,8 +36,8 @@ public class IngestInternalConfiguration extends DefaultVitamApplicationConfigur
 
     private static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
 
-    private String workspaceUrl;
-    private String processingUrl;
+    private String urlWorkspace;
+    private String urlProcessing;
 
     /**
      * IngestInternalConfiguration empty constructor for YAMLFactory
@@ -47,42 +47,42 @@ public class IngestInternalConfiguration extends DefaultVitamApplicationConfigur
     }
 
     /**
-     * Must return the value of a 'workspaceUrl' attribute
+     * Must return the value of a 'urlWorkspace' attribute
      *
-     * @return the workspaceUrl value
+     * @return the urlWorkspace value
      */
-    public String getWorkspaceUrl() {
-        return workspaceUrl;
+    public String getUrlWorkspace() {
+        return urlWorkspace;
     }
 
     /**
-     * @param workspaceUrl the workspace Url to set
+     * @param urlWorkspace the workspace Url to set
      * @return this
-     * @throws IllegalArgumentException if workspaceUrl is null or empty
+     * @throws IllegalArgumentException if urlWorkspace is null or empty
      */
-    public IngestInternalConfiguration setWorkspaceUrl(String workspaceUrl) {
-        ParametersChecker.checkParameter("workspaceUrl" + IS_A_MANDATORY_PARAMETER, workspaceUrl);
-        this.workspaceUrl = workspaceUrl;
+    public IngestInternalConfiguration setUrlWorkspace(String urlWorkspace) {
+        ParametersChecker.checkParameter("urlWorkspace" + IS_A_MANDATORY_PARAMETER, urlWorkspace);
+        this.urlWorkspace = urlWorkspace;
         return this;
     }
 
     /**
-     * Must return the value of a 'workspaceUrl' attribute
+     * Must return the value of a 'urlWorkspace' attribute
      *
-     * @return the workspaceUrl value
+     * @return the urlWorkspace value
      */
-    public String getProcessingUrl() {
-        return processingUrl;
+    public String getUrlProcessing() {
+        return urlProcessing;
     }
 
     /**
-     * @param processingUrl the processing Url to set
+     * @param urlProcessing the processing Url to set
      * @return this
-     * @throws IllegalArgumentException if processingUrl is null or empty
+     * @throws IllegalArgumentException if urlProcessing is null or empty
      */
-    public IngestInternalConfiguration setProcessingUrl(String processingUrl) {
-        ParametersChecker.checkParameter("processingUrl" + IS_A_MANDATORY_PARAMETER, processingUrl);
-        this.processingUrl = processingUrl;
+    public IngestInternalConfiguration setUrlProcessing(String urlProcessing) {
+        ParametersChecker.checkParameter("urlProcessing" + IS_A_MANDATORY_PARAMETER, urlProcessing);
+        this.urlProcessing = urlProcessing;
         return this;
     }
 }
