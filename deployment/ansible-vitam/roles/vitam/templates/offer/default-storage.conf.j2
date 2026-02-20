@@ -1,4 +1,4 @@
-
+#jinja2: lstrip_blocks: True
 provider: {{ vitam_offers[offer_conf]["provider"] }}
 
 {% if vitam_offers[offer_conf]["provider"] in ["filesystem","filesystem-hash"] %}
@@ -75,24 +75,24 @@ tapeLibraryConfiguration:
 
   topology:
     buckets:
- {% for bucket in vitam_offers[offer_conf]["topology"]["buckets"] %}
-        {{ bucket.name }}:
-          tenants: {{ bucket.tenants }}
-          tarBufferingTimeoutInMinutes: {{ bucket.tarBufferingTimeoutInMinutes }}
- {% endfor %}
+  {% for bucket in vitam_offers[offer_conf]["topology"]["buckets"] %}
+      {{ bucket.name }}:
+        tenants: {{ bucket.tenants }}
+        tarBufferingTimeoutInMinutes: {{ bucket.tarBufferingTimeoutInMinutes }}
+  {% endfor %}
 
   tapeLibraries:
-{% for library in vitam_offers[offer_conf]["tapeLibraries"] %}
+  {% for library in vitam_offers[offer_conf]["tapeLibraries"] %}
     {{ library.name }}:
       robots:
-{% for robot in library.robots %}
+    {% for robot in library.robots %}
         -
           device: {{ robot.device }}
-          mtxPath: "{{  robot.mtxPath }}"
+          mtxPath: "{{ robot.mtxPath }}"
           timeoutInMilliseconds: {{ robot.timeoutInMilliseconds }}
-{% endfor %}
+    {% endfor %}
       drives:
-{% for drive in library.drives %}
+    {% for drive in library.drives %}
         -
           index: {{ drive.index }}
           device: {{ drive.device }}
@@ -100,8 +100,7 @@ tapeLibraryConfiguration:
           ddPath: "{{ drive.ddPath }}"
           timeoutInMilliseconds: {{ drive.timeoutInMilliseconds }}
           readWritePriority: {{ drive.readWritePriority | default('WRITE') }}
-{% endfor %}
+    {% endfor %}
       fullCartridgeDetectionThresholdInMB: {{ library.fullCartridgeDetectionThresholdInMB }}
-
-{% endfor %}
+  {% endfor %}
 {% endif %}

@@ -86,7 +86,7 @@ Migration unités archivistiques avec demande de transfert non complétée
 
 Cette migration permet de corriger des erreurs de sécurisation ou d'audit sur des unités archivistiques pour lesquelles une demande de transfert a été initiée, mais dont le transfert effectif n'a pas été finalisée.
 
-.. caution:: Cette procédure doit être exécutée uniquement en cas de migration mineure depuis une version 6.3.1- (v6.3.1 ou inférieure) vers une version 6.4+ (v6.4 ou supérieure).
+.. caution:: Cette procédure doit être exécutée uniquement en cas de migration mineure depuis une version 6.3-1- (v6.3-1 ou inférieure) vers une version 6.4+ (v6.4 ou supérieure).
 
 .. caution:: Cette migration est à effectuer **APRES** l'installation et uniquement sur le **site primaire**.
 
