@@ -7,11 +7,29 @@ org.quartz.scheduler.interruptJobsOnShutdown=true
 org.quartz.threadPool.class=fr.gouv.vitam.scheduler.server.util.VitamQuartzExecutorThreadPool
 org.quartz.threadPool.threadCount={{ vitam_scheduler_thread_count }}
 
-org.quartz.jobStore.class=com.novemberain.quartz.mongodb.MongoDBJobStore
-org.quartz.jobStore.mongoUri=mongodb://{{ mongodb['mongo-data'].scheduler.user }}:{{ mongodb['mongo-data'].scheduler.password }}@{% for server in groups['hosts_mongos_data'] %}{{ hostvars[server]['ip_service'] }}:{{ mongodb.mongos_port }}{% if not loop.last %},{% endif %}{% endfor %}/scheduler
+## H2DB local non-clustered connector
+#
+org.quartz.jobStore.isClustered=false
+org.quartz.jobStore.class=org.quartz.impl.jdbcjobstore.JobStoreTX
+org.quartz.jobStore.driverDelegateClass=org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+org.quartz.jobStore.dataSource=h2DS
+org.quartz.jobStore.tablePrefix=QRTZ_
 
-org.quartz.jobStore.isClustered=true
-org.quartz.jobStore.dbName=scheduler
-org.quartz.jobStore.collectionPrefix=vitam
+org.quartz.dataSource.h2DS.driver=org.h2.Driver
+org.quartz.dataSource.h2DS.provider=hikaricp
+org.quartz.dataSource.h2DS.URL=jdbc:h2:file:{{ vitam_folder_data }}/quartz-db;DB_CLOSE_ON_EXIT=FALSE
+org.quartz.dataSource.h2DS.maxConnections=10
 
-org.quartz.jobStore.checkInErrorHandler=com.novemberain.quartz.mongodb.cluster.NoOpErrorHandler
+## Postgres clustered connector:
+#
+# org.quartz.jobStore.isClustered=true
+# org.quartz.jobStore.class=org.quartz.impl.jdbcjobstore.JobStoreTX
+# org.quartz.jobStore.driverDelegateClass=org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+# org.quartz.jobStore.dataSource=postgresDS
+#
+# org.quartz.dataSource.postgresDS.driver=org.postgresql.Driver
+# org.quartz.dataSource.postgresDS.provider=hikaricp
+# org.quartz.dataSource.postgresDS.URL = jdbc:postgresql://<postgres-server>:<postgres-port>/scheduler
+# org.quartz.dataSource.postgresDS.user=scheduler
+# org.quartz.dataSource.postgresDS.password=<password_changeit>
+# org.quartz.dataSource.postgresDS.maxConnections=10

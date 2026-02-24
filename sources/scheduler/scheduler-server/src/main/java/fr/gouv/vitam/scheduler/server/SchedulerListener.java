@@ -30,6 +30,7 @@ package fr.gouv.vitam.scheduler.server;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.scheduler.server.util.DatabaseMigrations;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;
@@ -37,7 +38,8 @@ import org.quartz.impl.StdSchedulerFactory;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.sql.SQLException;
 
 public class SchedulerListener implements ServletContextListener {
 
@@ -47,11 +49,13 @@ public class SchedulerListener implements ServletContextListener {
 
     private SchedulerListener() throws SchedulerException {
         try {
-            SchedulerFactory schedulerFactory = new StdSchedulerFactory(
-                PropertiesUtils.getConfigFile("quartz.properties").getPath()
-            );
+            String quartzConfigPath = PropertiesUtils.getConfigFile("quartz.properties").getPath();
+
+            DatabaseMigrations.initialize(quartzConfigPath);
+
+            SchedulerFactory schedulerFactory = new StdSchedulerFactory(quartzConfigPath);
             scheduler = schedulerFactory.getScheduler();
-        } catch (FileNotFoundException e) {
+        } catch (IOException | SQLException e) {
             throw new SchedulerException(e);
         }
     }
