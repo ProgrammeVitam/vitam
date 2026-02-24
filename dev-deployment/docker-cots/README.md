@@ -13,7 +13,9 @@ The docker-compose environment will start:
  - MongoDB
  - Siegfried
 
-The storage used by ElasticSearch and MongoDB are persistent volumes and will then be kept between restarts and up/down.
+Optionally, this starts Postgres for quartz postgres mode
+
+The storage used by ElasticSearch, MongoDB and Postgres are persistent volumes and will then be kept between restarts and up/down.
 
 As usual with docker compose:
 
@@ -25,13 +27,19 @@ From the `dev-deployment/docker-cots` directory:
 docker compose up -d
 ```
 
+To start with postgres for quartz jdbc connection mode, use :
+
+```shell
+docker compose --profile quartz-postgres up -d
+```
+
 ### Clear the data
 
 From the `dev-deployment/docker-cots` directory:
 
 ```shell
-docker compose down
-docker volume rm docker-cots_elastic_data docker-cots_mongo_data
+docker compose --profile "*" down
+docker volume rm docker-cots_elastic_data docker-cots_mongo_data docker-cots_quartz_postgres
 ```
 
 ### Force rebuild images
