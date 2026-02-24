@@ -201,7 +201,7 @@ public class SchedulerIT extends VitamRuleRunner {
                 VitamJobDetail.class
             );
             assertThat(jobDetails1).hasSize(1);
-            assertThat(jobDetails1.get(0).getKey()).isEqualTo("Metadata.PurgeDipJob");
+            assertThat(jobDetails1.getFirst().getKey()).isEqualTo("Metadata.PurgeDipJob");
 
             // When : add another job
             Files.copy(srcJobFile2.toPath(), job2);
@@ -233,7 +233,7 @@ public class SchedulerIT extends VitamRuleRunner {
                 VitamJobDetail.class
             );
             assertThat(jobDetails3).hasSize(1);
-            assertThat(jobDetails3.get(0).getKey()).isEqualTo("Offer.OfferLogCompactionJob_offer-fs-1");
+            assertThat(jobDetails3.getFirst().getKey()).isEqualTo("Offer.OfferLogCompactionJob_offer-fs-1");
         } finally {
             PathUtils.delete(jobsDirectory);
         }
@@ -303,7 +303,7 @@ public class SchedulerIT extends VitamRuleRunner {
     }
 
     @Test
-    public void test_existance_audit_job() throws Exception {
+    public void test_existence_audit_job() throws Exception {
         VitamConfiguration.setTenants(List.of(0, 1));
 
         // Ingest data to audit
