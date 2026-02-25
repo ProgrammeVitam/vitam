@@ -32,15 +32,15 @@ function bulkWriteObjectGroup(idsGot) {
     print("number of items processed: "+counter);
 }
 
-
-
 var counter = 0, chunk = 10000, idsGot = [];
-
 
 var gots=db.getSiblingDB('metadata').ObjectGroup.find(
     {
         "_acd": {
-                    $exists: false
+            $exists: false
+        },
+        "_tenant": {
+            $exists: true
         }
     }, {
         _id: true

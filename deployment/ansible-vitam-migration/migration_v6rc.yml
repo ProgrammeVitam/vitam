@@ -20,4 +20,3 @@
   run_once: true
   roles:
     - migrate_approximate_dates_gots
-
