@@ -34,6 +34,8 @@ import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
@@ -55,6 +57,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.time.LogicalClockRule;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
@@ -70,15 +73,20 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsExcepti
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import org.bson.Document;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,6 +110,9 @@ public class LogbookMongoDbAccessTest {
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
 
     private static final Integer TENANT_ID = 0;
     private static final List<Integer> tenantList = Collections.singletonList(TENANT_ID);
@@ -152,6 +163,11 @@ public class LogbookMongoDbAccessTest {
 
         mongoDbAccess.close();
         VitamClientFactory.resetConnections();
+    }
+
+    @After
+    public void cleanup() {
+        LogbookCollectionsTestUtils.afterTest(indexManager);
     }
 
     @Test
@@ -1497,6 +1513,214 @@ public class LogbookMongoDbAccessTest {
         );
         assertNotNull(logbookLifeCycleObjectGroup);
         assertEquals(1, logbookLifeCycleObjectGroup.get(VitamDocument.VERSION));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testSelectRawByLastPersistenceDateIntervalForLogbookOperation_BelowLimit()
+        throws LogbookDatabaseException {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        logicalClock.freezeTime();
+
+        List<String> operationIds = new ArrayList<>();
+        Map<String, LocalDateTime> operationTimestamps = new HashMap<>();
+
+        for (int i = 0; i < 50; i++) {
+            if (i % 3 == 0) {
+                logicalClock.logicalSleep(1, ChronoUnit.SECONDS);
+            }
+
+            String operationId = insertLogbookOperation();
+            operationIds.add(operationId);
+            operationTimestamps.put(operationId, LocalDateUtil.now());
+        }
+
+        // When
+        CloseableIterator<LogbookOperation> iterator = mongoDbAccess.selectRawByLastPersistenceDateInterval(
+            LogbookCollections.OPERATION,
+            LocalDateUtil.getFormattedDateTimeForMongo(operationTimestamps.get(operationIds.get(4))),
+            LocalDateUtil.getFormattedDateTimeForMongo(operationTimestamps.get(operationIds.get(19))),
+            100
+        );
+
+        // Then
+        List<String> selectedIds = CloseableIteratorUtils.toStream(iterator).map(LogbookOperation::getId).toList();
+        assertThat(selectedIds).containsExactlyInAnyOrderElementsOf(operationIds.subList(3, 21));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testSelectRawByLastPersistenceDateIntervalForLogbookOperation_LimitReached()
+        throws LogbookDatabaseException {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        logicalClock.freezeTime();
+
+        List<String> operationIds = new ArrayList<>();
+        Map<String, LocalDateTime> operationTimestamps = new HashMap<>();
+
+        for (int i = 0; i < 50; i++) {
+            logicalClock.logicalSleep(1, ChronoUnit.SECONDS);
+            String operationId = insertLogbookOperation();
+            operationIds.add(operationId);
+            operationTimestamps.put(operationId, LocalDateUtil.now());
+        }
+
+        // When
+        CloseableIterator<LogbookOperation> iterator = mongoDbAccess.selectRawByLastPersistenceDateInterval(
+            LogbookCollections.OPERATION,
+            LocalDateUtil.getFormattedDateTimeForMongo(operationTimestamps.get(operationIds.get(4))),
+            LocalDateUtil.getFormattedDateTimeForMongo(operationTimestamps.get(operationIds.get(19))),
+            10
+        );
+
+        // Then
+        List<String> selectedIds = CloseableIteratorUtils.toStream(iterator).map(LogbookOperation::getId).toList();
+        assertThat(selectedIds).containsExactlyInAnyOrderElementsOf(operationIds.subList(4, 14));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testSelectRawByLastPersistenceDateIntervalForLogbookOperation_LimitReachedWithOverflowToSelectOperationsWithSameLastPersistedDate()
+        throws LogbookDatabaseException {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        logicalClock.freezeTime();
+
+        List<String> operationIds = new ArrayList<>();
+        Map<String, LocalDateTime> operationTimestamps = new HashMap<>();
+
+        for (int i = 0; i < 50; i++) {
+            if (i % 3 == 0) {
+                logicalClock.logicalSleep(1, ChronoUnit.SECONDS);
+            }
+
+            String operationId = insertLogbookOperation();
+            operationIds.add(operationId);
+            operationTimestamps.put(operationId, LocalDateUtil.now());
+        }
+
+        // When
+        CloseableIterator<LogbookOperation> iterator = mongoDbAccess.selectRawByLastPersistenceDateInterval(
+            LogbookCollections.OPERATION,
+            LocalDateUtil.getFormattedDateTimeForMongo(operationTimestamps.get(operationIds.get(4))),
+            LocalDateUtil.getFormattedDateTimeForMongo(operationTimestamps.get(operationIds.get(19))),
+            10
+        );
+
+        // Then
+        List<String> selectedIds = CloseableIteratorUtils.toStream(iterator).map(VitamDocument::getId).toList();
+        assertThat(selectedIds).containsExactlyInAnyOrderElementsOf(operationIds.subList(3, 15));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testSelectRawByLastPersistenceDateIntervalForLfcObjectGroups_LimitReachedWithOverflowToSelectOperationsWithSameLastPersistedDate()
+        throws LogbookDatabaseException {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        logicalClock.freezeTime();
+
+        List<String> operationIds = new ArrayList<>();
+        Map<String, LocalDateTime> operationTimestamps = new HashMap<>();
+
+        for (int i = 0; i < 50; i++) {
+            if (i % 3 == 0) {
+                logicalClock.logicalSleep(1, ChronoUnit.SECONDS);
+            }
+
+            String operationId = insertLfcObjectGroup();
+            operationIds.add(operationId);
+            operationTimestamps.put(operationId, LocalDateUtil.now());
+        }
+
+        // When
+        CloseableIterator<LogbookLifeCycle<LogbookLifeCycleObjectGroupParameters>> iterator =
+            mongoDbAccess.selectRawByLastPersistenceDateInterval(
+                LogbookCollections.LIFECYCLE_OBJECTGROUP,
+                LocalDateUtil.getFormattedDateTimeForMongo(operationTimestamps.get(operationIds.get(4))),
+                LocalDateUtil.getFormattedDateTimeForMongo(operationTimestamps.get(operationIds.get(19))),
+                10
+            );
+
+        // Then
+        List<String> selectedIds = CloseableIteratorUtils.toStream(iterator).map(VitamDocument::getId).toList();
+        assertThat(selectedIds).containsExactlyInAnyOrderElementsOf(operationIds.subList(3, 15));
+    }
+
+    private String insertLogbookOperation() {
+        final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters();
+        for (final LogbookParameterName name : LogbookParameterName.values()) {
+            parameters.putParameterValue(name, GUIDFactory.newEventGUID(TENANT_ID).getId());
+        }
+        String operationId = parameters.getParameterValue(LogbookParameterName.eventIdentifier);
+        parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, operationId);
+        parameters.putParameterValue(LogbookParameterName.eventDetailData, "{}");
+        parameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier, "{}");
+        parameters.putParameterValue(LogbookParameterName.agIdExt, "{}");
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
+
+        final LogbookOperationParameters parameters2 = LogbookParameterHelper.newLogbookOperationParameters();
+        for (final LogbookParameterName name : LogbookParameterName.values()) {
+            parameters2.putParameterValue(name, GUIDFactory.newEventGUID(TENANT_ID).getId());
+        }
+        parameters2.putParameterValue(
+            LogbookParameterName.eventIdentifierProcess,
+            parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess)
+        );
+        parameters2.putParameterValue(LogbookParameterName.eventDetailData, "{}");
+        parameters2.putParameterValue(LogbookParameterName.rightsStatementIdentifier, "{}");
+        parameters2.putParameterValue(LogbookParameterName.agIdExt, "{}");
+        parameters2.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
+
+        try {
+            mongoDbAccess.createLogbookOperation(operationId, parameters, parameters2);
+        } catch (LogbookDatabaseException | LogbookAlreadyExistsException e) {
+            throw new RuntimeException(e);
+        }
+        return operationId;
+    }
+
+    private String insertLfcObjectGroup() {
+        final LogbookLifeCycleObjectGroupParameters parameters =
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
+        for (final LogbookParameterName name : parameters.getMandatoriesParameters()) {
+            parameters.putParameterValue(name, GUIDFactory.newEventGUID(TENANT_ID).getId());
+        }
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
+        parameters.setTypeProcess(LogbookTypeProcess.INGEST);
+
+        final String oi = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
+
+        final LogbookLifeCycleObjectGroupParameters parameters2 =
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
+        for (final LogbookParameterName name : parameters2.getMandatoriesParameters()) {
+            parameters2.putParameterValue(name, GUIDFactory.newEventGUID(TENANT_ID).getId());
+        }
+        parameters2.putParameterValue(
+            LogbookParameterName.objectIdentifier,
+            parameters.getMapParameters().get(LogbookParameterName.objectIdentifier)
+        );
+        parameters2.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
+        parameters2.setTypeProcess(LogbookTypeProcess.INGEST);
+
+        final LogbookLifeCycleObjectGroupParameters parametersWrong =
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
+        for (final LogbookParameterName name : LogbookParameterName.values()) {
+            parametersWrong.putParameterValue(name, GUIDFactory.newEventGUID(TENANT_ID).getId());
+        }
+        parametersWrong.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
+        parametersWrong.setTypeProcess(LogbookTypeProcess.INGEST);
+
+        String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
+        try {
+            commitObjectGroup(eip, oi, true, parameters);
+            commitObjectGroup(eip, oi, false, parameters2);
+        } catch (LogbookDatabaseException | LogbookAlreadyExistsException | LogbookNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        return oi;
     }
 
     private LogbookOperationParameters getLogbookOperationParameters(GUID eventIdentifierProcess) {

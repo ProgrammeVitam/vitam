@@ -27,13 +27,13 @@
 package fr.gouv.vitam.logbook.administration.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.mongo.FakeMongoCursor;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
@@ -58,6 +58,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -70,6 +71,7 @@ public class LogbookOperationTraceabilityHelperTest {
     private static final String FILE_NAME = "0_operations_20171031_151118.zip";
     private static final String LOGBOOK_OPERATION_START_DATE = "2017-10-31T15:11:15.405";
     public static final int TRACEABILITY_EXPIRATION_IN_SECONDS = 24 * 60 * 60;
+    private static final int OPERATION_TRACEABILITY_MAX_ENTRIES = 100_000;
     private static LocalDateTime LOGBOOK_OPERATION_EVENT_DATE;
 
     private static final String LAST_OPERATION_HASH =
@@ -94,7 +96,8 @@ public class LogbookOperationTraceabilityHelperTest {
             logbookOperations,
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
-            TRACEABILITY_EXPIRATION_IN_SECONDS
+            TRACEABILITY_EXPIRATION_IN_SECONDS,
+            OPERATION_TRACEABILITY_MAX_ENTRIES
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
@@ -119,7 +122,8 @@ public class LogbookOperationTraceabilityHelperTest {
             logbookOperations,
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
-            TRACEABILITY_EXPIRATION_IN_SECONDS
+            TRACEABILITY_EXPIRATION_IN_SECONDS,
+            OPERATION_TRACEABILITY_MAX_ENTRIES
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
@@ -153,7 +157,8 @@ public class LogbookOperationTraceabilityHelperTest {
             logbookOperations,
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
-            TRACEABILITY_EXPIRATION_IN_SECONDS
+            TRACEABILITY_EXPIRATION_IN_SECONDS,
+            OPERATION_TRACEABILITY_MAX_ENTRIES
         );
 
         given(logbookOperations.findLastTraceabilityOperationOK()).willReturn(null);
@@ -178,15 +183,22 @@ public class LogbookOperationTraceabilityHelperTest {
             logbookOperations,
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
-            TRACEABILITY_EXPIRATION_IN_SECONDS
+            TRACEABILITY_EXPIRATION_IN_SECONDS,
+            OPERATION_TRACEABILITY_MAX_ENTRIES
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
         LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
-        MongoCursor<LogbookOperation> cursor = getMongoCursorFor(logbookOperation);
+        CloseableIterator<LogbookOperation> iterator = getIteratorFor(logbookOperation);
 
-        given(logbookOperations.selectOperationsByLastPersistenceDateInterval(any(), any())).willReturn(cursor);
+        given(
+            logbookOperations.selectOperationsByLastPersistenceDateInterval(
+                any(),
+                any(),
+                eq(OPERATION_TRACEABILITY_MAX_ENTRIES)
+            )
+        ).willReturn(iterator);
 
         final MerkleTreeAlgo algo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
 
@@ -212,15 +224,22 @@ public class LogbookOperationTraceabilityHelperTest {
             logbookOperations,
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
-            TRACEABILITY_EXPIRATION_IN_SECONDS
+            TRACEABILITY_EXPIRATION_IN_SECONDS,
+            OPERATION_TRACEABILITY_MAX_ENTRIES
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
         LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
-        MongoCursor<LogbookOperation> cursor = getMongoCursorFor(logbookOperation);
+        CloseableIterator<LogbookOperation> iterator = getIteratorFor(logbookOperation);
 
-        given(logbookOperations.selectOperationsByLastPersistenceDateInterval(any(), any())).willReturn(cursor);
+        given(
+            logbookOperations.selectOperationsByLastPersistenceDateInterval(
+                any(),
+                any(),
+                eq(OPERATION_TRACEABILITY_MAX_ENTRIES)
+            )
+        ).willReturn(iterator);
 
         final MerkleTreeAlgo algo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
 
@@ -246,7 +265,8 @@ public class LogbookOperationTraceabilityHelperTest {
             logbookOperations,
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
-            TRACEABILITY_EXPIRATION_IN_SECONDS
+            TRACEABILITY_EXPIRATION_IN_SECONDS,
+            OPERATION_TRACEABILITY_MAX_ENTRIES
         );
 
         // When
@@ -269,7 +289,8 @@ public class LogbookOperationTraceabilityHelperTest {
             logbookOperations,
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
-            TRACEABILITY_EXPIRATION_IN_SECONDS
+            TRACEABILITY_EXPIRATION_IN_SECONDS,
+            OPERATION_TRACEABILITY_MAX_ENTRIES
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
@@ -299,15 +320,22 @@ public class LogbookOperationTraceabilityHelperTest {
             logbookOperations,
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
-            TRACEABILITY_EXPIRATION_IN_SECONDS
+            TRACEABILITY_EXPIRATION_IN_SECONDS,
+            OPERATION_TRACEABILITY_MAX_ENTRIES
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
         LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
-        MongoCursor<LogbookOperation> cursor = getMongoCursorFor(logbookOperation);
+        CloseableIterator<LogbookOperation> iterator = getIteratorFor(logbookOperation);
 
-        given(logbookOperations.selectOperationsByLastPersistenceDateInterval(any(), any())).willReturn(cursor);
+        given(
+            logbookOperations.selectOperationsByLastPersistenceDateInterval(
+                any(),
+                any(),
+                eq(OPERATION_TRACEABILITY_MAX_ENTRIES)
+            )
+        ).willReturn(iterator);
 
         final MerkleTreeAlgo algo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
 
@@ -341,7 +369,8 @@ public class LogbookOperationTraceabilityHelperTest {
             logbookOperations,
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
-            traceabilityExpirationDelayInSeconds
+            traceabilityExpirationDelayInSeconds,
+            OPERATION_TRACEABILITY_MAX_ENTRIES
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
@@ -382,7 +411,8 @@ public class LogbookOperationTraceabilityHelperTest {
             logbookOperations,
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
-            traceabilityExpirationDelayInSeconds
+            traceabilityExpirationDelayInSeconds,
+            OPERATION_TRACEABILITY_MAX_ENTRIES
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
@@ -415,7 +445,8 @@ public class LogbookOperationTraceabilityHelperTest {
             logbookOperations,
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
-            TRACEABILITY_EXPIRATION_IN_SECONDS
+            TRACEABILITY_EXPIRATION_IN_SECONDS,
+            OPERATION_TRACEABILITY_MAX_ENTRIES
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
@@ -437,14 +468,14 @@ public class LogbookOperationTraceabilityHelperTest {
         );
     }
 
-    private MongoCursor<LogbookOperation> getMongoCursorFor(LogbookOperation logbookOperation) {
-        List<LogbookOperation> logbookList = new ArrayList<LogbookOperation>();
+    private CloseableIterator<LogbookOperation> getIteratorFor(LogbookOperation logbookOperation) {
+        List<LogbookOperation> logbookList = new ArrayList<>();
         logbookList.add(logbookOperation);
 
-        return getMongoCursorFor(logbookList);
+        return getIteratorFor(logbookList);
     }
 
-    private MongoCursor<LogbookOperation> getMongoCursorFor(List<LogbookOperation> logbookList) {
-        return new FakeMongoCursor<>(logbookList);
+    private CloseableIterator<LogbookOperation> getIteratorFor(List<LogbookOperation> logbookList) {
+        return CloseableIteratorUtils.toCloseableIterator(logbookList.iterator());
     }
 }
