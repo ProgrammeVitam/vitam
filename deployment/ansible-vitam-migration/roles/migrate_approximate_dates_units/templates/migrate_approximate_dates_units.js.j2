@@ -16,8 +16,6 @@ function bulkWriteUnits(idsUnit) {
         }
     ).forEach(function(lfc) {
 
-
-
         bulkUpdateOps.push({
             "updateOne": {
                 "filter": {
@@ -30,52 +28,43 @@ function bulkWriteUnits(idsUnit) {
                     }
                 }
             }
-
         });
-
 
     });
 
     db.getSiblingDB('metadata').Unit.bulkWrite(bulkUpdateOps,{ordered : false});
     print("number of items processed: "+counter);
 
-
 }
-
-
 
 var counter = 0,
     chunk = 10000;
 
 var idsUnit = [];
 
-
 var units=db.getSiblingDB('metadata').Unit.find(
 
     {
         "_acd": {
-                    $exists: false
+            $exists: false
+        },
+        "_tenant": {
+            $exists: true
         }
-        
     }, {
         _id: true
     }
 );
 
-
 units.forEach(function(unit) {
-
 
     counter++;
     idsUnit.push(unit._id);
 
     if (counter % chunk == 0) {
-
         bulkWriteUnits(idsUnit);
         idsUnit = [];
     }
-
-
 
 })
 
