@@ -187,6 +187,7 @@ public class LogBookLifeCycleObjectGroupTest {
             logbookConf.setLifecycleTraceabilityMaxRenewalDelay(12);
             logbookConf.setLifecycleTraceabilityMaxRenewalDelayUnit(ChronoUnit.HOURS);
             logbookConf.setOperationTraceabilityThreadPoolSize(4);
+            logbookConf.setOperationTraceabilityMaxEntries(100000);
             logbookConf.setLogbookTenantIndexation(
                 new LogbookIndexationConfiguration()
                     .setDefaultCollectionConfiguration(
