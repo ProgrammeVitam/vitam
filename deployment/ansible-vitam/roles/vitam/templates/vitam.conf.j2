@@ -19,7 +19,7 @@ computedInheritedRulesThreshold: 100000000
 intervalDelayCheckIdle: 5000
 maxDelayUnusedConnection: 5000
 delayValidationAfterInactivity: 2500
-tenants: [ "{{ vitam_tenant_ids | join('", "') }}" ]
+tenants: {{ vitam_tenant_ids | expand_list }}
 adminTenant: {{ vitam_tenant_admin | default(1) }}
 forceChunkModeInputStream: {{ vitam_struct.vitam_force_chunk_mode | default(default_vitam_force_chunk_mode) | bool | lower }}
 
@@ -43,19 +43,19 @@ binarySizeTenantThreshold: # exemple for tenant 0 max dip/transfer size is 20 Mo
 #    authorize: true
 
 eliminationReportExtraFields:
-{% for tenant_id in vitam_tenant_ids %}
+{% for tenant_id in vitam_tenant_ids | expand_list %}
   - tenant: {{ tenant_id }}
     metadataFields: {{ extendedConfiguration.custom[tenant_id].eliminationReportExtraFields | default(default_eliminationReportExtraFields) | to_json }}
 {% endfor %}
 
 ingestReportUnitExtraFields:
-{% for tenant_id in vitam_tenant_ids %}
+{% for tenant_id in vitam_tenant_ids | expand_list %}
   - tenant: {{ tenant_id }}
     metadataFields: {{ extendedConfiguration.custom[tenant_id].ingestReportUnitExtraFields | default(default_ingestReportUnitExtraFields) | to_json }}
 {% endfor %}
 
 ingestReportObjectExtraFields:
-{% for tenant_id in vitam_tenant_ids %}
+{% for tenant_id in vitam_tenant_ids | expand_list %}
   - tenant: {{ tenant_id }}
     metadataFields: {{ extendedConfiguration.custom[tenant_id].ingestReportObjectExtraFields | default(default_ingestReportObjectExtraFields) | to_json }}
 {% endfor %}
@@ -68,8 +68,8 @@ classificationLevel:
   allowList: [{% for classification in classificationList %}{{ classification }}{% if not loop.last %},{% endif %}{% endfor %}]
   authorizeNotDefined: {{ classificationLevelOptional }}
 
-indexInheritedRulesWithAPIV2OutputByTenant: [ "{{ vitam.worker.api_output_index_tenants | join('", "') }}" ]
-indexInheritedRulesWithRulesIdByTenant: [ "{{ vitam.worker.rules_index_tenants | join('", "') }}" ]
+indexInheritedRulesWithAPIV2OutputByTenant: {{ vitam.worker.api_output_index_tenants | expand_list }}
+indexInheritedRulesWithRulesIdByTenant: {{ vitam.worker.rules_index_tenants | expand_list }}
 
 environmentName: {{ vitam_prefix_offer | default(vitam_site_name) }}
 

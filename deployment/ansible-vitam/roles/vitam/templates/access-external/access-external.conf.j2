@@ -4,7 +4,7 @@ tenantFilter: true
 authorizeTrackTotalHits: {{ vitam.access_external.authorizeTrackTotalHits | default(false) }}
 
 objectGroupBlackListedFieldsForVisualizationByTenant:
-{% for tenant_id in vitam_tenant_ids %}
+{% for tenant_id in vitam_tenant_ids | expand_list %}
   {{ tenant_id }}: {{ extendedConfiguration.custom[tenant_id].objectGroupBlackListedFields | default(default_objectGroupBlackListedFields) | to_json }}
 {% endfor %}
 

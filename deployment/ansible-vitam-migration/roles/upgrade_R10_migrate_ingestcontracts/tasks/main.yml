@@ -44,7 +44,7 @@
     return_content: yes
     validate_certs: false
   register: ingestcontracts_for_tenant
-  loop: "{{ vitam_tenant_ids }}"
+  loop: "{{ vitam_tenant_ids | expand_list }}"
   run_once: true
 
 - name: Compute result

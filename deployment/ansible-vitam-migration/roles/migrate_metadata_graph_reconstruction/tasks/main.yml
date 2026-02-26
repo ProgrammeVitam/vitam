@@ -23,6 +23,6 @@
           X-Tenant-Id: "{{ item }}"
         status_code: 200
         timeout: "{{ migration_timeout }}"
-      loop: "{{ vitam_tenant_ids }}"
+      loop: "{{ vitam_tenant_ids | expand_list }}"
 
   run_once: true

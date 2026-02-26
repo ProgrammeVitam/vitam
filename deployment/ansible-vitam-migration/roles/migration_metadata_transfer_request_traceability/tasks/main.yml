@@ -8,6 +8,6 @@
 
 - name: Migrate tenants
   include_tasks: migrate_tenant.yml
-  loop: "{{ vitam_tenant_ids }}"
+  loop: "{{ vitam_tenant_ids | expand_list }}"
   loop_control:
     loop_var: tenantId

@@ -24,8 +24,8 @@ capacity: {{ vitam_worker_capacity }}
 workerFamily: {{ vitam_worker_workerFamily }}
 {% endif %}
 
-indexInheritedRulesWithAPIV2OutputByTenant: [ "{{  vitam.worker.api_output_index_tenants | join('", "') }}" ]
-indexInheritedRulesWithRulesIdByTenant: [ "{{  vitam.worker.rules_index_tenants | join('", "') }}" ]
+indexInheritedRulesWithAPIV2OutputByTenant: {{ vitam.worker.api_output_index_tenants | expand_list }}
+indexInheritedRulesWithRulesIdByTenant: {{ vitam.worker.rules_index_tenants | expand_list }}
 
 # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
 archiveUnitProfileCacheMaxEntries: {{ vitam.metadata.archiveUnitProfileCacheMaxEntries }}

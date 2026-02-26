@@ -89,7 +89,7 @@ elasticsearchTenantIndexation:
   grouped_tenants:
   {% for entry in vitam_elasticsearch_tenant_indexation.collect_grouped_tenants %}
     - name: '{{ entry.name }}'
-      tenants: '{{ entry.tenants }}'
+      tenants: '{{ entry.tenants | contract_list | join(',') }}'
     {% if entry.unit is defined %}
       unit:
       {% if entry.collect_unit.number_of_shards is defined %}

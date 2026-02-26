@@ -78,7 +78,7 @@ tapeLibraryConfiguration:
     buckets:
   {% for bucket in vitam_offers[offer_conf]["topology"]["buckets"] %}
       {{ bucket.name }}:
-        tenants: {{ bucket.tenants }}
+        tenants: {{ bucket.tenants | expand_list }}
         tarBufferingTimeoutInMinutes: {{ bucket.tarBufferingTimeoutInMinutes }}
   {% endfor %}
 
@@ -103,5 +103,6 @@ tapeLibraryConfiguration:
           readWritePriority: {{ drive.readWritePriority | default('WRITE') }}
     {% endfor %}
       fullCartridgeDetectionThresholdInMB: {{ library.fullCartridgeDetectionThresholdInMB }}
+
   {% endfor %}
 {% endif %}
