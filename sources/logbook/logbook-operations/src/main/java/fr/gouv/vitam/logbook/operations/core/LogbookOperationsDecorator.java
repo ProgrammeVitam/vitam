@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.logbook.operations.core;
 
-import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
@@ -77,12 +77,13 @@ public abstract class LogbookOperationsDecorator implements LogbookOperations {
     }
 
     @Override
-    public MongoCursor<LogbookOperation> selectOperationsByLastPersistenceDateInterval(
+    public CloseableIterator<LogbookOperation> selectOperationsByLastPersistenceDateInterval(
         LocalDateTime startDate,
-        LocalDateTime endDate
+        LocalDateTime endDate,
+        int softLimit
     )
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
-        return logbookOperations.selectOperationsByLastPersistenceDateInterval(startDate, endDate);
+        return logbookOperations.selectOperationsByLastPersistenceDateInterval(startDate, endDate, softLimit);
     }
 
     @Override

@@ -27,7 +27,11 @@
 package fr.gouv.vitam.common.collection;
 
 import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.Function;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Helper class for CloseableIterators
@@ -35,6 +39,12 @@ import java.util.function.Function;
 public final class CloseableIteratorUtils {
 
     private CloseableIteratorUtils() {}
+
+    public static <T> Stream<T> toStream(CloseableIterator<T> iterator) {
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED), false).onClose(
+            iterator::close
+        );
+    }
 
     /**
      * Maps a CloseableIterator from un input type T to an output type R using a mapper function.

@@ -336,6 +336,8 @@ vitam:
     lifecycleTraceabilityMaxRenewalDelayUnit: MINUTES
     # Max entries selected per (Unit or Object Group) LFC traceability operation
     lifecycleTraceabilityMaxEntries: 100000
+    # Max entries selected per LogbookOperation traceability
+    operationTraceabilityMaxEntries: 100000
     # Reconstruction metrics cache in minutes (secondary site)
     reconstructionMetricsCacheDurationInMinutes: 15
   metadata:

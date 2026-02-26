@@ -29,7 +29,9 @@ package fr.gouv.vitam.logbook.common.server;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.server.mongodb.VitamMongoCursor;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamDBException;
@@ -499,16 +501,6 @@ public interface LogbookDbAccess {
         throws LogbookNotFoundException, LogbookDatabaseException;
 
     /**
-     * @return the current number of LogbookLifeCyle created in working unit collection
-     */
-    long getLogbookLifeCyleUnitInProcessSize();
-
-    /**
-     * @return the current number of LogbookLifeCyle created in working objectGroup collection
-     */
-    long getLogbookLifeCyleObjectGroupInProcessSize();
-
-    /**
      * Check if one eventIdentifier for Lifecycle exists already
      *
      * @param lifecycleItem
@@ -549,4 +541,11 @@ public interface LogbookDbAccess {
         LogbookCollections collection,
         List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk
     );
+
+    <T extends VitamDocument<T>> CloseableIterator<T> selectRawByLastPersistenceDateInterval(
+        LogbookCollections logbookCollection,
+        String startDate,
+        String endDate,
+        int softLimit
+    ) throws LogbookDatabaseException;
 }

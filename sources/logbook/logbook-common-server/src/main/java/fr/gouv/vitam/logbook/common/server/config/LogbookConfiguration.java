@@ -71,6 +71,11 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
     private ChronoUnit operationTraceabilityMaxRenewalDelayUnit;
 
     /**
+     * Max event count to select during a single logbook operation traceability.
+     */
+    private Integer operationTraceabilityMaxEntries;
+
+    /**
      * Temporization delay (in seconds) for recent logbook lifecycle events.
      * Freshly created lifecycle events are not secured right away to avoid missing events "not yet
      * commited" or with "server clock difference".
@@ -329,6 +334,15 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
      */
     public void setOperationTraceabilityTemporizationDelay(Integer operationTraceabilityTemporizationDelay) {
         this.operationTraceabilityTemporizationDelay = operationTraceabilityTemporizationDelay;
+    }
+
+    public Integer getOperationTraceabilityMaxEntries() {
+        return operationTraceabilityMaxEntries;
+    }
+
+    public LogbookConfiguration setOperationTraceabilityMaxEntries(Integer operationTraceabilityMaxEntries) {
+        this.operationTraceabilityMaxEntries = operationTraceabilityMaxEntries;
+        return this;
     }
 
     /**

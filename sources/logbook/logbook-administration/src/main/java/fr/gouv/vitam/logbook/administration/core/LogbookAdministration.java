@@ -69,6 +69,7 @@ public class LogbookAdministration {
     private final int operationTraceabilityTemporizationDelayInSeconds;
     private final int operationTraceabilityMaxRenewalDelayInSeconds;
     private final int operationTraceabilityThreadPoolSize;
+    private final int operationTraceabilityMaxEntries;
 
     @VisibleForTesting
     LogbookAdministration(
@@ -78,9 +79,11 @@ public class LogbookAdministration {
         Integer operationTraceabilityTemporizationDelayInSeconds,
         Integer operationTraceabilityMaxRenewalDelay,
         ChronoUnit operationTraceabilityMaxRenewalDelayUnit,
-        int operationTraceabilityThreadPoolSize
+        int operationTraceabilityThreadPoolSize,
+        int operationTraceabilityMaxEntries
     ) {
         this.operationTraceabilityThreadPoolSize = operationTraceabilityThreadPoolSize;
+        this.operationTraceabilityMaxEntries = operationTraceabilityMaxEntries;
 
         ParametersChecker.checkParameter(
             "Missing max renewal delay or unit",
@@ -116,7 +119,8 @@ public class LogbookAdministration {
         Integer operationTraceabilityOverlapDelayInSeconds,
         Integer operationTraceabilityMaxRenewalDelay,
         ChronoUnit operationTraceabilityMaxRenewalDelayUnit,
-        int operationTraceabilityThreadPoolSize
+        int operationTraceabilityThreadPoolSize,
+        int operationTraceabilityMaxEntries
     ) {
         this(
             logbookOperations,
@@ -125,7 +129,8 @@ public class LogbookAdministration {
             operationTraceabilityOverlapDelayInSeconds,
             operationTraceabilityMaxRenewalDelay,
             operationTraceabilityMaxRenewalDelayUnit,
-            operationTraceabilityThreadPoolSize
+            operationTraceabilityThreadPoolSize,
+            operationTraceabilityMaxEntries
         );
     }
 
@@ -145,7 +150,8 @@ public class LogbookAdministration {
             logbookOperations,
             guid,
             operationTraceabilityTemporizationDelayInSeconds,
-            operationTraceabilityMaxRenewalDelayInSeconds
+            operationTraceabilityMaxRenewalDelayInSeconds,
+            operationTraceabilityMaxEntries
         );
 
         helper.initialize();

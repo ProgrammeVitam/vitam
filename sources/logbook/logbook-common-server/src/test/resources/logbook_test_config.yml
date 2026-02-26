@@ -82,3 +82,4 @@ alertEvents:
 operationTraceabilityTemporizationDelay: 300
 lifecycleTraceabilityTemporizationDelay: 300
 lifecycleTraceabilityMaxEntries: 100000
+operationTraceabilityMaxEntries: 100000
