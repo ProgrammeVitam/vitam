@@ -276,6 +276,12 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     }
 
     @Override
+    public RequestResponse<JsonNode> objectGroupsAtomicUpdateBulk(List<JsonNode> updateQueries)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
+        throw new IllegalStateException("Should never be called");
+    }
+
+    @Override
     public RequestResponse<JsonNode> updateUnitsRulesBulk(
         List<String> unitsIds,
         RuleActions actions,

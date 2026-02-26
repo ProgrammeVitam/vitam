@@ -556,7 +556,7 @@ Ce handler permet d'extraire le contenu du SEDA. Il y a :
 - construction de l'arbre des units et sauvegarde sur le workspace
 - sauvegarde de la map des units sur le workspace
 - sauvegarde de la map des objets sur le workspace
-- sauvegarde de la map des objets groupes sur le workspace
+- sauvegarde de la map des groupes d'objets sur le workspace
 
 
 Détail des différentes maps utilisées
@@ -704,7 +704,7 @@ Détail du handler : IndexObjectGroupActionHandler
 4.7.1 description
 ~~~~~~~~~~~~~~~~~
 
-Indexation des objets groupes en récupérant les objets groupes du workspace. Il y a utilisation d'un client metadata.
+Indexation des groupes d'objets en récupérant les groupes d'objets du workspace. Il y a utilisation d'un client metadata.
 
 .. TODO
 

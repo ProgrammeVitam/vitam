@@ -31,23 +31,20 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
-import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentUpdateReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentObjectGroupReportEntry;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.io.TempWorkspace;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
@@ -67,19 +64,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class OriginatingAgencyReassignmentChildrenUnitsPreparationPluginTest {
+public class OriginatingAgencyReassignmentObjectGroupsPreparationPluginTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
     @Mock
     private MetaDataClient metaDataClient;
-
-    @Mock
-    private AdminManagementClient adminManagementClient;
 
     @Mock
     private WorkspaceClient workspaceClient;
@@ -89,92 +80,83 @@ public class OriginatingAgencyReassignmentChildrenUnitsPreparationPluginTest {
 
     HandlerIO handlerIO = mock(HandlerIO.class);
 
-    private TempWorkspace tempWorkspace;
-
-    private OriginatingAgencyReassignmentChildrenUnitsPreparationPlugin originatingAgencyReassignmentChildrenUnitsPreparationPlugin;
-
-    private static final String UNITS_TO_UPDATE_FILE_NAME = "units_to_update.jsonl";
-    private static final String UNITS_CHILDREN_FILE_NAME = "unitsChildrenToUpdateSps.jsonl";
-    private static final String INTERMEDIATE_UNITS_IDS_FILE_NAME = "intermediate_units_ids.jsonl";
+    private OriginatingAgencyReassignmentObjectGroupPreparationPlugin originatingAgencyReassignmentObjectGroupPreparationPlugin;
 
     @Before
     public void setUp() throws Exception {
         when(handlerIO.getMetaDataClient()).thenReturn(metaDataClient);
         when(handlerIO.getWorkspaceClient(any())).thenReturn(workspaceClient);
-        when(handlerIO.getAdminManagementClient()).thenReturn(adminManagementClient);
         when(handlerIO.getBatchReportClient()).thenReturn(batchReportClient);
 
-        originatingAgencyReassignmentChildrenUnitsPreparationPlugin =
-            new OriginatingAgencyReassignmentChildrenUnitsPreparationPlugin();
-
-        tempWorkspace = new TempWorkspace();
-    }
-
-    @After
-    public void cleanup() {
-        // Restore default batch size
-        VitamConfiguration.setBatchSize(1000);
+        originatingAgencyReassignmentObjectGroupPreparationPlugin =
+            new OriginatingAgencyReassignmentObjectGroupPreparationPlugin();
     }
 
     @Test
-    public void should_generate_children_distribution_file() throws Exception {
+    public void should_generate_distribution_file_with_requested_ids() throws Exception {
         // Given
 
-        File main_units_distributionFile = PropertiesUtils.getResourceFile(
-            "reassignment/main_units_distribution.jsonl"
+        JsonNode queryNode = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("reassignment/query.json")
         );
 
-        doReturn(main_units_distributionFile)
-            .when(handlerIO)
-            .getFileFromWorkspace(any(), eq(UNITS_TO_UPDATE_FILE_NAME));
+        OriginatingAgencyReassignmentRequest originatingAgencyReassignmentRequest =
+            new OriginatingAgencyReassignmentRequest(
+                queryNode,
+                "sourceOriginatingAgency",
+                "targetOriginatingAgency",
+                true
+            );
 
-        JsonNode childrenUnitsResponse = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream("reassignment/children_units.json")
+        WorkerParameters workerParameters = mock(WorkerParameters.class);
+
+        JsonNode objectGroupResponse = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("reassignment/objectGroups.json")
         );
 
-        ArrayNode results = (ArrayNode) childrenUnitsResponse.get("$results");
-        List<String> unitToUpdateSps = new ArrayList<>();
+        ArrayNode results = (ArrayNode) objectGroupResponse.get("$results");
+        List<String> objectGroupsIdsToUpdateSp = new ArrayList<>();
 
-        for (JsonNode unitNode : results) {
-            unitToUpdateSps.add(unitNode.get(VitamFieldsHelper.id()).asText());
+        for (JsonNode objectGroupNode : results) {
+            objectGroupsIdsToUpdateSp.add(objectGroupNode.get(VitamFieldsHelper.id()).asText());
         }
 
-        when(metaDataClient.selectUnits(any(JsonNode.class))).thenReturn(childrenUnitsResponse);
-
-        when(workspaceClient.isExistingObject(anyString(), eq(UNITS_CHILDREN_FILE_NAME))).thenReturn(false);
+        when(metaDataClient.selectObjectGroups(any())).thenReturn(objectGroupResponse);
 
         when(handlerIO.getContainerName()).thenReturn("processId");
-        WorkerParameters workerParameters = mock(WorkerParameters.class);
-        when(workerParameters.getExecutionContext()).thenReturn(WorkFlowExecutionContext.VITAM);
+        doReturn(JsonHandler.writeToInpustream(originatingAgencyReassignmentRequest))
+            .when(handlerIO)
+            .getInputStreamFromWorkspace(any(), eq("request.json"));
 
-        ArgumentCaptor<ReportBody<OriginatingAgencyReassignmentUpdateReportEntry>> reportBodyArgumentCaptor =
+        File objectGroupListFile = PropertiesUtils.getResourceFile("reassignment/object_group_list.jsonl");
+        when(handlerIO.getInput(0)).thenReturn(objectGroupListFile);
+
+        ArgumentCaptor<ReportBody<OriginatingAgencyReassignmentObjectGroupReportEntry>> reportBodyArgumentCaptor =
             ArgumentCaptor.forClass(ReportBody.class);
 
         doNothing().when(batchReportClient).appendReportEntries(any());
 
-        final File tempFile = tempWorkspace.tempFile();
-
-        when(handlerIO.getNewLocalFile(WorkFlowExecutionContext.VITAM, INTERMEDIATE_UNITS_IDS_FILE_NAME)).thenReturn(
-            tempFile
+        // When
+        ItemStatus itemStatus = originatingAgencyReassignmentObjectGroupPreparationPlugin.execute(
+            workerParameters,
+            handlerIO
         );
 
-        final File dummy = temporaryFolder.newFile();
-        when(handlerIO.getNewLocalFile(anyString())).thenReturn(dummy);
-
-        // When
-        originatingAgencyReassignmentChildrenUnitsPreparationPlugin.execute(workerParameters, handlerIO);
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
         // Then
         verify(batchReportClient).appendReportEntries(reportBodyArgumentCaptor.capture());
 
-        ReportBody<OriginatingAgencyReassignmentUpdateReportEntry> reportBody = reportBodyArgumentCaptor.getValue();
+        ReportBody<OriginatingAgencyReassignmentObjectGroupReportEntry> reportBody =
+            reportBodyArgumentCaptor.getValue();
 
         assertThat(reportBody.getProcessId()).isEqualTo("processId");
         assertThat(reportBody.getReportType()).isEqualTo(
-            ReportType.ORIGINATING_AGENCY_REASSIGNMENT_UNIT_AGENCIES_COMPUTING
+            ReportType.REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCY_UPDATE
         );
 
-        assertThat(reportBody.getEntries()).extracting("unitId").containsAll(unitToUpdateSps);
-        verify((batchReportClient)).exportUnitsToComputeOriginatingAgencies(anyString(), any(), any());
+        assertThat(reportBody.getEntries()).extracting("objectGroupId").containsAll(objectGroupsIdsToUpdateSp);
+        verify((batchReportClient)).exportObjectGroupsReassignmentToUpdateOriginatingAgency(anyString(), any(), any());
     }
 }

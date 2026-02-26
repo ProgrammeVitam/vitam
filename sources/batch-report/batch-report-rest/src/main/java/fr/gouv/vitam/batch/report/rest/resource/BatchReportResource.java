@@ -41,7 +41,8 @@ import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsComputedDetails;
 import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
-import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentUpdateReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentUnitUpdateReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
@@ -120,11 +121,16 @@ public class BatchReportResource extends ApplicationStatusResource {
         new TypeReference<>() {};
 
     private static final TypeReference<
-        ReportBody<OriginatingAgencyReassignmentUpdateReportEntry>
+        ReportBody<OriginatingAgencyReassignmentUnitUpdateReportEntry>
     > originatingAgencyReassignmentComputingType = new TypeReference<
-        ReportBody<OriginatingAgencyReassignmentUpdateReportEntry>
+        ReportBody<OriginatingAgencyReassignmentUnitUpdateReportEntry>
     >() {};
 
+    private static final TypeReference<
+        ReportBody<OriginatingAgencyReassignmentObjectGroupReportEntry>
+    > originatingAgencyReassignmentObjectGroupUpdateType = new TypeReference<
+        ReportBody<OriginatingAgencyReassignmentObjectGroupReportEntry>
+    >() {};
     private final BatchReportServiceImpl batchReportServiceImpl;
 
     public BatchReportResource(BatchReportServiceImpl batchReportServiceImpl) {
@@ -255,16 +261,44 @@ public class BatchReportResource extends ApplicationStatusResource {
                         deleteGotVersionsReportEntryReportBody.getEntries()
                     );
                     break;
-                case ORIGINATING_AGENCY_REASSIGNMENT_UNIT_AGENCIES_COMPUTING:
+                case REASSIGNMENT_UNITS_ORIGINATING_AGENCIES_COMPUTE:
                     ReportBody<
-                        OriginatingAgencyReassignmentUpdateReportEntry
+                        OriginatingAgencyReassignmentUnitUpdateReportEntry
                     > unitOriginatingAgencyReassignmentReportEntry = JsonHandler.getFromJsonNode(
                         body,
                         originatingAgencyReassignmentComputingType
                     );
-                    batchReportServiceImpl.appendOriginatingAgencyAssignmentComputingReport(
+                    batchReportServiceImpl.appendOriginatingAgencyAssignmentUnitAgenciesChildrenComputingReport(
                         unitOriginatingAgencyReassignmentReportEntry.getProcessId(),
                         unitOriginatingAgencyReassignmentReportEntry.getEntries(),
+                        tenantId
+                    );
+                    break;
+                case REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCY_UPDATE:
+                    ReportBody<
+                        OriginatingAgencyReassignmentObjectGroupReportEntry
+                    > gotOriginatingAgencyReassignmentReportEntry = JsonHandler.getFromJsonNode(
+                        body,
+                        originatingAgencyReassignmentObjectGroupUpdateType
+                    );
+
+                    batchReportServiceImpl.appendObjectGroupsIdsReassignmentAgencyUpdateReport(
+                        gotOriginatingAgencyReassignmentReportEntry.getProcessId(),
+                        gotOriginatingAgencyReassignmentReportEntry.getEntries(),
+                        tenantId
+                    );
+                    break;
+                case REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCIES_COMPUTE:
+                    ReportBody<
+                        OriginatingAgencyReassignmentObjectGroupReportEntry
+                    > gotOriginatingAgencyReassignmentReportComputeEntry = JsonHandler.getFromJsonNode(
+                        body,
+                        originatingAgencyReassignmentObjectGroupUpdateType
+                    );
+
+                    batchReportServiceImpl.appendObjectGroupsIdsReassignmentAgenciesComputeReport(
+                        gotOriginatingAgencyReassignmentReportComputeEntry.getProcessId(),
+                        gotOriginatingAgencyReassignmentReportComputeEntry.getEntries(),
                         tenantId
                     );
                     break;
@@ -427,8 +461,23 @@ public class BatchReportResource extends ApplicationStatusResource {
                 case DELETE_GOT_VERSIONS:
                     batchReportServiceImpl.deleteGotVersionsByIdAndTenant(processId, tenantId);
                     break;
-                case ORIGINATING_AGENCY_REASSIGNMENT_UNIT_AGENCIES_COMPUTING:
-                    batchReportServiceImpl.deleteOriginatingAgencyReassignmentReportByIdAndTenant(processId, tenantId);
+                case REASSIGNMENT_UNITS_ORIGINATING_AGENCIES_COMPUTE:
+                    batchReportServiceImpl.deleteOriginatingAgencyReassignmentUnitAgenciesUpdateReportByIdAndTenant(
+                        processId,
+                        tenantId
+                    );
+                    break;
+                case REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCY_UPDATE:
+                    batchReportServiceImpl.deleteObjectGroupIdsForReassignmentAgencyUpdateReportByIdAndTenant(
+                        processId,
+                        tenantId
+                    );
+                    break;
+                case REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCIES_COMPUTE:
+                    batchReportServiceImpl.deleteObjectGroupIdsForReassignmentAgenciesComputeReportByIdAndTenant(
+                        processId,
+                        tenantId
+                    );
                     break;
                 default:
                     Response.Status status = Response.Status.BAD_REQUEST;
@@ -501,7 +550,7 @@ public class BatchReportResource extends ApplicationStatusResource {
         }
     }
 
-    @Path("originatingAgencyReassignmentAgenciesUpdate/{processId}")
+    @Path("reassignmentUnitChildrenAgenciesUpdate/{processId}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -511,7 +560,47 @@ public class BatchReportResource extends ApplicationStatusResource {
     ) throws Exception {
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-        batchReportServiceImpl.exportUnitsToComputeSps(processId, tenantId, reportRequestWrapper.getRequest());
+        batchReportServiceImpl.exportUnitsChildrenToUpdateOriginatingAgencies(
+            processId,
+            tenantId,
+            reportRequestWrapper.getRequest()
+        );
+        return Response.status(Response.Status.CREATED).build();
+    }
+
+    @Path("reassignmentObjectGroupAgencyUpdate/{processId}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response exportReassignmentObjectGroupAgencyUpdateReport(
+        @PathParam("processId") String processId,
+        ReportRequestWrapper<ReportExportRequest> reportRequestWrapper
+    ) throws Exception {
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+
+        batchReportServiceImpl.exportObjectGroupsIdsToUpdateOriginatingAgency(
+            processId,
+            tenantId,
+            reportRequestWrapper.getRequest()
+        );
+        return Response.status(Response.Status.CREATED).build();
+    }
+
+    @Path("reassignmentObjectGroupAgenciesCompute/{processId}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response exportReassignmentObjectGroupAgenciesCompute(
+        @PathParam("processId") String processId,
+        ReportRequestWrapper<ReportExportRequest> reportRequestWrapper
+    ) throws Exception {
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+
+        batchReportServiceImpl.exportObjectGroupsIdsToComputeOriginatingAgencies(
+            processId,
+            tenantId,
+            reportRequestWrapper.getRequest()
+        );
         return Response.status(Response.Status.CREATED).build();
     }
 }

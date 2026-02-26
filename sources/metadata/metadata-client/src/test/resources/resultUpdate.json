@@ -10,7 +10,7 @@
     {
       "#id":"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq",
       "#status":"OK",
-      "#key":"UNIT_METADATA_UPDATE",
+      "#key":"METADATA_UPDATE",
       "#message":"Update unit OK.",
       "#diff":"-  \"data\" : \"data1\"\n+  \"data\" : [ \"data10\" ]\n-  \"_v\" : 0\n-  \"_av\" : 0\n+  \"_v\" : 1\n+  \"_av\" : 1"
     }

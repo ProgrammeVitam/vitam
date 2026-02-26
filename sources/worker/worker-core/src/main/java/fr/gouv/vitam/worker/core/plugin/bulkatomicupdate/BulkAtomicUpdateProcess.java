@@ -75,7 +75,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.api.model.UpdateUnit;
+import fr.gouv.vitam.metadata.api.model.MetadataUpdateResult;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -98,8 +98,8 @@ import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA;
+import static fr.gouv.vitam.metadata.api.model.UpdateMetadataKey.METADATA_NO_CHANGES;
+import static fr.gouv.vitam.metadata.api.model.UpdateMetadataKey.METADATA_NO_NEW_DATA;
 import static fr.gouv.vitam.metadata.common.bulkatomicupdate.BulkUpdateUnitReportKey.ERROR_METADATA_UPDATE;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -345,7 +345,7 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         // Each result is sent to the batch report
         VitamSession vitamSession = VitamThreadUtils.getVitamSession();
         StatusCode reportStatus = status;
-        if (UNIT_METADATA_NO_NEW_DATA.name().equals(key)) {
+        if (METADATA_NO_NEW_DATA.name().equals(key)) {
             reportStatus = StatusCode.WARNING;
         }
         BulkUpdateUnitMetadataReportEntry entry = new BulkUpdateUnitMetadataReportEntry(
@@ -373,12 +373,12 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
     ) throws InvalidParseOperationException {
         // Analyze of each atomic update operation response
         if (RequestResponse.isRequestResponseOk(updateResult)) {
-            RequestResponseOK<UpdateUnit> responseOK = RequestResponseOK.getFromJsonNode(
+            RequestResponseOK<MetadataUpdateResult> responseOK = RequestResponseOK.getFromJsonNode(
                 updateResult,
-                UpdateUnit.class
+                MetadataUpdateResult.class
             );
-            UpdateUnit updateUnit = responseOK.getFirstResult();
-            if (updateUnit != null) {
+            MetadataUpdateResult metadataUpdateResult = responseOK.getFirstResult();
+            if (metadataUpdateResult != null) {
                 // There is only one change per request
                 ItemStatus itemStatus = postUpdate(
                     workerParameters,
@@ -387,7 +387,7 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
                     lfcClient,
                     storageClient,
                     item,
-                    updateUnit
+                    metadataUpdateResult
                 );
                 item.setStatus(itemStatus);
                 return;
@@ -405,9 +405,9 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         LogbookLifeCyclesClient lfcClient,
         StorageClient storageClient,
         BulkAtomicUpdateQueryProcessItem item,
-        UpdateUnit unitNode
+        MetadataUpdateResult unitNode
     ) {
-        String unitId = unitNode.getUnitId();
+        String unitId = unitNode.getMetadataId();
         String key = unitNode.getKey().name();
         String statusAsString = unitNode.getStatus().name();
         StatusCode status = StatusCode.valueOf(statusAsString);
@@ -425,7 +425,7 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
             return buildItemStatus(getPluginId(), status, EventDetails.of(message));
         }
 
-        if (UNIT_METADATA_NO_CHANGES.name().equals(key)) {
+        if (METADATA_NO_CHANGES.name().equals(key)) {
             try {
                 if (lfcAlreadyWrittenInMongo(lfcClient, unitId, workerParameters.getContainerName())) {
                     LOGGER.warn(
@@ -455,7 +455,7 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
             }
         }
 
-        if (UNIT_METADATA_NO_NEW_DATA.name().equals(key)) {
+        if (METADATA_NO_NEW_DATA.name().equals(key)) {
             return buildItemStatus(getPluginId(), WARNING, EventDetails.of("Bulk atomic update WARNING"));
         }
 

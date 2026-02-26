@@ -70,8 +70,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
+import fr.gouv.vitam.metadata.api.model.MetadataUpdateResult;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
-import fr.gouv.vitam.metadata.api.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
@@ -237,7 +237,7 @@ public class MetadataResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     public Response updateUnitBulk(JsonNode updateQuery) {
         Status status;
-        RequestResponse<UpdateUnit> resultResponse;
+        RequestResponse<MetadataUpdateResult> resultResponse;
         try {
             final UpdateParserMultiple requestParserMultiple = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
             requestParserMultiple.parse(updateQuery);
@@ -247,13 +247,13 @@ public class MetadataResource extends ApplicationStatusResource {
                 .map(unitId -> new RequestById(unitId, requestParserMultiple))
                 .toList();
 
-            List<UpdateUnit> updatedUnitResult = metaData.updateUnits(
+            List<MetadataUpdateResult> updatedUnitResult = metaData.updateUnits(
                 requestByIds,
                 true,
                 configuration.getRefreshElasticIndexPostBulkIndexing()
             );
 
-            resultResponse = new RequestResponseOK<UpdateUnit>(updateQuery).addAllResults(updatedUnitResult);
+            resultResponse = new RequestResponseOK<MetadataUpdateResult>(updateQuery).addAllResults(updatedUnitResult);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
@@ -272,18 +272,18 @@ public class MetadataResource extends ApplicationStatusResource {
     }
 
     /**
-     * Update bulk with json requests
+     * Update object group bulk with json requests
      *
      * @param updateQueries the update requests in JsonNode format
      * @return Response
      */
-    @Path("units/atomicupdatebulk")
+    @Path("objectgroups/atomicupdatebulk")
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response atomicUpdateBulk(List<JsonNode> updateQueries) {
-        final List<RequestResponse<UpdateUnit>> updateUnitResponses = new ArrayList<>();
-        Map<Integer, RequestResponse<UpdateUnit>> invalidRequestIndexMap = new HashMap<>();
+    public Response objectGroupsAtomicUpdateBulk(List<JsonNode> updateQueries) {
+        final List<RequestResponse<MetadataUpdateResult>> updateObjectGroupResponses = new ArrayList<>();
+        Map<Integer, RequestResponse<MetadataUpdateResult>> invalidRequestIndexMap = new HashMap<>();
         try {
             List<RequestById> bulkRequests = new ArrayList<>();
             int queryIndex = -1;
@@ -294,7 +294,7 @@ public class MetadataResource extends ApplicationStatusResource {
                     bulkRequests.addAll(prepareBulkQueries(updateQuery));
                 } catch (InvalidParseOperationException e) {
                     Status status = Status.BAD_REQUEST;
-                    RequestResponse<UpdateUnit> error = new VitamError<UpdateUnit>(status.name())
+                    RequestResponse<MetadataUpdateResult> error = new VitamError<MetadataUpdateResult>(status.name())
                         .setHttpCode(status.getStatusCode())
                         .setContext(ACCESS)
                         .setState(CODE_VITAM)
@@ -304,7 +304,72 @@ public class MetadataResource extends ApplicationStatusResource {
                     invalidRequestIndexMap.put(queryIndex, error);
                 }
             }
-            List<UpdateUnit> successCallUpdateUnits = metaData.updateUnits(
+            List<MetadataUpdateResult> successCallUpdateObjectGroups = metaData.updateObjectGroups(
+                bulkRequests,
+                false,
+                configuration.getRefreshElasticIndexPostBulkIndexing()
+            );
+
+            makeResponsesAsSameOrderAsCalls(
+                updateQueries,
+                invalidRequestIndexMap,
+                updateObjectGroupResponses,
+                successCallUpdateObjectGroups
+            );
+        } catch (InvalidParseOperationException e) {
+            Status status = Status.BAD_REQUEST;
+            updateObjectGroupResponses.add(
+                new VitamError<MetadataUpdateResult>(status.name())
+                    .setHttpCode(status.getStatusCode())
+                    .setContext(ACCESS)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage())
+            );
+        }
+        RequestResponseOK<RequestResponse<MetadataUpdateResult>> updateRequestResponse = new RequestResponseOK<
+            RequestResponse<MetadataUpdateResult>
+        >()
+            .addAllResults(updateObjectGroupResponses)
+            .setHttpCode(OK.getStatusCode());
+
+        return Response.status(OK).entity(updateRequestResponse).build();
+    }
+
+    /**
+     * Update bulk with json requests
+     *
+     * @param updateQueries the update requests in JsonNode format
+     * @return Response
+     */
+    @Path("units/atomicupdatebulk")
+    @POST
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    public Response unitAtomicUpdateBulk(List<JsonNode> updateQueries) {
+        final List<RequestResponse<MetadataUpdateResult>> updateUnitResponses = new ArrayList<>();
+        Map<Integer, RequestResponse<MetadataUpdateResult>> invalidRequestIndexMap = new HashMap<>();
+        try {
+            List<RequestById> bulkRequests = new ArrayList<>();
+            int queryIndex = -1;
+            for (JsonNode updateQuery : updateQueries) {
+                queryIndex++;
+                //In the case of some request has parsing error, we continue executing only correct requests, without partial failed status
+                try {
+                    bulkRequests.addAll(prepareBulkQueries(updateQuery));
+                } catch (InvalidParseOperationException e) {
+                    Status status = Status.BAD_REQUEST;
+                    RequestResponse<MetadataUpdateResult> error = new VitamError<MetadataUpdateResult>(status.name())
+                        .setHttpCode(status.getStatusCode())
+                        .setContext(ACCESS)
+                        .setState(CODE_VITAM)
+                        .setMessage(status.getReasonPhrase())
+                        .setDescription(e.getMessage());
+
+                    invalidRequestIndexMap.put(queryIndex, error);
+                }
+            }
+            List<MetadataUpdateResult> successCallMetadataUpdateResults = metaData.updateUnits(
                 bulkRequests,
                 false,
                 configuration.getRefreshElasticIndexPostBulkIndexing()
@@ -314,12 +379,12 @@ public class MetadataResource extends ApplicationStatusResource {
                 updateQueries,
                 invalidRequestIndexMap,
                 updateUnitResponses,
-                successCallUpdateUnits
+                successCallMetadataUpdateResults
             );
         } catch (InvalidParseOperationException e) {
             Status status = Status.BAD_REQUEST;
             updateUnitResponses.add(
-                new VitamError<UpdateUnit>(status.name())
+                new VitamError<MetadataUpdateResult>(status.name())
                     .setHttpCode(status.getStatusCode())
                     .setContext(ACCESS)
                     .setState(CODE_VITAM)
@@ -327,8 +392,8 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setDescription(e.getMessage())
             );
         }
-        RequestResponseOK<RequestResponse<UpdateUnit>> updateRequestResponse = new RequestResponseOK<
-            RequestResponse<UpdateUnit>
+        RequestResponseOK<RequestResponse<MetadataUpdateResult>> updateRequestResponse = new RequestResponseOK<
+            RequestResponse<MetadataUpdateResult>
         >()
             .addAllResults(updateUnitResponses)
             .setHttpCode(OK.getStatusCode());
@@ -338,9 +403,9 @@ public class MetadataResource extends ApplicationStatusResource {
 
     private void makeResponsesAsSameOrderAsCalls(
         List<JsonNode> updateQueries,
-        Map<Integer, RequestResponse<UpdateUnit>> invalidRequestIndexMap,
-        List<RequestResponse<UpdateUnit>> updateUnitResponses,
-        List<UpdateUnit> successCallUpdateUnits
+        Map<Integer, RequestResponse<MetadataUpdateResult>> invalidRequestIndexMap,
+        List<RequestResponse<MetadataUpdateResult>> updateUnitResponses,
+        List<MetadataUpdateResult> successCallUpdateUnits
     ) {
         int okResponseIndex = 0;
         for (int index = 0; index < updateQueries.size(); index++) {
@@ -348,7 +413,7 @@ public class MetadataResource extends ApplicationStatusResource {
                 updateUnitResponses.add(invalidRequestIndexMap.get(index));
             } else {
                 updateUnitResponses.add(
-                    new RequestResponseOK()
+                    new RequestResponseOK<MetadataUpdateResult>()
                         .setHttpCode(OK.getStatusCode())
                         .addResult(successCallUpdateUnits.get(okResponseIndex++))
                 );
@@ -384,7 +449,7 @@ public class MetadataResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     public Response updateUnitsRulesBulk(BatchRulesUpdateInfo batchRulesUpdateInfo) {
-        RequestResponse<UpdateUnit> result = metaData.updateUnitsRules(
+        RequestResponse<MetadataUpdateResult> result = metaData.updateUnitsRules(
             batchRulesUpdateInfo.getUnitIds(),
             batchRulesUpdateInfo.getRuleActions(),
             batchRulesUpdateInfo.getRulesToDurationData()
@@ -688,10 +753,10 @@ public class MetadataResource extends ApplicationStatusResource {
         Status status;
         try {
             boolean withRefreshIndex = true;
-            UpdateUnit result = metaData.updateUnitById(updateRequest, unitId, true, withRefreshIndex);
+            MetadataUpdateResult result = metaData.updateUnitById(updateRequest, unitId, true, withRefreshIndex);
 
             return Response.ok(
-                new RequestResponseOK<UpdateUnit>().addResult(result).setHttpCode(Status.OK.getStatusCode())
+                new RequestResponseOK<MetadataUpdateResult>().addResult(result).setHttpCode(Status.OK.getStatusCode())
             ).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);

@@ -41,7 +41,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
-import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
+import fr.gouv.vitam.metadata.api.model.UpdateMetadataKey;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -58,10 +58,10 @@ import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHel
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnit.DIFF;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnit.KEY;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnit.MESSAGE;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnit.STATUS;
+import static fr.gouv.vitam.metadata.api.model.MetadataUpdateResult.DIFF;
+import static fr.gouv.vitam.metadata.api.model.MetadataUpdateResult.KEY;
+import static fr.gouv.vitam.metadata.api.model.MetadataUpdateResult.MESSAGE;
+import static fr.gouv.vitam.metadata.api.model.MetadataUpdateResult.STATUS;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusWithMessage;
 
 public class PreservationInsertionAuMetadata extends ActionHandler {
@@ -107,7 +107,7 @@ public class PreservationInsertionAuMetadata extends ActionHandler {
                 );
                 JsonNode unitAsNode = requestResponse.getFirstResult();
 
-                UpdateUnitKey key = UpdateUnitKey.valueOf(unitAsNode.get(KEY).asText());
+                UpdateMetadataKey key = UpdateMetadataKey.valueOf(unitAsNode.get(KEY).asText());
                 StatusCode status = StatusCode.valueOf(unitAsNode.get(STATUS).asText());
                 String message = unitAsNode.get(MESSAGE).asText();
                 String diff = unitAsNode.get(DIFF).asText();

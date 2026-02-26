@@ -51,8 +51,8 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.metadata.api.model.UpdateUnit;
-import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
+import fr.gouv.vitam.metadata.api.model.MetadataUpdateResult;
+import fr.gouv.vitam.metadata.api.model.UpdateMetadataKey;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -199,10 +199,10 @@ public class MassUpdateUnitsProcessTest {
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
         responseOK.addResult(
             JsonHandler.toJsonNode(
-                new UpdateUnit(
+                new MetadataUpdateResult(
                     "aeaqaaaaaahxpfgvab4ygalehsmdu5iaaaaq",
                     StatusCode.OK,
-                    UpdateUnitKey.UNIT_METADATA_UPDATE,
+                    UpdateMetadataKey.METADATA_UPDATE,
                     "update ok",
                     "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4"
                 )
@@ -210,10 +210,10 @@ public class MassUpdateUnitsProcessTest {
         );
         responseOK.addResult(
             JsonHandler.toJsonNode(
-                new UpdateUnit(
+                new MetadataUpdateResult(
                     "aeaqaaaaaahxpfgvab4ygalehsmdvcyaaaaq",
                     StatusCode.OK,
-                    UpdateUnitKey.UNIT_METADATA_UPDATE,
+                    UpdateMetadataKey.METADATA_UPDATE,
                     "update ok",
                     "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4"
                 )
@@ -267,10 +267,10 @@ public class MassUpdateUnitsProcessTest {
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
         responseOK.addResult(
             JsonHandler.toJsonNode(
-                new UpdateUnit(
+                new MetadataUpdateResult(
                     "aeaqaaaaaahxpfgvab4ygalehsmdu5iaaaaq",
                     StatusCode.OK,
-                    UpdateUnitKey.UNIT_METADATA_UPDATE,
+                    UpdateMetadataKey.METADATA_UPDATE,
                     "update ok",
                     "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4"
                 )
@@ -278,10 +278,10 @@ public class MassUpdateUnitsProcessTest {
         );
         responseOK.addResult(
             JsonHandler.toJsonNode(
-                new UpdateUnit(
+                new MetadataUpdateResult(
                     "aeaqaaaaaahxpfgvab4ygalehsmdvcyaaaaq",
                     StatusCode.OK,
-                    UpdateUnitKey.UNIT_METADATA_UPDATE,
+                    UpdateMetadataKey.METADATA_UPDATE,
                     "update ok",
                     "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4"
                 )
@@ -333,10 +333,10 @@ public class MassUpdateUnitsProcessTest {
 
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
         JsonNode updatedUnit = JsonHandler.toJsonNode(
-            new UpdateUnit(
+            new MetadataUpdateResult(
                 "MY_ID_YEAH",
                 StatusCode.OK,
-                UpdateUnitKey.UNIT_METADATA_NO_CHANGES,
+                UpdateMetadataKey.METADATA_NO_CHANGES,
                 "Unit updated with UNKNOWN changes.",
                 "UNKNOWN diff, there are some changes but they cannot be trace."
             )

@@ -36,7 +36,8 @@ import fr.gouv.vitam.batch.report.model.EvidenceAuditObjectModel;
 import fr.gouv.vitam.batch.report.model.EvidenceStatus;
 import fr.gouv.vitam.batch.report.model.MergeSortedIterator;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
-import fr.gouv.vitam.batch.report.model.OriginatingAgencyReassignmentUpdateModel;
+import fr.gouv.vitam.batch.report.model.OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel;
+import fr.gouv.vitam.batch.report.model.OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel;
 import fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel;
 import fr.gouv.vitam.batch.report.model.PurgeObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.PurgeUnitModel;
@@ -53,7 +54,8 @@ import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsComputedDetails;
 import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
-import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentUpdateReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentUnitUpdateReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
@@ -67,7 +69,9 @@ import fr.gouv.vitam.batch.report.rest.repository.DeleteGotVersionsReportReposit
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.ExtractedMetadataRepository;
-import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentUnitsUpdateRepository;
+import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentObjectGroupAgenciesComputeRepository;
+import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository;
+import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentUnitAgenciesUpdateRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
@@ -139,7 +143,9 @@ public class BatchReportServiceImpl {
     private final ExtractedMetadataRepository extractedMetadataRepository;
     private final DeleteGotVersionsReportRepository deleteGotVersionsReportRepository;
     private final WorkspaceClientFactory workspaceClientFactory;
-    private final OriginatingAgencyReassignmentUnitsUpdateRepository originatingAgencyReassignmentUnitsUpdateRepository;
+    private final OriginatingAgencyReassignmentUnitAgenciesUpdateRepository originatingAgencyReassignmentUnitAgenciesUpdateRepository;
+    private final OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository originatingAgencyReassignmentObjectGroupAgenciesUpdateRepository;
+    private final OriginatingAgencyReassignmentObjectGroupAgenciesComputeRepository objectGroupReassignmentOriginatingAgenciesComputeRepository;
 
     public BatchReportServiceImpl(
         WorkspaceClientFactory workspaceClientFactory,
@@ -156,7 +162,9 @@ public class BatchReportServiceImpl {
         TraceabilityReportRepository traceabilityReportRepository,
         ExtractedMetadataRepository extractedMetadataRepository,
         DeleteGotVersionsReportRepository deleteGotVersionsReportRepository,
-        OriginatingAgencyReassignmentUnitsUpdateRepository originatingAgencyReassignmentUnitsUpdateRepository
+        OriginatingAgencyReassignmentUnitAgenciesUpdateRepository originatingAgencyReassignmentUnitAgenciesUpdateRepository,
+        OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository originatingAgencyReassignmentObjectGroupAgenciesUpdateRepository,
+        OriginatingAgencyReassignmentObjectGroupAgenciesComputeRepository objectGroupReassignmentOriginatingAgenciesComputeRepository
     ) {
         this(
             eliminationActionUnitRepository,
@@ -173,7 +181,9 @@ public class BatchReportServiceImpl {
             extractedMetadataRepository,
             deleteGotVersionsReportRepository,
             workspaceClientFactory,
-            originatingAgencyReassignmentUnitsUpdateRepository
+            originatingAgencyReassignmentUnitAgenciesUpdateRepository,
+            originatingAgencyReassignmentObjectGroupAgenciesUpdateRepository,
+            objectGroupReassignmentOriginatingAgenciesComputeRepository
         );
     }
 
@@ -193,7 +203,9 @@ public class BatchReportServiceImpl {
         ExtractedMetadataRepository extractedMetadataRepository,
         DeleteGotVersionsReportRepository deleteGotVersionsReportRepository,
         WorkspaceClientFactory workspaceClientFactory,
-        OriginatingAgencyReassignmentUnitsUpdateRepository originatingAgencyReassignmentUnitsUpdateRepository
+        OriginatingAgencyReassignmentUnitAgenciesUpdateRepository originatingAgencyReassignmentUnitAgenciesUpdateRepository,
+        OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository originatingAgencyReassignmentObjectGroupAgenciesUpdateRepository,
+        OriginatingAgencyReassignmentObjectGroupAgenciesComputeRepository objectGroupReassignmentOriginatingAgenciesComputeRepository
     ) {
         this.eliminationActionUnitRepository = eliminationActionUnitRepository;
         this.purgeUnitRepository = purgeUnitRepository;
@@ -208,8 +220,13 @@ public class BatchReportServiceImpl {
         this.traceabilityReportRepository = traceabilityReportRepository;
         this.extractedMetadataRepository = extractedMetadataRepository;
         this.deleteGotVersionsReportRepository = deleteGotVersionsReportRepository;
-        this.originatingAgencyReassignmentUnitsUpdateRepository = originatingAgencyReassignmentUnitsUpdateRepository;
         this.workspaceClientFactory = workspaceClientFactory;
+        this.originatingAgencyReassignmentUnitAgenciesUpdateRepository =
+            originatingAgencyReassignmentUnitAgenciesUpdateRepository;
+        this.originatingAgencyReassignmentObjectGroupAgenciesUpdateRepository =
+            originatingAgencyReassignmentObjectGroupAgenciesUpdateRepository;
+        this.objectGroupReassignmentOriginatingAgenciesComputeRepository =
+            objectGroupReassignmentOriginatingAgenciesComputeRepository;
     }
 
     public void appendEliminationActionUnitReport(
@@ -804,8 +821,19 @@ public class BatchReportServiceImpl {
         deleteGotVersionsReportRepository.deleteReportByIdAndTenant(processId, tenantId);
     }
 
-    public void deleteOriginatingAgencyReassignmentReportByIdAndTenant(String processId, int tenantId) {
-        originatingAgencyReassignmentUnitsUpdateRepository.deleteReportByIdAndTenant(processId, tenantId);
+    public void deleteOriginatingAgencyReassignmentUnitAgenciesUpdateReportByIdAndTenant(
+        String processId,
+        int tenantId
+    ) {
+        originatingAgencyReassignmentUnitAgenciesUpdateRepository.deleteReportByIdAndTenant(processId, tenantId);
+    }
+
+    public void deleteObjectGroupIdsForReassignmentAgencyUpdateReportByIdAndTenant(String processId, int tenantId) {
+        originatingAgencyReassignmentObjectGroupAgenciesUpdateRepository.deleteReportByIdAndTenant(processId, tenantId);
+    }
+
+    public void deleteObjectGroupIdsForReassignmentAgenciesComputeReportByIdAndTenant(String processId, int tenantId) {
+        objectGroupReassignmentOriginatingAgenciesComputeRepository.deleteReportByIdAndTenant(processId, tenantId);
     }
 
     private void deleteQuietly(File directory) {
@@ -846,16 +874,16 @@ public class BatchReportServiceImpl {
         }
     }
 
-    public void appendOriginatingAgencyAssignmentComputingReport(
+    public void appendOriginatingAgencyAssignmentUnitAgenciesChildrenComputingReport(
         String processId,
-        List<OriginatingAgencyReassignmentUpdateReportEntry> unitEntries,
+        List<OriginatingAgencyReassignmentUnitUpdateReportEntry> unitEntries,
         int tenantId
     ) throws BatchReportException {
-        List<OriginatingAgencyReassignmentUpdateModel> documents = unitEntries
+        List<OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel> documents = unitEntries
             .stream()
             .map(
                 entry ->
-                    new OriginatingAgencyReassignmentUpdateModel(
+                    new OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel(
                         processId,
                         tenantId,
                         LocalDateUtil.nowFormatted(),
@@ -863,11 +891,54 @@ public class BatchReportServiceImpl {
                     )
             )
             .toList();
-        originatingAgencyReassignmentUnitsUpdateRepository.bulkAppendReport(documents);
+        originatingAgencyReassignmentUnitAgenciesUpdateRepository.bulkAppendReport(documents);
     }
 
-    public void exportUnitsToComputeSps(String processId, int tenantId, ReportExportRequest reportExportRequest)
-        throws IOException, ContentAddressableStorageServerException, IllegalPathException {
+    public void appendObjectGroupsIdsReassignmentAgencyUpdateReport(
+        String processId,
+        List<OriginatingAgencyReassignmentObjectGroupReportEntry> objectGroupEntries,
+        int tenantId
+    ) throws BatchReportException {
+        List<OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel> documents = objectGroupEntries
+            .stream()
+            .map(
+                entry ->
+                    new OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel(
+                        processId,
+                        tenantId,
+                        LocalDateUtil.nowFormatted(),
+                        entry
+                    )
+            )
+            .toList();
+        originatingAgencyReassignmentObjectGroupAgenciesUpdateRepository.bulkAppendReport(documents);
+    }
+
+    public void appendObjectGroupsIdsReassignmentAgenciesComputeReport(
+        String processId,
+        List<OriginatingAgencyReassignmentObjectGroupReportEntry> objectGroupEntries,
+        int tenantId
+    ) throws BatchReportException {
+        List<OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel> documents = objectGroupEntries
+            .stream()
+            .map(
+                entry ->
+                    new OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel(
+                        processId,
+                        tenantId,
+                        LocalDateUtil.nowFormatted(),
+                        entry
+                    )
+            )
+            .toList();
+        objectGroupReassignmentOriginatingAgenciesComputeRepository.bulkAppendReport(documents);
+    }
+
+    public void exportUnitsChildrenToUpdateOriginatingAgencies(
+        String processId,
+        int tenantId,
+        ReportExportRequest reportExportRequest
+    ) throws IOException, ContentAddressableStorageServerException, IllegalPathException {
         File file = createTemporaryFile(processId, reportExportRequest.getFilename());
 
         try {
@@ -875,7 +946,7 @@ public class BatchReportServiceImpl {
                 OutputStream outputStream = new FileOutputStream(file);
                 JsonLineWriter<JsonLineModel> jsonLineWriter = new JsonLineWriter<>(outputStream);
                 MongoCursor<Document> units =
-                    originatingAgencyReassignmentUnitsUpdateRepository.findCollectionByProcessIdTenant(
+                    originatingAgencyReassignmentUnitAgenciesUpdateRepository.findCollectionByProcessIdTenant(
                         processId,
                         tenantId
                     )
@@ -883,6 +954,64 @@ public class BatchReportServiceImpl {
                 while (units.hasNext()) {
                     Document unit = units.next();
                     jsonLineWriter.addEntry(new JsonLineModel(unit.getString("id")));
+                }
+            }
+
+            storeFileToWorkspace(processId, reportExportRequest.getFilename(), file);
+        } finally {
+            deleteQuietly(file.getParentFile());
+        }
+    }
+
+    public void exportObjectGroupsIdsToUpdateOriginatingAgency(
+        String processId,
+        int tenantId,
+        ReportExportRequest reportExportRequest
+    ) throws IOException, ContentAddressableStorageServerException, IllegalPathException {
+        File file = createTemporaryFile(processId, reportExportRequest.getFilename());
+
+        try {
+            try (
+                OutputStream outputStream = new FileOutputStream(file);
+                JsonLineWriter<JsonLineModel> jsonLineWriter = new JsonLineWriter<>(outputStream);
+                MongoCursor<Document> objectGroups =
+                    originatingAgencyReassignmentObjectGroupAgenciesUpdateRepository.findCollectionByProcessIdTenant(
+                        processId,
+                        tenantId
+                    )
+            ) {
+                while (objectGroups.hasNext()) {
+                    Document objectGroupData = objectGroups.next();
+                    jsonLineWriter.addEntry(new JsonLineModel(objectGroupData.getString("id")));
+                }
+            }
+
+            storeFileToWorkspace(processId, reportExportRequest.getFilename(), file);
+        } finally {
+            deleteQuietly(file.getParentFile());
+        }
+    }
+
+    public void exportObjectGroupsIdsToComputeOriginatingAgencies(
+        String processId,
+        int tenantId,
+        ReportExportRequest reportExportRequest
+    ) throws IOException, ContentAddressableStorageServerException, IllegalPathException {
+        File file = createTemporaryFile(processId, reportExportRequest.getFilename());
+
+        try {
+            try (
+                OutputStream outputStream = new FileOutputStream(file);
+                JsonLineWriter<JsonLineModel> jsonLineWriter = new JsonLineWriter<>(outputStream);
+                MongoCursor<Document> objectGroups =
+                    objectGroupReassignmentOriginatingAgenciesComputeRepository.findCollectionByProcessIdTenant(
+                        processId,
+                        tenantId
+                    )
+            ) {
+                while (objectGroups.hasNext()) {
+                    Document objectGroupData = objectGroups.next();
+                    jsonLineWriter.addEntry(new JsonLineModel(objectGroupData.getString("id")));
                 }
             }
 

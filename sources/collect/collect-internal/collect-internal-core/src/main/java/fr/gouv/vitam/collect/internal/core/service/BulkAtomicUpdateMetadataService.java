@@ -45,7 +45,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.metadata.api.model.UpdateUnit;
+import fr.gouv.vitam.metadata.api.model.MetadataUpdateResult;
 import fr.gouv.vitam.metadata.api.utils.BulkAtomicUpdateModelUtils;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -216,26 +216,32 @@ public class BulkAtomicUpdateMetadataService {
         for (int i = 0; i < results.size(); i++) {
             JsonNode result = results.get(i);
             BulkSelectQueryResultOK queryToProcess = selectQueryResults.get(i);
-            RequestResponseOK<UpdateUnit> responseOK = RequestResponseOK.getFromJsonNode(result, UpdateUnit.class);
+            RequestResponseOK<MetadataUpdateResult> responseOK = RequestResponseOK.getFromJsonNode(
+                result,
+                MetadataUpdateResult.class
+            );
 
-            UpdateUnit unitUpdateStatus = responseOK.getResults().get(0);
+            MetadataUpdateResult unitUpdateStatus = responseOK.getResults().get(0);
             if (unitUpdateStatus == null) {
-                throw new IllegalStateException("Missing unit update status");
+                throw new IllegalStateException("Missing metadata update status");
             }
 
             StatusCode status = unitUpdateStatus.getStatus();
             if (StatusCode.OK == status) {
                 LOGGER.debug(
-                    "Unit " + unitUpdateStatus.getUnitId() + " updated successfully !\n" + unitUpdateStatus.getDiff()
+                    "Metadata " +
+                    unitUpdateStatus.getMetadataId() +
+                    " updated successfully !\n" +
+                    unitUpdateStatus.getDiff()
                 );
                 reportAppender.append(
                     queryToProcess.getQueryIndex(),
-                    new BulkAtomicUpdateResult(BulkAtomicUpdateStatus.OK, unitUpdateStatus.getUnitId(), null)
+                    new BulkAtomicUpdateResult(BulkAtomicUpdateStatus.OK, unitUpdateStatus.getMetadataId(), null)
                 );
             } else {
                 LOGGER.debug(
-                    "Unit " +
-                    unitUpdateStatus.getUnitId() +
+                    "Metadata " +
+                    unitUpdateStatus.getMetadataId() +
                     " update failed with message: " +
                     unitUpdateStatus.getKey() +
                     " - " +
@@ -245,7 +251,7 @@ public class BulkAtomicUpdateMetadataService {
                     queryToProcess.getQueryIndex(),
                     new BulkAtomicUpdateResult(
                         BulkAtomicUpdateStatus.KO,
-                        unitUpdateStatus.getUnitId(),
+                        unitUpdateStatus.getMetadataId(),
                         unitUpdateStatus.getMessage()
                     )
                 );

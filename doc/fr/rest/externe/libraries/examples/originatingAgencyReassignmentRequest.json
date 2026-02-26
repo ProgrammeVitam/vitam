@@ -1,6 +1,7 @@
 {
   "sourceOriginatingAgency": "source SP",
   "targetOriginatingAgency": "target SP",
+  "propagateToObjectGroups": true,
   "dslRequest": {
     "$roots": [ "id0" ],
     "$query": [

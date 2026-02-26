@@ -1,0 +1,50 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 4,
+    "offset": 0,
+    "limit": 0,
+    "size": 4
+  },
+  "$results": [
+    {
+      "httpCode": 200,
+      "$hits": {
+        "total": 1,
+        "offset": 0,
+        "limit": 0,
+        "size": 1
+      },
+      "$results": [
+        {
+          "#id": "aebaaaaaaaeaaaabab44mamlsx7dj7qaaaaq",
+          "#status": "OK",
+          "#key": "METADATA_UPDATE",
+          "#message": "Update OK.",
+          "#diff": "-  \"_ops\" : [ \"aedaaaaaaceaaaabbwrfuam4bzesbxiaaaba\" ]\n+  \"_ops\" : [ \"aedaaaaaaceaaaabbwrfuam4bzesbxiaaaba\", \"aeeaaaaaaceaaaabbwrfuam4bzetk3iaaaaq\" ]\n-  \"_sps\" : [ \"RATP\" ]\n-  \"_sp\" : \"RATP\"\n+  \"_sps\" : [ \"FRAN_NP_050239\" ]\n+  \"_sp\" : \"FRAN_NP_050239\"\n-  \"_glpd\" : \"2026-01-30T09:43:22.074\"\n+  \"_glpd\" : \"2026-01-30T09:54:39.944\"\n-  \"_aud\" : \"2026-01-30T09:43:22.074\"\n-  \"_v\" : 0\n-  \"_av\" : 1\n+  \"_aud\" : \"2026-01-30T09:54:42.129\"\n+  \"_v\" : 1\n+  \"_av\" : 2"
+        }
+      ],
+      "$facetResults": []
+    },
+    {
+      "httpCode": 200,
+      "$hits": {
+        "total": 1,
+        "offset": 0,
+        "limit": 0,
+        "size": 1
+      },
+      "$results": [
+        {
+          "#id": "aeaaaaaaaaeaaaabab44mamlsx2dj7iaaaba",
+          "#status": "OK",
+          "#key": "METADATA_UPDATE",
+          "#message": "Update OK.",
+          "#diff": "-  \"_ops\" : [ \"aedaaaaaaceaaaabbwrfuam4bzesbxiaaaba\" ]\n+  \"_ops\" : [ \"aedaaaaaaceaaaabbwrfuam4bzesbxiaaaba\", \"aeeaaaaaaceaaaabbwrfuam4bzetk3iaaaaq\" ]\n-  \"_sps\" : [ \"RATP\" ]\n-  \"_sp\" : \"RATP\"\n+  \"_sps\" : [ \"FRAN_NP_050239\" ]\n+  \"_sp\" : \"FRAN_NP_050239\"\n-  \"_glpd\" : \"2026-01-30T09:43:22.074\"\n+  \"_glpd\" : \"2026-01-30T09:54:39.945\"\n-  \"_aud\" : \"2026-01-30T09:43:22.074\"\n-  \"_v\" : 0\n-  \"_av\" : 1\n+  \"_aud\" : \"2026-01-30T09:54:42.127\"\n+  \"_v\" : 1\n+  \"_av\" : 2"
+        }
+      ],
+      "$facetResults": []
+    }
+  ],
+  "$facetResults": []
+}

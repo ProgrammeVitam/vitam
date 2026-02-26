@@ -55,8 +55,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.model.UpdateUnit;
-import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
+import fr.gouv.vitam.metadata.api.model.MetadataUpdateResult;
+import fr.gouv.vitam.metadata.api.model.UpdateMetadataKey;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -227,11 +227,11 @@ public class BulkAtomicUpdateProcessTest {
         ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
         assertThat(reportBodyArgument.getEntries().size()).isEqualTo(2);
         assertThat(reportBodyArgument.getEntries().get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(reportBodyArgument.getEntries().get(0).getResultKey()).isEqualTo("UNIT_METADATA_UPDATE");
+        assertThat(reportBodyArgument.getEntries().get(0).getResultKey()).isEqualTo("METADATA_UPDATE");
         assertThat(reportBodyArgument.getEntries().get(0).getUnitId()).isEqualTo(UNIT1_GUID);
         assertThat(reportBodyArgument.getEntries().get(0).getDetailId()).isEqualTo("0");
         assertThat(reportBodyArgument.getEntries().get(1).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(reportBodyArgument.getEntries().get(1).getResultKey()).isEqualTo("UNIT_METADATA_UPDATE");
+        assertThat(reportBodyArgument.getEntries().get(1).getResultKey()).isEqualTo("METADATA_UPDATE");
         assertThat(reportBodyArgument.getEntries().get(1).getUnitId()).isEqualTo(UNIT2_GUID);
         assertThat(reportBodyArgument.getEntries().get(1).getDetailId()).isEqualTo("1");
     }
@@ -513,11 +513,11 @@ public class BulkAtomicUpdateProcessTest {
         ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
         assertThat(reportBodyArgument.getEntries().size()).isEqualTo(2);
         assertThat(reportBodyArgument.getEntries().get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(reportBodyArgument.getEntries().get(0).getResultKey()).isEqualTo("UNIT_METADATA_UPDATE");
+        assertThat(reportBodyArgument.getEntries().get(0).getResultKey()).isEqualTo("METADATA_UPDATE");
         assertThat(reportBodyArgument.getEntries().get(0).getUnitId()).isEqualTo(UNIT1_GUID);
         assertThat(reportBodyArgument.getEntries().get(0).getDetailId()).isEqualTo("0");
         assertThat(reportBodyArgument.getEntries().get(1).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(reportBodyArgument.getEntries().get(1).getResultKey()).isEqualTo("UNIT_METADATA_UPDATE");
+        assertThat(reportBodyArgument.getEntries().get(1).getResultKey()).isEqualTo("METADATA_UPDATE");
         assertThat(reportBodyArgument.getEntries().get(1).getUnitId()).isEqualTo(UNIT2_GUID);
         assertThat(reportBodyArgument.getEntries().get(1).getDetailId()).isEqualTo("1");
     }
@@ -547,10 +547,10 @@ public class BulkAtomicUpdateProcessTest {
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
 
         JsonNode updatedUnit = JsonHandler.toJsonNode(
-            new UpdateUnit(
+            new MetadataUpdateResult(
                 UNIT1_GUID,
                 StatusCode.OK,
-                UpdateUnitKey.UNIT_METADATA_NO_CHANGES,
+                UpdateMetadataKey.METADATA_NO_CHANGES,
                 "Unit updated with UNKNOWN changes.",
                 "UNKNOWN diff, there are some changes but they cannot be trace."
             )
@@ -594,7 +594,7 @@ public class BulkAtomicUpdateProcessTest {
         ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
         assertThat(reportBodyArgument.getEntries().size()).isEqualTo(1);
         assertThat(reportBodyArgument.getEntries().get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(reportBodyArgument.getEntries().get(0).getResultKey()).isEqualTo("UNIT_METADATA_NO_CHANGES");
+        assertThat(reportBodyArgument.getEntries().get(0).getResultKey()).isEqualTo("METADATA_NO_CHANGES");
         assertThat(reportBodyArgument.getEntries().get(0).getUnitId()).isEqualTo(UNIT1_GUID);
         assertThat(reportBodyArgument.getEntries().get(0).getDetailId()).isEqualTo("0");
     }
@@ -624,10 +624,10 @@ public class BulkAtomicUpdateProcessTest {
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
 
         JsonNode updatedUnit = JsonHandler.toJsonNode(
-            new UpdateUnit(
+            new MetadataUpdateResult(
                 UNIT1_GUID,
                 StatusCode.OK,
-                UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA,
+                UpdateMetadataKey.METADATA_NO_NEW_DATA,
                 "Unit not updated.",
                 "No diff, there are no new changes."
             )
@@ -664,7 +664,7 @@ public class BulkAtomicUpdateProcessTest {
         ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
         assertThat(reportBodyArgument.getEntries().size()).isEqualTo(1);
         assertThat(reportBodyArgument.getEntries().get(0).getStatus()).isEqualTo(StatusCode.WARNING);
-        assertThat(reportBodyArgument.getEntries().get(0).getResultKey()).isEqualTo("UNIT_METADATA_NO_NEW_DATA");
+        assertThat(reportBodyArgument.getEntries().get(0).getResultKey()).isEqualTo("METADATA_NO_NEW_DATA");
         assertThat(reportBodyArgument.getEntries().get(0).getUnitId()).isEqualTo(UNIT1_GUID);
         assertThat(reportBodyArgument.getEntries().get(0).getDetailId()).isEqualTo("0");
     }
@@ -688,10 +688,10 @@ public class BulkAtomicUpdateProcessTest {
             RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
             responseOK.addResult(
                 JsonHandler.toJsonNode(
-                    new UpdateUnit(
+                    new MetadataUpdateResult(
                         unitId,
                         StatusCode.OK,
-                        UpdateUnitKey.UNIT_METADATA_UPDATE,
+                        UpdateMetadataKey.METADATA_UPDATE,
                         "update ok",
                         "-    Title : monSIP 5\n+    Title : nouveauSIP 6\n-    #version : 3\n+    #version : 4"
                     )
@@ -712,10 +712,10 @@ public class BulkAtomicUpdateProcessTest {
             RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
             responseOK.addResult(
                 JsonHandler.toJsonNode(
-                    new UpdateUnit(
+                    new MetadataUpdateResult(
                         unitId,
                         StatusCode.WARNING,
-                        UpdateUnitKey.UNIT_METADATA_UPDATE,
+                        UpdateMetadataKey.METADATA_UPDATE,
                         "update warning",
                         "-    Title : monSIP 5\n+    Title : nouveauSIP 6\n-    #version : 3\n+    #version : 4"
                     )

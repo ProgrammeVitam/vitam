@@ -28,6 +28,10 @@ package fr.gouv.vitam.worker.core.plugin.reassignment;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Iterators;
+import fr.gouv.vitam.batch.report.client.BatchReportClient;
+import fr.gouv.vitam.batch.report.model.ReportBody;
+import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentObjectGroupReportEntry;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
@@ -41,15 +45,20 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.model.UpdateUnit;
+import fr.gouv.vitam.metadata.api.model.MetadataUpdateResult;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -59,6 +68,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -76,13 +86,16 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusWithMe
 
 public class OriginatingAgencyReassignmentService {
 
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        OriginatingAgencyReassignmentService.class
+    );
+
     private static final String REQUEST_JSON = "request.json";
-    private static final String INVALID_REQUEST = "Invalid request";
     private static final String COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE = "Could not load request from workspace";
 
     public OriginatingAgencyReassignmentService() {}
 
-    public Map<String, List<String>> getUnitsParentsIdById(List<JsonNode> units) {
+    public Map<String, List<String>> getParentIdsById(List<JsonNode> units) {
         if (CollectionUtils.isEmpty(units)) {
             return new HashMap<>();
         }
@@ -114,13 +127,13 @@ public class OriginatingAgencyReassignmentService {
             .toList();
     }
 
-    public Set<String> getUnitsOriginatingAgenciesByIds(
+    public Set<String> filterUnitsByOriginatingAgency(
         HandlerIO handlerIO,
         List<String> parentUnitIds,
         String sourceOriginatingAgency
     )
         throws InvalidParseOperationException, InvalidCreateOperationException, MetaDataClientServerException, MetaDataExecutionException, MetaDataDocumentSizeException {
-        Set<String> parentsIdsWithSourceOriginatingAgencies = new HashSet<>();
+        Set<String> parentsIdsWithSourceOriginatingAgency = new HashSet<>();
         SelectMultiQuery select = new SelectMultiQuery();
         try (MetaDataClient metaDataClient = handlerIO.getMetaDataClient()) {
             CompareQuery compareQuery = QueryHelper.eq(VitamFieldsHelper.originatingAgency(), sourceOriginatingAgency);
@@ -131,9 +144,9 @@ public class OriginatingAgencyReassignmentService {
 
             JsonNode results = metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
             for (JsonNode result : results) {
-                parentsIdsWithSourceOriginatingAgencies.add(result.get(VitamFieldsHelper.id()).asText());
+                parentsIdsWithSourceOriginatingAgency.add(result.get(VitamFieldsHelper.id()).asText());
             }
-            return parentsIdsWithSourceOriginatingAgencies;
+            return parentsIdsWithSourceOriginatingAgency;
         }
     }
 
@@ -154,20 +167,16 @@ public class OriginatingAgencyReassignmentService {
         }
     }
 
-    public Set<String> computeUnitsIdsWithAtLeastOneParentHasOriginatingAgenciesEqualTo(
+    public Set<String> computeNodesIdsWithAtLeastOneParentHavingOriginatingAgencyEqualTo(
         HandlerIO handlerIO,
-        List<JsonNode> units,
+        List<JsonNode> nodes,
         String sourceOriginatingAgency
     )
         throws MetaDataExecutionException, InvalidCreateOperationException, MetaDataClientServerException, InvalidParseOperationException, MetaDataDocumentSizeException {
-        Set<String> unitsWithInheritedOriginatingAgency = new HashSet<>();
-        Map<String, List<String>> unitsParentIdById = this.getUnitsParentsIdById(units);
+        Set<String> nodesWithInheritedOriginatingAgency = new HashSet<>();
+        Map<String, List<String>> parentsIdsById = this.getParentIdsById(nodes);
 
-        Set<String> allParentsIds = unitsParentIdById
-            .values()
-            .stream()
-            .flatMap(List::stream)
-            .collect(Collectors.toSet());
+        Set<String> allParentsIds = parentsIdsById.values().stream().flatMap(List::stream).collect(Collectors.toSet());
 
         Iterator<List<String>> parentIdsIterator = Iterators.partition(
             allParentsIds.iterator(),
@@ -177,11 +186,11 @@ public class OriginatingAgencyReassignmentService {
         while (parentIdsIterator.hasNext()) {
             List<String> partitionParentIds = parentIdsIterator.next();
             parentsIdsWithSourceOriginatingAgencies.addAll(
-                this.getUnitsOriginatingAgenciesByIds(handlerIO, partitionParentIds, sourceOriginatingAgency)
+                this.filterUnitsByOriginatingAgency(handlerIO, partitionParentIds, sourceOriginatingAgency)
             );
         }
 
-        for (Map.Entry<String, List<String>> entryParent : unitsParentIdById.entrySet()) {
+        for (Map.Entry<String, List<String>> entryParent : parentsIdsById.entrySet()) {
             String unitId = entryParent.getKey();
             List<String> parentIds = entryParent.getValue();
 
@@ -193,10 +202,10 @@ public class OriginatingAgencyReassignmentService {
                 .stream()
                 .anyMatch(parentsIdsWithSourceOriginatingAgencies::contains);
             if (hasParentInheritingSourceOriginatingAgency) {
-                unitsWithInheritedOriginatingAgency.add(unitId);
+                nodesWithInheritedOriginatingAgency.add(unitId);
             }
         }
-        return unitsWithInheritedOriginatingAgency;
+        return nodesWithInheritedOriginatingAgency;
     }
 
     public List<JsonNode> buildUnitsOriginatingAgencyReassignmentUpdateQueries(
@@ -263,7 +272,7 @@ public class OriginatingAgencyReassignmentService {
     )
         throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException, MetaDataDocumentSizeException {
         Set<String> parentsIdWithUnchangedOriginatingAgency =
-            this.computeUnitsIdsWithAtLeastOneParentHasOriginatingAgenciesEqualTo(
+            this.computeNodesIdsWithAtLeastOneParentHavingOriginatingAgencyEqualTo(
                     handlerIO,
                     units,
                     sourceOriginatingAgency
@@ -339,20 +348,28 @@ public class OriginatingAgencyReassignmentService {
         return updateMultiQuery;
     }
 
-    public List<ItemStatus> buildItemsStatusResponse(RequestResponse<JsonNode> requestResponse, String pluginId)
+    public List<ItemStatus> buildUpdateItemsStatusResponse(RequestResponse<JsonNode> requestResponse, String pluginId)
         throws InvalidParseOperationException {
         List<ItemStatus> itemStatuses = new ArrayList<>();
         List<JsonNode> results = ((RequestResponseOK<JsonNode>) requestResponse).getResults();
 
         for (JsonNode unitItemResult : results) {
-            RequestResponseOK<UpdateUnit> responseOK = RequestResponseOK.getFromJsonNode(
+            RequestResponseOK<MetadataUpdateResult> responseOK = RequestResponseOK.getFromJsonNode(
                 unitItemResult,
-                UpdateUnit.class
+                MetadataUpdateResult.class
             );
 
-            UpdateUnit unitAsNode = responseOK.getFirstResult();
+            MetadataUpdateResult item = responseOK.getFirstResult();
+            if (!StatusCode.OK.equals(item.getStatus())) {
+                LOGGER.error(
+                    "Unexpected status " + item.getStatus() + " with detail: " + JsonHandler.unprettyPrint(item)
+                );
+                throw new IllegalStateException(
+                    "Unexpected status " + item.getStatus() + " with detail message: " + item.getMessage()
+                );
+            }
 
-            itemStatuses.add(buildItemStatusWithMessage(pluginId, unitAsNode.getStatus(), unitAsNode.getDiff()));
+            itemStatuses.add(buildItemStatusWithMessage(pluginId, item.getStatus(), item.getDiff()));
         }
         return itemStatuses;
     }
@@ -371,6 +388,7 @@ public class OriginatingAgencyReassignmentService {
                 VitamFieldsHelper.originatingAgency(),
                 VitamFieldsHelper.originatingAgencies(),
                 VitamFieldsHelper.unitups(),
+                VitamFieldsHelper.object(),
                 VitamFieldsHelper.allunitups(),
                 VitamFieldsHelper.validComputedInheritedRules()
             );
@@ -380,6 +398,234 @@ public class OriginatingAgencyReassignmentService {
                 units.add(result);
             }
             return units;
+        }
+    }
+
+    public List<JsonNode> getObjectGroupsByIds(HandlerIO handlerIO, Collection<String> objectGroupsIds)
+        throws InvalidParseOperationException, InvalidCreateOperationException, MetaDataExecutionException, MetaDataClientServerException, MetaDataDocumentSizeException {
+        List<JsonNode> objectGroups = new ArrayList<>();
+        try (MetaDataClient metaDataClient = handlerIO.getMetaDataClient()) {
+            SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
+
+            selectMultiQuery.setQuery(QueryHelper.in(VitamFieldsHelper.id(), objectGroupsIds.toArray(new String[0])));
+
+            selectMultiQuery.addUsedProjection(
+                VitamFieldsHelper.id(),
+                VitamFieldsHelper.originatingAgency(),
+                VitamFieldsHelper.originatingAgencies(),
+                VitamFieldsHelper.unitups(),
+                VitamFieldsHelper.allunitups()
+            );
+
+            JsonNode results = metaDataClient.selectObjectGroups(selectMultiQuery.getFinalSelect()).get("$results");
+            for (JsonNode result : results) {
+                objectGroups.add(result);
+            }
+            return objectGroups;
+        }
+    }
+
+    public List<JsonNode> buildObjectGroupsOriginatingAgencyReassignmentUpdateQueries(
+        HandlerIO handlerIO,
+        List<JsonNode> objectGroups,
+        String sourceOriginatingAgency,
+        String targetOriginatingAgency,
+        String processId
+    ) throws ProcessingException {
+        try {
+            return buildObjectGroupsOriginatingAgencyAndOriginatingAgenciesUpdateQueries(
+                handlerIO,
+                objectGroups,
+                sourceOriginatingAgency,
+                targetOriginatingAgency,
+                true,
+                processId
+            );
+        } catch (
+            MetaDataExecutionException
+            | InvalidCreateOperationException
+            | MetaDataClientServerException
+            | InvalidParseOperationException
+            | MetaDataDocumentSizeException e
+        ) {
+            throw new ProcessingException("Error on generating originating agency queries ", e);
+        }
+    }
+
+    public List<JsonNode> buildObjectGroupsOriginatingAgenciesReassignmentUpdateQueries(
+        HandlerIO handlerIO,
+        List<JsonNode> objectGroups,
+        String sourceOriginatingAgency,
+        String targetOriginatingAgency,
+        String processId
+    ) throws ProcessingException {
+        try {
+            return buildObjectGroupsOriginatingAgencyAndOriginatingAgenciesUpdateQueries(
+                handlerIO,
+                objectGroups,
+                sourceOriginatingAgency,
+                targetOriginatingAgency,
+                false,
+                processId
+            );
+        } catch (
+            MetaDataExecutionException
+            | InvalidCreateOperationException
+            | MetaDataClientServerException
+            | InvalidParseOperationException
+            | MetaDataDocumentSizeException e
+        ) {
+            throw new ProcessingException("Error on generating originating agencies queries ", e);
+        }
+    }
+
+    private static UpdateMultiQuery buildUpdateObjectGroupsMultiQuery(
+        JsonNode objectGroup,
+        String targetOriginatingAgency,
+        String sourceOriginatingAgency,
+        Set<String> parentsIdWithUnchangedOriginatingAgency,
+        boolean updateMainOriginatingAgency,
+        String processId
+    ) throws InvalidCreateOperationException, InvalidParseOperationException {
+        List<Action> actions = new ArrayList<>();
+        String objectGroupId = objectGroup.get(VitamFieldsHelper.id()).asText();
+
+        boolean shouldRemoveSourceAgency = !parentsIdWithUnchangedOriginatingAgency.contains(objectGroupId);
+
+        //update field #graph_last_persisted_date
+        actions.add(set(VitamFieldsHelper.graph_last_persisted_date(), LocalDateUtil.nowFormatted()));
+
+        String currentOriginatingAgency = objectGroup.get(VitamFieldsHelper.originatingAgency()).asText();
+        actions.add(UpdateActionHelper.add(VitamFieldsHelper.originatingAgencies(), targetOriginatingAgency));
+
+        if (updateMainOriginatingAgency) {
+            //set SP and SPS (for main objectGroups)
+            actions.add(UpdateActionHelper.set(VitamFieldsHelper.originatingAgency(), targetOriginatingAgency));
+            //add current operation to #OPS field
+            actions.add(push(VitamFieldsHelper.operations(), processId));
+            if (shouldRemoveSourceAgency) {
+                actions.add(UpdateActionHelper.pull(VitamFieldsHelper.originatingAgencies(), sourceOriginatingAgency));
+            }
+        } else {
+            //set Only SPS (for children objectGroups)
+            if (!Objects.equals(currentOriginatingAgency, sourceOriginatingAgency) && shouldRemoveSourceAgency) {
+                actions.add(UpdateActionHelper.pull(VitamFieldsHelper.originatingAgencies(), sourceOriginatingAgency));
+            }
+        }
+
+        UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
+        updateMultiQuery.addRoots(objectGroupId);
+
+        for (Action action : actions) {
+            updateMultiQuery.addActions(action);
+        }
+        return updateMultiQuery;
+    }
+
+    private List<JsonNode> buildObjectGroupsOriginatingAgencyAndOriginatingAgenciesUpdateQueries(
+        HandlerIO handlerIO,
+        List<JsonNode> objectGroups,
+        String sourceOriginatingAgency,
+        String targetOriginatingAgency,
+        boolean updateMainOriginatingAgency,
+        String processId
+    )
+        throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException, MetaDataDocumentSizeException {
+        Set<String> parentsIdWithUnchangedOriginatingAgency =
+            this.computeNodesIdsWithAtLeastOneParentHavingOriginatingAgencyEqualTo(
+                    handlerIO,
+                    objectGroups,
+                    sourceOriginatingAgency
+                );
+
+        List<JsonNode> updateMultiQueryList = new ArrayList<>();
+        for (JsonNode objectGroupMetaData : objectGroups) {
+            updateMultiQueryList.add(
+                buildUpdateObjectGroupsMultiQuery(
+                    objectGroupMetaData,
+                    targetOriginatingAgency,
+                    sourceOriginatingAgency,
+                    parentsIdWithUnchangedOriginatingAgency,
+                    updateMainOriginatingAgency,
+                    processId
+                ).getFinalUpdate()
+            );
+        }
+        return updateMultiQueryList;
+    }
+
+    public void appendReassignmentObjectGroupIdToUpdateOriginatingAgencyToBatchReport(
+        HandlerIO handler,
+        Collection<String> filteredObjectGroupIds,
+        BatchReportClient batchReportClient
+    ) {
+        if (CollectionUtils.isEmpty(filteredObjectGroupIds)) return;
+
+        try {
+            List<OriginatingAgencyReassignmentObjectGroupReportEntry> entries = filteredObjectGroupIds
+                .stream()
+                .map(OriginatingAgencyReassignmentObjectGroupReportEntry::new)
+                .toList();
+            ReportBody<OriginatingAgencyReassignmentObjectGroupReportEntry> report = new ReportBody<>(
+                handler.getContainerName(),
+                ReportType.REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCY_UPDATE,
+                entries
+            );
+            batchReportClient.appendReportEntries(report);
+        } catch (VitamClientInternalException e) {
+            throw new VitamRuntimeException(e);
+        }
+    }
+
+    public void appendReassignmentObjectGroupIdsToComputeOriginatingAgenciesToBatchReport(
+        HandlerIO handler,
+        Collection<String> filteredObjectGroupIds,
+        BatchReportClient batchReportClient
+    ) {
+        if (CollectionUtils.isEmpty(filteredObjectGroupIds)) return;
+
+        try {
+            List<OriginatingAgencyReassignmentObjectGroupReportEntry> entries = filteredObjectGroupIds
+                .stream()
+                .map(OriginatingAgencyReassignmentObjectGroupReportEntry::new)
+                .toList();
+            ReportBody<OriginatingAgencyReassignmentObjectGroupReportEntry> report = new ReportBody<>(
+                handler.getContainerName(),
+                ReportType.REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCIES_COMPUTE,
+                entries
+            );
+            batchReportClient.appendReportEntries(report);
+        } catch (VitamClientInternalException e) {
+            throw new VitamRuntimeException(e);
+        }
+    }
+
+    public List<String> filterObjectGroupIdsByOperation(
+        HandlerIO handlerIO,
+        String operationId,
+        Collection<String> objectGroupsIds
+    )
+        throws InvalidParseOperationException, InvalidCreateOperationException, MetaDataExecutionException, MetaDataClientServerException, MetaDataDocumentSizeException {
+        List<String> objectGroupsIdsFiltered = new ArrayList<>();
+        if (CollectionUtils.isEmpty(objectGroupsIds)) {
+            return objectGroupsIdsFiltered;
+        }
+        try (MetaDataClient metaDataClient = handlerIO.getMetaDataClient()) {
+            SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
+            BooleanQuery booleanQuery = QueryHelper.and()
+                .add(
+                    QueryHelper.ne(VitamFieldsHelper.operations(), operationId),
+                    QueryHelper.in(VitamFieldsHelper.id(), objectGroupsIds.toArray(new String[0]))
+                );
+
+            selectMultiQuery.setQuery(booleanQuery);
+            selectMultiQuery.addUsedProjection(VitamFieldsHelper.id());
+
+            JsonNode results = metaDataClient.selectObjectGroups(selectMultiQuery.getFinalSelect()).get("$results");
+            for (JsonNode result : results) {
+                objectGroupsIdsFiltered.add(result.get(VitamFieldsHelper.id()).asText());
+            }
+            return objectGroupsIdsFiltered;
         }
     }
 }

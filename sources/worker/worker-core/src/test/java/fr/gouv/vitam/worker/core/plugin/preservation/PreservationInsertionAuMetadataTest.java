@@ -38,8 +38,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.model.UpdateUnit;
-import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
+import fr.gouv.vitam.metadata.api.model.MetadataUpdateResult;
+import fr.gouv.vitam.metadata.api.model.UpdateMetadataKey;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -127,10 +127,10 @@ public class PreservationInsertionAuMetadataTest {
         // Given
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
         JsonNode updatedUnit = JsonHandler.toJsonNode(
-            new UpdateUnit(
+            new MetadataUpdateResult(
                 "UNIT_ID",
                 StatusCode.OK,
-                UpdateUnitKey.UNIT_METADATA_UPDATE,
+                UpdateMetadataKey.METADATA_UPDATE,
                 "Extracted  Metada updated successfully.",
                 "UNKNOWN diff"
             )
@@ -173,10 +173,10 @@ public class PreservationInsertionAuMetadataTest {
         // Given
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
         JsonNode updatedUnit = JsonHandler.toJsonNode(
-            new UpdateUnit(
+            new MetadataUpdateResult(
                 "RESPONSE_ID",
                 StatusCode.OK,
-                UpdateUnitKey.UNIT_METADATA_UPDATE,
+                UpdateMetadataKey.METADATA_UPDATE,
                 "Extracted  Metada updated successfully.",
                 "UNKNOWN diff"
             )
@@ -202,10 +202,10 @@ public class PreservationInsertionAuMetadataTest {
         // Given
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
         JsonNode updatedUnit = JsonHandler.toJsonNode(
-            new UpdateUnit(
+            new MetadataUpdateResult(
                 "RESPONSE_ID",
                 StatusCode.STARTED,
-                UpdateUnitKey.UNIT_METADATA_UPDATE,
+                UpdateMetadataKey.METADATA_UPDATE,
                 "Extracted  Metada updated successfully.",
                 "UNKNOWN diff"
             )
@@ -229,10 +229,10 @@ public class PreservationInsertionAuMetadataTest {
         // Given
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
         JsonNode updatedUnit = JsonHandler.toJsonNode(
-            new UpdateUnit(
+            new MetadataUpdateResult(
                 "UNIT_ID",
                 StatusCode.FATAL,
-                UpdateUnitKey.UNIT_METADATA_UPDATE,
+                UpdateMetadataKey.METADATA_UPDATE,
                 "Extracted metadata updated successfully.",
                 "UNKNOWN diff"
             )

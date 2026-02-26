@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin.reassignment;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -47,16 +46,20 @@ import fr.gouv.vitam.worker.core.plugin.StoreMetadataObjectActionHandler;
 
 import java.util.List;
 
-public class OriginatingAgencyReassignmentAgenciesUpdatePlugin extends StoreMetadataObjectActionHandler {
+/**
+ * update SP and SPS on units
+ */
+public class OriginatingAgencyReassignmentUnitsAgenciesUpdatePlugin extends StoreMetadataObjectActionHandler {
+
+    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_UNITS";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
-        OriginatingAgencyReassignmentAgenciesUpdatePlugin.class
+        OriginatingAgencyReassignmentUnitsAgenciesUpdatePlugin.class
     );
-    private static final String PLUGIN_NAME = "ORIGINATION_AGENCY_REASSIGNMENT_AGENCIES_UPDATE";
 
     private final OriginatingAgencyReassignmentService originatingAgencyReassignmentService;
 
-    public OriginatingAgencyReassignmentAgenciesUpdatePlugin() {
+    public OriginatingAgencyReassignmentUnitsAgenciesUpdatePlugin() {
         // Default constructor for workflow initialization by Worker
         originatingAgencyReassignmentService = new OriginatingAgencyReassignmentService();
     }
@@ -64,36 +67,35 @@ public class OriginatingAgencyReassignmentAgenciesUpdatePlugin extends StoreMeta
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
         throws ProcessingException {
-        LOGGER.debug(String.format("executeList from plugin '%s'", PLUGIN_NAME));
+        LOGGER.info("starting update sp and sps for units by replacing SP ");
 
-        List<String> unitsIds = workerParameters.getObjectNameList();
+        List<JsonNode> units = workerParameters.getObjectMetadataList();
+
         try (MetaDataClient mdClient = handler.getMetaDataClient()) {
             final OriginatingAgencyReassignmentRequest reassignmentRequest =
                 originatingAgencyReassignmentService.loadRequestJsonFromWorkspace(handler);
-            List<JsonNode> units = originatingAgencyReassignmentService.findUnitsByIds(handler, unitsIds);
 
             List<JsonNode> updateQueries =
-                originatingAgencyReassignmentService.buildUnitsOriginatingAgenciesComputingUpdateQueries(
+                originatingAgencyReassignmentService.buildUnitsOriginatingAgencyReassignmentUpdateQueries(
                     handler,
                     units,
                     reassignmentRequest.getSourceOriginatingAgency(),
                     reassignmentRequest.getTargetOriginatingAgency(),
-                    workerParameters.getContainerName()
+                    handler.getContainerName()
                 );
 
             RequestResponse<JsonNode> requestResponse = mdClient.atomicUpdateBulk(updateQueries);
 
-            return originatingAgencyReassignmentService.buildItemsStatusResponse(requestResponse, getPluginId());
+            return originatingAgencyReassignmentService.buildUpdateItemsStatusResponse(requestResponse, getPluginId());
         } catch (
-            InvalidCreateOperationException
-            | MetaDataExecutionException
-            | InvalidParseOperationException
+            MetaDataExecutionException
             | MetaDataNotFoundException
-            | MetaDataDocumentSizeException
-            | MetaDataClientServerException e
+            | MetaDataClientServerException
+            | InvalidParseOperationException
+            | MetaDataDocumentSizeException e
         ) {
             throw new ProcessingException(
-                "originating agencies update reassignment failed with status [" + StatusCode.FATAL + "]",
+                "originating agency update reassignment failed  [" + StatusCode.FATAL + "]",
                 e
             );
         }

@@ -61,7 +61,8 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.model.UpdateUnit;
+import fr.gouv.vitam.metadata.api.model.MetadataUpdateResult;
+import fr.gouv.vitam.metadata.api.model.UpdateMetadataKey;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
@@ -101,7 +102,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
+import static fr.gouv.vitam.metadata.api.model.UpdateMetadataKey.METADATA_UPDATE;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.ObjectsScrollDate;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.ObjectsScrollNumber;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.UnitsScrollDate;
@@ -300,11 +301,16 @@ public class MetaDataImplTest {
                 )
             )
         );
-        UpdateUnit result = metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId", true, false);
-        assertThat(result.getUnitId()).isEqualTo("unitId");
+        MetadataUpdateResult result = metaDataImpl.updateUnitById(
+            JsonHandler.getFromString(QUERY),
+            "unitId",
+            true,
+            false
+        );
+        assertThat(result.getMetadataId()).isEqualTo("unitId");
         assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
         assertThat(result.getDiff()).isEqualTo("-  \"x\" : \"v1\"\n+  \"x\" : \"v2\"");
-        assertThat(result.getKey()).isEqualTo(UNIT_METADATA_UPDATE);
+        assertThat(result.getKey()).isEqualTo(METADATA_UPDATE);
         assertThat(result.getMessage()).isEqualTo("Update unit OK.");
     }
 
@@ -501,7 +507,7 @@ public class MetaDataImplTest {
             )
         );
 
-        UpdateUnit result = metaDataImpl.updateUnitById(updateRequest, "unitId", true, false);
+        MetadataUpdateResult result = metaDataImpl.updateUnitById(updateRequest, "unitId", true, false);
 
         assertEquals(wantedDiff.get("#diff").asText(), result.getDiff());
     }
@@ -568,33 +574,33 @@ public class MetaDataImplTest {
             .map(rootElt -> new RequestById(rootElt, parser))
             .collect(Collectors.toList());
 
-        List<UpdateUnit> responseElts = metaDataImpl.updateUnits(requestByIds, true, false);
+        List<MetadataUpdateResult> responseElts = metaDataImpl.updateUnits(requestByIds, true, false);
 
         // Then
         assertThat(responseElts.stream())
             .extracting(
-                UpdateUnit::getUnitId,
-                UpdateUnit::getKey,
-                UpdateUnit::getMessage,
-                UpdateUnit::getStatus,
-                UpdateUnit::getKey,
-                UpdateUnit::getDiff
+                MetadataUpdateResult::getMetadataId,
+                MetadataUpdateResult::getKey,
+                MetadataUpdateResult::getMessage,
+                MetadataUpdateResult::getStatus,
+                MetadataUpdateResult::getKey,
+                MetadataUpdateResult::getDiff
             )
             .containsExactlyInAnyOrder(
                 tuple(
                     "unitId1",
-                    UNIT_METADATA_UPDATE,
-                    "Update unit OK.",
+                    METADATA_UPDATE,
+                    "Update Unit OK.",
                     OK,
-                    UNIT_METADATA_UPDATE,
+                    METADATA_UPDATE,
                     "-  \"field\" : \"value v1\"\n+  \"field\" : \"value v2\""
                 ),
                 tuple(
                     "unitId2",
-                    UNIT_METADATA_UPDATE,
-                    "Update unit OK.",
+                    METADATA_UPDATE,
+                    "Update Unit OK.",
                     OK,
-                    UNIT_METADATA_UPDATE,
+                    METADATA_UPDATE,
                     "-  \"field\" : \"value v1\"\n+  \"field\" : \"value v2\""
                 )
             );
@@ -605,6 +611,13 @@ public class MetaDataImplTest {
         unit.put("_id", unitId);
         unit.put("field", value);
         return unit;
+    }
+
+    private ObjectGroup createObjectGroupResult(String objectGroupId, String value) {
+        final ObjectGroup objectGroup = new ObjectGroup();
+        objectGroup.put("_id", objectGroupId);
+        objectGroup.put("field", value);
+        return objectGroup;
     }
 
     @Test
@@ -818,6 +831,100 @@ public class MetaDataImplTest {
             secondArgumentDocument.get("$set").asDocument().get(MetadataSnapshot.VALUE).asString().getValue()
         ).isBetween(LocalDateUtil.getFormattedDateTimeForMongo(startTime), LocalDateUtil.nowFormatted());
         assertThat(thirdArgument.getValue().isUpsert()).isTrue();
+    }
+
+    @Test
+    public void testBulkObjectGroups_OK() throws Exception {
+        List<OntologyModel> ontologyModels = Arrays.asList(
+            new OntologyModel().setType(OntologyType.KEYWORD).setIdentifier("_id"),
+            new OntologyModel().setType(OntologyType.TEXT).setIdentifier("field")
+        );
+        when(adminManagementClient.findOntologies(any())).thenReturn(
+            new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels)
+        );
+
+        final Result<MetadataDocument<?>> updateResult = new ResultDefault<>(FILTERARGS.OBJECTGROUPS);
+        updateResult.addId("objectGroupId1", (float) 1);
+        updateResult.addId("objectGroupId2", (float) 1);
+
+        final ObjectGroup objectGroup1Before = createObjectGroupResult("objectGroupId1", "value v1");
+        final ObjectGroup objectGroup1After = createObjectGroupResult("objectGroupId1", "value v2");
+
+        final ObjectGroup objectGroup2Before = createObjectGroupResult("objectGroupId2", "value v1");
+        final ObjectGroup objectGroup2After = createObjectGroupResult("objectGroupId2", "value v2");
+
+        when(request.execRequest(isA(SelectParserMultiple.class), eq(ontologyModels))).thenReturn(
+            new ResultDefault<MetadataDocument<?>>(FILTERARGS.OBJECTGROUPS).addFinal(objectGroup1Before),
+            new ResultDefault<MetadataDocument<?>>(FILTERARGS.OBJECTGROUPS).addFinal(objectGroup2Before)
+        );
+
+        when(
+            request.execUpdateRequest(
+                any(),
+                eq(MetadataCollections.OBJECTGROUP),
+                any(OntologyValidator.class),
+                eq(null),
+                anyList(),
+                anyBoolean(),
+                anyBoolean()
+            )
+        ).thenReturn(
+            List.of(
+                new UpdatedDocument(
+                    "objectGroupId1",
+                    JsonHandler.toJsonNode(objectGroup1Before),
+                    JsonHandler.toJsonNode(objectGroup1After),
+                    true
+                ),
+                new UpdatedDocument(
+                    "objectGroupId2",
+                    JsonHandler.toJsonNode(objectGroup2Before),
+                    JsonHandler.toJsonNode(objectGroup2After),
+                    true
+                )
+            )
+        );
+
+        // When
+        final JsonNode updateRequest = JsonHandler.getFromFile(PropertiesUtils.findFile("updateUnits.json"));
+        final RequestParserMultiple parser = RequestParserHelper.getParser(updateRequest);
+        final List<RequestById> requestByIds = parser
+            .getRequest()
+            .getRoots()
+            .stream()
+            .map(rootElt -> new RequestById(rootElt, parser))
+            .collect(Collectors.toList());
+
+        List<MetadataUpdateResult> responseElts = metaDataImpl.updateObjectGroups(requestByIds, true, false);
+
+        // Then
+        assertThat(responseElts.stream())
+            .extracting(
+                MetadataUpdateResult::getMetadataId,
+                MetadataUpdateResult::getKey,
+                MetadataUpdateResult::getMessage,
+                MetadataUpdateResult::getStatus,
+                MetadataUpdateResult::getKey,
+                MetadataUpdateResult::getDiff
+            )
+            .containsExactlyInAnyOrder(
+                tuple(
+                    "objectGroupId1",
+                    UpdateMetadataKey.METADATA_UPDATE,
+                    "Update ObjectGroup OK.",
+                    OK,
+                    UpdateMetadataKey.METADATA_UPDATE,
+                    "-  \"field\" : \"value v1\"\n+  \"field\" : \"value v2\""
+                ),
+                tuple(
+                    "objectGroupId2",
+                    UpdateMetadataKey.METADATA_UPDATE,
+                    "Update ObjectGroup OK.",
+                    OK,
+                    UpdateMetadataKey.METADATA_UPDATE,
+                    "-  \"field\" : \"value v1\"\n+  \"field\" : \"value v2\""
+                )
+            );
     }
 
     private MetadataSnapshot newMetadataSnapshot(String name, Object value) {

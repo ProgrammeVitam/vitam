@@ -55,5 +55,12 @@ db.TraceabilityReport.createIndex( { "processId" : 1, "_tenant" : 1 } )
 db.UpdateUnitReport.createIndex( { "processId" : 1, "_tenant" : 1 } )
 
 
-// Create index for OriginatingAgencyReassignmentUnitsReport
-db.OriginatingAgencyReassignmentUnitsReport.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )
+// Create index for OriginatingAgencyReassignmentUnitAgenciesUpdateReport
+db.OriginatingAgencyReassignmentUnitAgenciesUpdateReport.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )
+
+// Create index for OriginatingAgencyReassignmentObjectGroupAgencyUpdateReport
+db.OriginatingAgencyReassignmentObjectGroupAgencyUpdateReport.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1} )
+
+// Create index for OriginatingAgencyReassignmentObjectGroupAgenciesComputeReport
+db.OriginatingAgencyReassignmentObjectGroupAgenciesComputeReport.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1} )
+

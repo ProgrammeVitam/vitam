@@ -49,8 +49,7 @@ public class OriginatingAgencyReassignmentFinalizationPlugin extends ActionHandl
         OriginatingAgencyReassignmentFinalizationPlugin.class
     );
 
-    private static final String ORIGINATION_AGENCY_REASSIGNMENT_FINALIZATION =
-        "ORIGINATION_AGENCY_REASSIGNMENT_FINALIZATION";
+    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_FINALIZATION";
 
     public OriginatingAgencyReassignmentFinalizationPlugin() {
         // Default constructor for workflow initialization by Worker
@@ -63,13 +62,15 @@ public class OriginatingAgencyReassignmentFinalizationPlugin extends ActionHandl
         // Cleanup units
         try (BatchReportClient batchReportClient = handler.getBatchReportClient()) {
             String processId = handler.getContainerName();
+            batchReportClient.cleanupReport(processId, ReportType.REASSIGNMENT_UNITS_ORIGINATING_AGENCIES_COMPUTE);
+            batchReportClient.cleanupReport(processId, ReportType.REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCY_UPDATE);
             batchReportClient.cleanupReport(
                 processId,
-                ReportType.ORIGINATING_AGENCY_REASSIGNMENT_UNIT_AGENCIES_COMPUTING
+                ReportType.REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCIES_COMPUTE
             );
 
             LOGGER.info("Originating agency reassignment finalization succeeded");
-            return buildItemStatus(ORIGINATION_AGENCY_REASSIGNMENT_FINALIZATION, StatusCode.OK, null);
+            return buildItemStatus(PLUGIN_NAME, StatusCode.OK, null);
         } catch (VitamClientInternalException e) {
             throw new ProcessingException("An error occurred during originating agency report cleanup", e);
         }
@@ -81,6 +82,6 @@ public class OriginatingAgencyReassignmentFinalizationPlugin extends ActionHandl
     }
 
     public static String getId() {
-        return ORIGINATION_AGENCY_REASSIGNMENT_FINALIZATION;
+        return PLUGIN_NAME;
     }
 }

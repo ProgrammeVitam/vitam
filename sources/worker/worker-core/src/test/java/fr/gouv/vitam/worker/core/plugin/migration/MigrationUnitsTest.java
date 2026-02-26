@@ -39,8 +39,8 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.metadata.api.model.UpdateUnit;
-import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
+import fr.gouv.vitam.metadata.api.model.MetadataUpdateResult;
+import fr.gouv.vitam.metadata.api.model.UpdateMetadataKey;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -127,7 +127,7 @@ public class MigrationUnitsTest {
         RequestResponseOK<JsonNode> updateUnitRequestResponseOK = new RequestResponseOK<>();
         updateUnitRequestResponseOK.addResult(
             JsonHandler.toJsonNode(
-                new UpdateUnit(guid.getId(), StatusCode.OK, UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA, "", "")
+                new MetadataUpdateResult(guid.getId(), StatusCode.OK, UpdateMetadataKey.METADATA_NO_NEW_DATA, "", "")
             )
         );
         when(metaDataClient.updateUnitBulk(any())).thenReturn(updateUnitRequestResponseOK);

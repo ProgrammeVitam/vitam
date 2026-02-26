@@ -24,24 +24,65 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.batch.report.model.entry;
+package fr.gouv.vitam.metadata.api.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.StatusCode;
 
-public class OriginatingAgencyReassignmentUpdateReportEntry {
+import java.util.Objects;
 
-    public static final String UNIT_ID = "id";
+public class MetadataUpdateResult {
 
-    private final String unitId;
+    public static final String ID = "#id";
+    public static final String STATUS = "#status";
+    public static final String KEY = "#key";
+    public static final String MESSAGE = "#message";
+    public static final String DIFF = "#diff";
+
+    private final String metadataId;
+    private final StatusCode status;
+    private final UpdateMetadataKey key;
+    private final String message;
+    private final String diff;
 
     @JsonCreator
-    public OriginatingAgencyReassignmentUpdateReportEntry(@JsonProperty(UNIT_ID) String unitId) {
-        this.unitId = unitId;
+    public MetadataUpdateResult(
+        @JsonProperty(ID) String metadataId,
+        @JsonProperty(STATUS) StatusCode status,
+        @JsonProperty(KEY) UpdateMetadataKey key,
+        @JsonProperty(MESSAGE) String message,
+        @JsonProperty(DIFF) String diff
+    ) {
+        this.metadataId = Objects.requireNonNull(metadataId);
+        this.status = Objects.requireNonNull(status);
+        this.key = Objects.requireNonNull(key);
+        this.message = Objects.requireNonNull(message);
+        this.diff = Objects.requireNonNull(diff);
     }
 
-    @JsonProperty(UNIT_ID)
-    public String getUnitId() {
-        return unitId;
+    @JsonProperty(ID)
+    public String getMetadataId() {
+        return metadataId;
+    }
+
+    @JsonProperty(STATUS)
+    public StatusCode getStatus() {
+        return status;
+    }
+
+    @JsonProperty(KEY)
+    public UpdateMetadataKey getKey() {
+        return key;
+    }
+
+    @JsonProperty(MESSAGE)
+    public String getMessage() {
+        return message;
+    }
+
+    @JsonProperty(DIFF)
+    public String getDiff() {
+        return diff;
     }
 }

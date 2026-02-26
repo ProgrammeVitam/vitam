@@ -27,14 +27,13 @@
 package fr.gouv.vitam.worker.core.plugin.reassignment;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -48,20 +47,19 @@ import fr.gouv.vitam.worker.core.plugin.StoreMetadataObjectActionHandler;
 import java.util.List;
 
 /**
- * update SP and SPS on units
+ * update SPS on Object group
  */
-public class OriginatingAgencyReassignmentUnitUpdatePlugin extends StoreMetadataObjectActionHandler {
+public class OriginatingAgencyReassignmentObjectGroupAgenciesComputePlugin extends StoreMetadataObjectActionHandler {
 
-    public static final String ORIGINATING_AGENCY_REASSIGNMENT_UNITS_UPDATE_PLUGIN_NAME =
-        "ORIGINATING_AGENCY_REASSIGNMENT_UNITS_UPDATE";
+    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILDREN_OBJECT_GROUPS";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
-        OriginatingAgencyReassignmentUnitUpdatePlugin.class
+        OriginatingAgencyReassignmentObjectGroupAgenciesComputePlugin.class
     );
 
     private final OriginatingAgencyReassignmentService originatingAgencyReassignmentService;
 
-    public OriginatingAgencyReassignmentUnitUpdatePlugin() {
+    public OriginatingAgencyReassignmentObjectGroupAgenciesComputePlugin() {
         // Default constructor for workflow initialization by Worker
         originatingAgencyReassignmentService = new OriginatingAgencyReassignmentService();
     }
@@ -69,42 +67,43 @@ public class OriginatingAgencyReassignmentUnitUpdatePlugin extends StoreMetadata
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
         throws ProcessingException {
-        LOGGER.info("starting update sp and sps for units by replacing SP ");
+        LOGGER.info("starting update sps for object group  ");
 
-        List<JsonNode> units = workerParameters.getObjectMetadataList();
+        List<String> objectGroupsIds = workerParameters.getObjectNameList();
 
         try (MetaDataClient mdClient = handler.getMetaDataClient()) {
             final OriginatingAgencyReassignmentRequest reassignmentRequest =
                 originatingAgencyReassignmentService.loadRequestJsonFromWorkspace(handler);
 
+            List<JsonNode> objectGroups = originatingAgencyReassignmentService.getObjectGroupsByIds(
+                handler,
+                objectGroupsIds
+            );
             List<JsonNode> updateQueries =
-                originatingAgencyReassignmentService.buildUnitsOriginatingAgencyReassignmentUpdateQueries(
+                originatingAgencyReassignmentService.buildObjectGroupsOriginatingAgenciesReassignmentUpdateQueries(
                     handler,
-                    units,
+                    objectGroups,
                     reassignmentRequest.getSourceOriginatingAgency(),
                     reassignmentRequest.getTargetOriginatingAgency(),
-                    VitamThreadUtils.getVitamSession().getRequestId()
+                    handler.getContainerName()
                 );
 
-            RequestResponse<JsonNode> requestResponse = mdClient.atomicUpdateBulk(updateQueries);
+            RequestResponse<JsonNode> requestResponse = mdClient.objectGroupsAtomicUpdateBulk(updateQueries);
 
-            return originatingAgencyReassignmentService.buildItemsStatusResponse(requestResponse, getPluginId());
+            return originatingAgencyReassignmentService.buildUpdateItemsStatusResponse(requestResponse, getPluginId());
         } catch (
             MetaDataExecutionException
             | MetaDataNotFoundException
             | MetaDataClientServerException
             | InvalidParseOperationException
+            | InvalidCreateOperationException
             | MetaDataDocumentSizeException e
         ) {
-            LOGGER.error("originating agency update reassignment failed  [" + StatusCode.FATAL + "]", e);
-            throw new ProcessingException(
-                "originating agency update reassignment failed  [" + StatusCode.FATAL + "]",
-                e
-            );
+            throw new ProcessingException(e.getMessage(), e);
         }
     }
 
     public static String getPluginId() {
-        return ORIGINATING_AGENCY_REASSIGNMENT_UNITS_UPDATE_PLUGIN_NAME;
+        return PLUGIN_NAME;
     }
 }

@@ -444,19 +444,28 @@
     "className": "fr.gouv.vitam.worker.core.plugin.CheckObjectGroupSchemaActionPlugin",
     "propertiesFile": "check_object_group_schema_plugin.properties"
   },
-  "ORIGINATING_AGENCY_REASSIGNMENT_PREPARATION": {
-    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentPreparationPlugin"
+  "ORIGINATING_AGENCY_REASSIGNMENT_UNITS_PREPARATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentUnitsPreparationPlugin"
   },
-  "ORIGINATING_AGENCY_REASSIGNMENT_UNITS_UPDATE": {
-    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentUnitUpdatePlugin"
+  "ORIGINATING_AGENCY_REASSIGNMENT_OBJECT_GROUP_PREPARATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentObjectGroupPreparationPlugin"
   },
-  "ORIGINATING_AGENCY_REASSIGNMENT_CHILDREN_UNITS_UPDATE_PREPARATION": {
-    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentChildrenUnitsPreparationPlugin"
+  "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_UNITS": {
+    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentUnitsAgenciesUpdatePlugin"
   },
-  "ORIGINATION_AGENCY_REASSIGNMENT_AGENCIES_UPDATE": {
-    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentAgenciesUpdatePlugin"
+  "ORIGINATING_AGENCY_REASSIGNMENT_UNITS_CHILDREN_PREPARATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentUnitsChildrenPreparationPlugin"
   },
-  "ORIGINATION_AGENCY_REASSIGNMENT_FINALIZATION": {
+  "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILDREN_UNITS": {
+    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentUnitsChildrenAgenciesComputePlugin"
+  },
+  "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_OBJECT_GROUPS": {
+    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentMainUnitsObjectGroupsUpdatePlugin"
+  },
+  "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILDREN_OBJECT_GROUPS": {
+    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentObjectGroupAgenciesComputePlugin"
+  },
+  "ORIGINATING_AGENCY_REASSIGNMENT_FINALIZATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentFinalizationPlugin"
   }
 }

@@ -60,6 +60,7 @@ import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -67,21 +68,25 @@ import java.util.Objects;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
- * OriginatingAgencyReassignmentPreparationPlugin
+ * OriginatingAgencyReassignmentUnitsPreparationPlugin
  */
-public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandler {
+public class OriginatingAgencyReassignmentUnitsPreparationPlugin extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
-        OriginatingAgencyReassignmentPreparationPlugin.class
+        OriginatingAgencyReassignmentUnitsPreparationPlugin.class
     );
 
-    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_PREPARATION";
+    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_UNITS_PREPARATION";
 
     private static final String UNITS_TO_UPDATE_FILE = "units_to_update.jsonl";
 
+    private static final String INTERMEDIATE_GOTS_IDS_FILE_NAME = "intermediate_gots_ids.jsonl";
+
+    private static final int INTERMEDIATE_OG_FILE_OUT_RANK = 1;
+
     private final OriginatingAgencyReassignmentService originatingAgencyReassignmentService;
 
-    public OriginatingAgencyReassignmentPreparationPlugin() {
+    public OriginatingAgencyReassignmentUnitsPreparationPlugin() {
         // Default constructor for workflow initialization by Worker
         originatingAgencyReassignmentService = new OriginatingAgencyReassignmentService();
     }
@@ -91,6 +96,7 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
         try {
             final OriginatingAgencyReassignmentRequest reassignmentRequest =
                 originatingAgencyReassignmentService.loadRequestJsonFromWorkspace(handler);
+
             if (
                 Objects.equals(
                     reassignmentRequest.getSourceOriginatingAgency(),
@@ -102,8 +108,10 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
                     "sourceOriginatingAgency should be different to targetOriginatingAgency"
                 );
             }
+
             checkTargetOriginatingAgency(handler, reassignmentRequest.getTargetOriginatingAgency());
-            checkUnitsAndGenerateDistributions(handler, reassignmentRequest);
+
+            generateUnitsDistributionsAndPrepareObjectGroupDistributions(handler, reassignmentRequest);
 
             return buildItemStatus(PLUGIN_NAME, StatusCode.OK, null);
         } catch (ProcessingStatusException e) {
@@ -137,7 +145,7 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
         }
     }
 
-    private void checkUnitsAndGenerateDistributions(
+    private void generateUnitsDistributionsAndPrepareObjectGroupDistributions(
         HandlerIO handler,
         OriginatingAgencyReassignmentRequest reassignmentRequest
     ) throws ProcessingStatusException {
@@ -145,7 +153,12 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             handler.getWorkFlowExecutionContext(),
             UNITS_TO_UPDATE_FILE
         );
-        try (MetaDataClient metadataClient = handler.getMetaDataClient()) {
+
+        File gotIdsToFillInIntermediateFile = handler.getNewLocalFile(
+            handler.getWorkFlowExecutionContext(),
+            INTERMEDIATE_GOTS_IDS_FILE_NAME
+        );
+        try (MetaDataClient metadataClient = handler.getMetaDataClient();) {
             SelectMultiQuery selectMultiQuery = createSelectMultiple(reassignmentRequest.getDslRequest());
             ScrollSpliterator<JsonNode> unitScrollSpliterator = ScrollSpliteratorHelper.createUnitScrollSplitIterator(
                 metadataClient,
@@ -155,51 +168,63 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             Iterator<JsonNode> unitIterator = new SpliteratorIterator<>(unitScrollSpliterator);
 
             try (
-                FileOutputStream fileOutputStream = new FileOutputStream(unitToUpdateDistributionFile);
-                JsonLineWriter<JsonLineModel> unitsToUpdateWriter = new JsonLineWriter<>(fileOutputStream)
+                final FileOutputStream exportUnitsFileOutputStream = new FileOutputStream(unitToUpdateDistributionFile);
+                JsonLineWriter<JsonLineModel> unitsToUpdateWriter = new JsonLineWriter<>(exportUnitsFileOutputStream);
+                final OutputStream exportGotIdsOutputStream = new FileOutputStream(gotIdsToFillInIntermediateFile);
+                JsonLineWriter<JsonLineModel> exportGotFileWriter = new JsonLineWriter<>(exportGotIdsOutputStream)
             ) {
                 while (unitIterator.hasNext()) {
                     JsonNode unit = unitIterator.next();
-                    validateAndAddUnitToDistributionFile(
-                        reassignmentRequest.getSourceOriginatingAgency(),
-                        reassignmentRequest.getTargetOriginatingAgency(),
-                        unit,
-                        unitsToUpdateWriter
+                    String unitId = unit.get(VitamFieldsHelper.id()).asText();
+
+                    boolean unitToUpdateOriginatingAgency = validateAndCheckToAddUnitToDistributionFile(
+                        reassignmentRequest,
+                        unit
                     );
+                    // performance issue due to ES timeout bug 15611:
+                    // solution: write unit children ids and theirs object to file before write it to BatchReport,
+
+                    if (unitToUpdateOriginatingAgency) {
+                        unitsToUpdateWriter.addEntry(
+                            new JsonLineModel(unitId, unit.get(VitamFieldsHelper.max()).asInt(), unit)
+                        );
+                    }
+
+                    if (reassignmentRequest.isPropagateToObjectGroups() && unit.has(VitamFieldsHelper.object())) {
+                        exportGotFileWriter.addEntry(
+                            new JsonLineModel(unit.get(VitamFieldsHelper.object()).asText(), null, null)
+                        );
+                    }
                 }
             }
-
             handler.transferFileToWorkspace(UNITS_TO_UPDATE_FILE, unitToUpdateDistributionFile, true, false);
+
+            handler.addOutputResult(INTERMEDIATE_OG_FILE_OUT_RANK, gotIdsToFillInIntermediateFile, false, false);
         } catch (IOException | InvalidParseOperationException | ProcessingException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not generate unit distributions", e);
         }
     }
 
-    private void validateAndAddUnitToDistributionFile(
-        String sourceOriginatingAgency,
-        String targetOriginatingAgency,
-        JsonNode unit,
-        JsonLineWriter<JsonLineModel> unitsToUpdateWriter
-    ) throws IOException, ProcessingStatusException {
-        String unitId = unit.get(VitamFieldsHelper.id()).asText();
-
+    private boolean validateAndCheckToAddUnitToDistributionFile(
+        OriginatingAgencyReassignmentRequest reassignmentRequest,
+        JsonNode unit
+    ) throws ProcessingStatusException {
         if (!unit.has(VitamFieldsHelper.originatingAgency())) {
             throw new ProcessingStatusException(StatusCode.KO, "This action is not allowed for Holding units ");
         }
         String currentOriginatingAgency = unit.get(VitamFieldsHelper.originatingAgency()).asText();
 
-        if (
-            !Objects.equals(currentOriginatingAgency, sourceOriginatingAgency) &&
-            !Objects.equals(currentOriginatingAgency, targetOriginatingAgency)
-        ) {
+        boolean validSourceAndTargetRequest =
+            Objects.equals(currentOriginatingAgency, reassignmentRequest.getSourceOriginatingAgency()) ||
+            Objects.equals(currentOriginatingAgency, reassignmentRequest.getTargetOriginatingAgency());
+
+        if (!validSourceAndTargetRequest) {
             throw new ProcessingStatusException(
                 StatusCode.KO,
                 "OriginatingAgency does not match source neither target Originating Agency"
             );
         }
-        if (!Objects.equals(currentOriginatingAgency, targetOriginatingAgency)) {
-            unitsToUpdateWriter.addEntry(new JsonLineModel(unitId, unit.get(VitamFieldsHelper.max()).asInt(), unit));
-        }
+        return Objects.equals(currentOriginatingAgency, reassignmentRequest.getSourceOriginatingAgency());
     }
 
     private SelectMultiQuery createSelectMultiple(JsonNode initialQuery) throws InvalidParseOperationException {
@@ -214,6 +239,7 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             VitamFieldsHelper.originatingAgency(),
             VitamFieldsHelper.originatingAgencies(),
             VitamFieldsHelper.unitups(),
+            VitamFieldsHelper.object(),
             VitamFieldsHelper.allunitups(),
             VitamFieldsHelper.validComputedInheritedRules()
         );

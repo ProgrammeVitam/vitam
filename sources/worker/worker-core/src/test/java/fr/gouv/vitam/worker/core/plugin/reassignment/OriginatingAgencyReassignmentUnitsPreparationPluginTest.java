@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin.reassignment;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -48,15 +49,14 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -70,7 +70,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class OriginatingAgencyReassignmentPreparationPluginTest {
+public class OriginatingAgencyReassignmentUnitsPreparationPluginTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -87,43 +87,47 @@ public class OriginatingAgencyReassignmentPreparationPluginTest {
     @Mock
     private WorkspaceClient workspaceClient;
 
+    @Mock
+    private BatchReportClient batchReportClient;
+
     HandlerIO handlerIO = mock(HandlerIO.class);
 
-    private OriginatingAgencyReassignmentPreparationPlugin originatingAgencyReassignmentPreparationPlugin;
+    private OriginatingAgencyReassignmentUnitsPreparationPlugin originatingAgencyReassignmentUnitsPreparationPlugin;
 
     private static final TypeReference<JsonLineModel> jsonLineModelTypeReference = new TypeReference<>() {};
-
-    private static final String UNITS_TO_UPDATE_FILE = "units_to_update.jsonl";
 
     @Before
     public void setUp() throws Exception {
         when(handlerIO.getMetaDataClient()).thenReturn(metaDataClient);
         when(handlerIO.getWorkspaceClient(any())).thenReturn(workspaceClient);
         when(handlerIO.getAdminManagementClient()).thenReturn(adminManagementClient);
+        when(handlerIO.getBatchReportClient()).thenReturn(batchReportClient);
 
-        originatingAgencyReassignmentPreparationPlugin = new OriginatingAgencyReassignmentPreparationPlugin();
+        originatingAgencyReassignmentUnitsPreparationPlugin = new OriginatingAgencyReassignmentUnitsPreparationPlugin();
     }
 
     @Test
     public void should_generate_distribution_file_with_requested_ids() throws Exception {
         // Given
-        File distributionFile = temporaryFolder.newFile();
 
         JsonNode queryNode = JsonHandler.getFromInputStream(
             PropertiesUtils.getResourceAsStream("reassignment/query.json")
         );
 
         OriginatingAgencyReassignmentRequest originatingAgencyReassignmentRequest =
-            new OriginatingAgencyReassignmentRequest();
-
-        originatingAgencyReassignmentRequest.setDslRequest(queryNode);
-        originatingAgencyReassignmentRequest.setSourceOriginatingAgency("sourceOriginatingAgency");
-        originatingAgencyReassignmentRequest.setTargetOriginatingAgency("targetOriginatingAgency");
+            new OriginatingAgencyReassignmentRequest(
+                queryNode,
+                "sourceOriginatingAgency",
+                "targetOriginatingAgency",
+                true
+            );
 
         WorkerParameters workerParameters = mock(WorkerParameters.class);
+
         JsonNode unitResponse = JsonHandler.getFromInputStream(
             PropertiesUtils.getResourceAsStream("reassignment/units.json")
         );
+
         when(metaDataClient.selectUnits(any())).thenReturn(unitResponse);
 
         AgenciesModel targetOriginatingAgenciesModel = new AgenciesModel();
@@ -138,44 +142,56 @@ public class OriginatingAgencyReassignmentPreparationPluginTest {
             .when(handlerIO)
             .getInputStreamFromWorkspace(any(), eq("request.json"));
 
-        when(handlerIO.getNewLocalFile(any(), anyString())).thenReturn(distributionFile);
-        File resultFile = temporaryFolder.newFile();
+        // Create 2 separate local files
+        File unitsDistributionFile = temporaryFolder.newFile("units_to_update.jsonl");
+        File intermediateGotFile = temporaryFolder.newFile("intermediate_gots_ids.jsonl");
+
+        // This simulates the file copied to workspace
+        File copiedFile = temporaryFolder.newFile("workspace_copy.jsonl");
+
+        when(handlerIO.getNewLocalFile(any(), anyString()))
+            .thenReturn(unitsDistributionFile) // 1st call
+            .thenReturn(intermediateGotFile); // 2nd call
+
+        // Capture the transferred file into copiedFile
         doAnswer(invocation -> {
             File distributionFileCaptured = invocation.getArgument(1);
-
-            try (FileOutputStream fileOutputStream = new FileOutputStream(resultFile)) {
-                Files.copy(distributionFileCaptured.toPath(), fileOutputStream);
-            }
+            Files.copy(distributionFileCaptured.toPath(), copiedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return null;
         })
             .when(handlerIO)
-            .transferFileToWorkspace(
-                ArgumentMatchers.eq(UNITS_TO_UPDATE_FILE),
-                any(),
-                ArgumentMatchers.eq(true),
-                ArgumentMatchers.eq(false)
-            );
+            .transferFileToWorkspace(any(), any(), eq(true), eq(false));
+
         // When
-        ItemStatus itemStatus = originatingAgencyReassignmentPreparationPlugin.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = originatingAgencyReassignmentUnitsPreparationPlugin.execute(
+            workerParameters,
+            handlerIO
+        );
+
         // Then
-        StatusCode globalStatus = itemStatus.getGlobalStatus();
-        assertThat(globalStatus).isEqualTo(StatusCode.OK);
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+
         JsonLineIterator<JsonLineModel> lines = new JsonLineIterator<>(
-            new FileInputStream(resultFile),
+            new FileInputStream(copiedFile),
             jsonLineModelTypeReference
         );
+
         List<JsonLineModel> units = lines.stream().toList();
+
         Set<String> unitIds = new HashSet<>();
         Set<String> unitAgencies = new HashSet<>();
         Set<Integer> unitGroups = new HashSet<>();
+
         for (JsonLineModel unitLine : units) {
             unitIds.add(unitLine.getId());
             unitAgencies.add(unitLine.getParams().get(VitamFieldsHelper.originatingAgency()).asText());
             unitGroups.add(unitLine.getDistribGroup());
         }
+
         assertThat(unitIds).hasSize(4);
         assertThat(unitGroups).hasSize(3);
         assertThat(unitAgencies).hasSize(1);
+
         assertThat(unitIds).contains("id_unit_1", "id_unit_2", "id_unit_3", "id_unit_5");
         assertThat(unitGroups).contains(1, 2, 3);
         assertThat(unitAgencies).contains("sourceOriginatingAgency");
@@ -190,11 +206,7 @@ public class OriginatingAgencyReassignmentPreparationPluginTest {
         );
 
         OriginatingAgencyReassignmentRequest originatingAgencyReassignmentRequest =
-            new OriginatingAgencyReassignmentRequest();
-
-        originatingAgencyReassignmentRequest.setDslRequest(queryNode);
-        originatingAgencyReassignmentRequest.setSourceOriginatingAgency("sameOriginatingAgency");
-        originatingAgencyReassignmentRequest.setTargetOriginatingAgency("sameOriginatingAgency");
+            new OriginatingAgencyReassignmentRequest(queryNode, "sameOriginatingAgency", "sameOriginatingAgency", true);
 
         WorkerParameters workerParameters = mock(WorkerParameters.class);
         JsonNode unitResponse = JsonHandler.getFromInputStream(
@@ -215,7 +227,10 @@ public class OriginatingAgencyReassignmentPreparationPluginTest {
             .getInputStreamFromWorkspace(any(), eq("request.json"));
 
         // When
-        ItemStatus itemStatus = originatingAgencyReassignmentPreparationPlugin.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = originatingAgencyReassignmentUnitsPreparationPlugin.execute(
+            workerParameters,
+            handlerIO
+        );
         // Then
         StatusCode globalStatus = itemStatus.getGlobalStatus();
         assertThat(globalStatus).isEqualTo(StatusCode.KO);
@@ -230,11 +245,12 @@ public class OriginatingAgencyReassignmentPreparationPluginTest {
         );
 
         OriginatingAgencyReassignmentRequest originatingAgencyReassignmentRequest =
-            new OriginatingAgencyReassignmentRequest();
-
-        originatingAgencyReassignmentRequest.setDslRequest(queryNode);
-        originatingAgencyReassignmentRequest.setSourceOriginatingAgency("sourceOriginatingAgency");
-        originatingAgencyReassignmentRequest.setTargetOriginatingAgency("targetOriginatingAgency");
+            new OriginatingAgencyReassignmentRequest(
+                queryNode,
+                "sourceOriginatingAgency",
+                "targetOriginatingAgency",
+                true
+            );
 
         WorkerParameters workerParameters = mock(WorkerParameters.class);
         JsonNode unitResponse = JsonHandler.getFromInputStream(
@@ -251,7 +267,10 @@ public class OriginatingAgencyReassignmentPreparationPluginTest {
             .getInputStreamFromWorkspace(any(), eq("request.json"));
 
         // When
-        ItemStatus itemStatus = originatingAgencyReassignmentPreparationPlugin.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = originatingAgencyReassignmentUnitsPreparationPlugin.execute(
+            workerParameters,
+            handlerIO
+        );
         // Then
         StatusCode globalStatus = itemStatus.getGlobalStatus();
         assertThat(globalStatus).isEqualTo(StatusCode.KO);

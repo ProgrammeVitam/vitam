@@ -83,6 +83,7 @@ import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_OBJECT_GROUP_QUE
 import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_UNITS_QUERY_BULK_NULL;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_UNITS_QUERY_NULL;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.SIZE_TOO_LARGE;
+import static fr.gouv.vitam.metadata.client.ErrorMessage.UPDATE_OBJECT_GROUP_QUERY_NULL;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.UPDATE_UNITS_QUERY_BULK_NULL;
 import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -738,6 +739,24 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 post()
                     .withPath("/units/atomicupdatebulk")
                     .withBody(updateQueries, UPDATE_UNITS_QUERY_BULK_NULL.getMessage())
+                    .withJson()
+            )
+        ) {
+            check(response);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        } catch (VitamClientInternalException e) {
+            throw new MetaDataClientServerException(e);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> objectGroupsAtomicUpdateBulk(List<JsonNode> updateQueries)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
+        try (
+            Response response = make(
+                post()
+                    .withPath("/objectgroups/atomicupdatebulk")
+                    .withBody(updateQueries, UPDATE_OBJECT_GROUP_QUERY_NULL.getMessage())
                     .withJson()
             )
         ) {

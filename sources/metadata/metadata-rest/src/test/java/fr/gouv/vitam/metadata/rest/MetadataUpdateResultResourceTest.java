@@ -57,8 +57,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
-import fr.gouv.vitam.metadata.api.model.UpdateUnit;
-import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
+import fr.gouv.vitam.metadata.api.model.MetadataUpdateResult;
+import fr.gouv.vitam.metadata.api.model.UpdateMetadataKey;
 import fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
@@ -93,7 +93,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class UpdateUnitResourceTest {
+public class MetadataUpdateResultResourceTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
@@ -465,26 +465,29 @@ public class UpdateUnitResourceTest {
         assertThat(results.size()).isEqualTo(2);
 
         // We get one hit for each request which succeeded
-        RequestResponseOK<UpdateUnit> firstResponse = RequestResponseOK.getFromJsonNode(
+        RequestResponseOK<MetadataUpdateResult> firstResponse = RequestResponseOK.getFromJsonNode(
             results.get(0),
-            UpdateUnit.class
+            MetadataUpdateResult.class
         );
         assertThat(firstResponse.getHits().getSize()).isEqualTo(1);
 
         // The response contains the id of the updated object
-        List<UpdateUnit> resultsFirstResponse = firstResponse.getResults();
+        List<MetadataUpdateResult> resultsFirstResponse = firstResponse.getResults();
         assertThat(resultsFirstResponse.size()).isEqualTo(1);
         assertThat(resultsFirstResponse.get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(resultsFirstResponse.get(0).getUnitId()).isEqualTo(ID_UNIT_1);
+        assertThat(resultsFirstResponse.get(0).getMetadataId()).isEqualTo(ID_UNIT_1);
 
         // Same for the second request
-        RequestResponseOK secondResponse = RequestResponseOK.getFromJsonNode(results.get(1), UpdateUnit.class);
+        RequestResponseOK secondResponse = RequestResponseOK.getFromJsonNode(
+            results.get(1),
+            MetadataUpdateResult.class
+        );
         assertThat(secondResponse.getHits().getSize()).isEqualTo(1);
 
-        List<UpdateUnit> resultsSecondResponse = secondResponse.getResults();
+        List<MetadataUpdateResult> resultsSecondResponse = secondResponse.getResults();
         assertThat(resultsSecondResponse.size()).isEqualTo(1);
         assertThat(resultsSecondResponse.get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(resultsSecondResponse.get(0).getUnitId()).isEqualTo(ID_UNIT_2);
+        assertThat(resultsSecondResponse.get(0).getMetadataId()).isEqualTo(ID_UNIT_2);
     }
 
     @Test
@@ -525,34 +528,32 @@ public class UpdateUnitResourceTest {
             .asInputStream();
 
         // We get a RequestResponseOK object, either updates fail or succeed
-        RequestResponseOK<RequestResponseOK<UpdateUnit>> responseOK = JsonHandler.getFromInputStreamAsTypeReference(
-            stream,
-            new TypeReference<>() {}
-        );
-        final List<RequestResponseOK<UpdateUnit>> results = responseOK.getResults();
+        RequestResponseOK<RequestResponseOK<MetadataUpdateResult>> responseOK =
+            JsonHandler.getFromInputStreamAsTypeReference(stream, new TypeReference<>() {});
+        final List<RequestResponseOK<MetadataUpdateResult>> results = responseOK.getResults();
 
         // We get one result per request
         assertThat(results.size()).isEqualTo(2);
 
         // We get one hit for each request which succeeded
-        RequestResponseOK<UpdateUnit> firstResponse = results.get(0);
+        RequestResponseOK<MetadataUpdateResult> firstResponse = results.get(0);
         assertThat(firstResponse.getHits().getSize()).isEqualTo(1);
 
         // The response contains the id of the updated object
-        List<UpdateUnit> resultsFirstResponse = firstResponse.getResults();
+        List<MetadataUpdateResult> resultsFirstResponse = firstResponse.getResults();
         assertThat(resultsFirstResponse.size()).isEqualTo(1);
         assertThat(resultsFirstResponse.get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(resultsFirstResponse.get(0).getUnitId()).isEqualTo(ID_UNIT_1);
+        assertThat(resultsFirstResponse.get(0).getMetadataId()).isEqualTo(ID_UNIT_1);
 
         // Same for the second request
-        RequestResponseOK<UpdateUnit> secondResponse = results.get(1);
+        RequestResponseOK<MetadataUpdateResult> secondResponse = results.get(1);
         assertThat(secondResponse.getHits().getSize()).isEqualTo(1);
 
-        List<UpdateUnit> resultsSecondResponse = secondResponse.getResults();
+        List<MetadataUpdateResult> resultsSecondResponse = secondResponse.getResults();
         assertThat(resultsSecondResponse.size()).isEqualTo(1);
         assertThat(resultsSecondResponse.get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(resultsSecondResponse.get(0).getUnitId()).isEqualTo(ID_UNIT_1);
-        assertThat(resultsSecondResponse.get(0).getKey()).isEqualTo(UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA);
+        assertThat(resultsSecondResponse.get(0).getMetadataId()).isEqualTo(ID_UNIT_1);
+        assertThat(resultsSecondResponse.get(0).getKey()).isEqualTo(UpdateMetadataKey.METADATA_NO_NEW_DATA);
     }
 
     @Test
@@ -603,27 +604,30 @@ public class UpdateUnitResourceTest {
         assertThat(results.size()).isEqualTo(2);
 
         // First update returns RequestResponseOK
-        RequestResponseOK<UpdateUnit> firstResponse = RequestResponseOK.getFromJsonNode(
+        RequestResponseOK<MetadataUpdateResult> firstResponse = RequestResponseOK.getFromJsonNode(
             results.get(0),
-            UpdateUnit.class
+            MetadataUpdateResult.class
         );
         assertThat(firstResponse.getHits().getSize()).isEqualTo(1);
 
-        // First update is KO (in UpdateUnit) with a schema Error
-        List<UpdateUnit> resultsFirstResponse = firstResponse.getResults();
+        // First update is KO (in MetadataUpdateResult) with a schema Error
+        List<MetadataUpdateResult> resultsFirstResponse = firstResponse.getResults();
         assertThat(resultsFirstResponse.size()).isEqualTo(1);
         assertThat(resultsFirstResponse.get(0).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(resultsFirstResponse.get(0).getUnitId()).isEqualTo(ID_UNIT);
+        assertThat(resultsFirstResponse.get(0).getMetadataId()).isEqualTo(ID_UNIT);
 
         // Second update returns RequestResponseOK
-        RequestResponseOK secondResponse = RequestResponseOK.getFromJsonNode(results.get(1), UpdateUnit.class);
+        RequestResponseOK secondResponse = RequestResponseOK.getFromJsonNode(
+            results.get(1),
+            MetadataUpdateResult.class
+        );
         assertThat(secondResponse.getHits().getSize()).isEqualTo(1);
 
-        // First update is OK (in UpdateUnit)
-        List<UpdateUnit> resultsSecondResponse = secondResponse.getResults();
+        // First update is OK (in MetadataUpdateResult)
+        List<MetadataUpdateResult> resultsSecondResponse = secondResponse.getResults();
         assertThat(resultsSecondResponse.size()).isEqualTo(1);
         assertThat(resultsSecondResponse.get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(resultsSecondResponse.get(0).getUnitId()).isEqualTo(ID_UNIT_2);
+        assertThat(resultsSecondResponse.get(0).getMetadataId()).isEqualTo(ID_UNIT_2);
     }
 
     @Test
@@ -675,24 +679,27 @@ public class UpdateUnitResourceTest {
         assertThat(results.size()).isEqualTo(3);
 
         // First update returns RequestResponseOK
-        RequestResponseOK<UpdateUnit> firstResponse = RequestResponseOK.getFromJsonNode(
+        RequestResponseOK<MetadataUpdateResult> firstResponse = RequestResponseOK.getFromJsonNode(
             results.get(0),
-            UpdateUnit.class
+            MetadataUpdateResult.class
         );
         assertThat(firstResponse.getHits().getSize()).isEqualTo(1);
 
-        // First update is KO (in UpdateUnit), with a schema Error
-        List<UpdateUnit> resultsFirstResponse = firstResponse.getResults();
+        // First update is KO (in MetadataUpdateResult), with a schema Error
+        List<MetadataUpdateResult> resultsFirstResponse = firstResponse.getResults();
         assertThat(resultsFirstResponse.size()).isEqualTo(1);
         assertThat(resultsFirstResponse.get(0).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(resultsFirstResponse.get(0).getUnitId()).isEqualTo(ID_UNIT);
+        assertThat(resultsFirstResponse.get(0).getMetadataId()).isEqualTo(ID_UNIT);
 
         // Second update returns RequestResponseOK
-        RequestResponseOK secondResponse = RequestResponseOK.getFromJsonNode(results.get(1), UpdateUnit.class);
+        RequestResponseOK secondResponse = RequestResponseOK.getFromJsonNode(
+            results.get(1),
+            MetadataUpdateResult.class
+        );
         assertThat(secondResponse.getHits().getSize()).isEqualTo(0);
 
         // Here, there is no update (no roots)
-        List<UpdateUnit> resultsSecondResponse = secondResponse.getResults();
+        List<MetadataUpdateResult> resultsSecondResponse = secondResponse.getResults();
         assertThat(resultsSecondResponse.size()).isEqualTo(0);
 
         // Third update returns a Vitam Error, with a Bad Request error code (bad body request)
@@ -751,17 +758,17 @@ public class UpdateUnitResourceTest {
         assertThat(results2.size()).isEqualTo(1);
 
         // First update returns RequestResponseOK
-        RequestResponseOK<UpdateUnit> firstResponse2 = RequestResponseOK.getFromJsonNode(
+        RequestResponseOK<MetadataUpdateResult> firstResponse2 = RequestResponseOK.getFromJsonNode(
             results2.get(0),
-            UpdateUnit.class
+            MetadataUpdateResult.class
         );
         assertThat(firstResponse2.getHits().getSize()).isEqualTo(1);
 
-        // First update is KO (in UpdateUnit), with root not found
-        List<UpdateUnit> resultsFirstResponse2 = firstResponse2.getResults();
+        // First update is KO (in MetadataUpdateResult), with root not found
+        List<MetadataUpdateResult> resultsFirstResponse2 = firstResponse2.getResults();
         assertThat(resultsFirstResponse2.size()).isEqualTo(1);
         assertThat(resultsFirstResponse2.get(0).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(resultsFirstResponse2.get(0).getUnitId()).isEqualTo(ID_UNIT_1);
+        assertThat(resultsFirstResponse2.get(0).getMetadataId()).isEqualTo(ID_UNIT_1);
     }
 
     @Test
@@ -789,17 +796,17 @@ public class UpdateUnitResourceTest {
         assertThat(results.size()).isEqualTo(1);
 
         // Single update returns RequestResponseOK
-        RequestResponseOK<UpdateUnit> firstResponse = RequestResponseOK.getFromJsonNode(
+        RequestResponseOK<MetadataUpdateResult> firstResponse = RequestResponseOK.getFromJsonNode(
             results.get(0),
-            UpdateUnit.class
+            MetadataUpdateResult.class
         );
         assertThat(firstResponse.getHits().getSize()).isEqualTo(1);
 
-        // Single update is FATAL (in UpdateUnit), with no tenant found
-        List<UpdateUnit> resultsFirstResponse = firstResponse.getResults();
+        // Single update is FATAL (in MetadataUpdateResult), with no tenant found
+        List<MetadataUpdateResult> resultsFirstResponse = firstResponse.getResults();
         assertThat(resultsFirstResponse.size()).isEqualTo(1);
         assertThat(resultsFirstResponse.get(0).getStatus()).isEqualTo(StatusCode.FATAL);
-        assertThat(resultsFirstResponse.get(0).getUnitId()).isEqualTo(ID_UNIT_1);
+        assertThat(resultsFirstResponse.get(0).getMetadataId()).isEqualTo(ID_UNIT_1);
 
         // An internal error is returned if tenant is invalid
         given()
