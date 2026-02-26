@@ -98,10 +98,10 @@ public class BusinessApplication extends ConfigurationApplication {
 
             // Vitam Clients
             WorkspaceCollectClientFactory.changeMode(
-                configuration.getWorkspaceCollectUrl(),
+                configuration.getUrlWorkspaceCollect(),
                 WorkFlowExecutionContext.COLLECT
             );
-            WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl(), WorkFlowExecutionContext.VITAM);
+            WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace(), WorkFlowExecutionContext.VITAM);
             MetaDataClientFactory metadataCollectClientFactory = MetaDataClientFactory.getInstance(
                 WorkFlowExecutionContext.COLLECT
             );

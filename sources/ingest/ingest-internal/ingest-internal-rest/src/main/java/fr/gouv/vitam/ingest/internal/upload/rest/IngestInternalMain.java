@@ -93,7 +93,7 @@ public class IngestInternalMain {
                     yamlIS,
                     IngestInternalConfiguration.class
                 );
-                WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl(), WorkFlowExecutionContext.VITAM);
+                WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace(), WorkFlowExecutionContext.VITAM);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

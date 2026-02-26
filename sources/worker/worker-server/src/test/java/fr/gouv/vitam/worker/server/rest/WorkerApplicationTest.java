@@ -68,7 +68,7 @@ public class WorkerApplicationTest {
             .setRegisterServerHost("localhost")
             .setRegisterDelay(1)
             .setRegisterRetry(1)
-            .setProcessingUrl("http://localhost:8888")
+            .setUrlProcessing("http://localhost:8888")
             .setUrlMetadata("http://localhost:8888")
             .setUrlMetadataCollect("http://localhost:8888")
             .setUrlWorkspace("http://localhost:8888")

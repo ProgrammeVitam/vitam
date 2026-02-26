@@ -1,7 +1,7 @@
 #jinja2: lstrip_blocks: True
-workspaceUrl: {{vitam.workspace | client_url}}
+urlWorkspace: {{ vitam.workspace | client_url }}
 
-urlProcessing: {{vitam.processing | client_url}}
+urlProcessing: {{ vitam.processing | client_url }}
 contextPath: {{ vitam_struct.context_path }}
 collectModule: true
 
@@ -23,8 +23,8 @@ transfersSIPTimeToLiveInMinutes: {{ vitam.metadata_collect.transfersSIPTimeToLiv
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts_mongos_data'] %}
-- dbHost: {{ hostvars[server]['ip_service'] }}
-  dbPort: {{ mongodb.mongos_port }}
+  - dbHost: {{ hostvars[server]['ip_service'] }}
+    dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: metadataCollect
 dbAuthentication: {{ mongodb.mongo_authentication }}
@@ -38,8 +38,8 @@ clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchConfigurationFile: {{ vitam_folder_conf }}/elasticsearch-settings/elasticsearch-configuration.json
 elasticsearchNodes:
 {% for server in groups['hosts_elasticsearch_data'] %}
-- hostName: {{ hostvars[server]['ip_service'] }}
-  httpPort: {{ elasticsearch.data.port_http }}
+  - hostName: {{ hostvars[server]['ip_service'] }}
+    httpPort: {{ elasticsearch.data.port_http }}
 {% endfor %}
 
 # ElasticSearch tenant indexation
@@ -57,29 +57,29 @@ elasticsearchTenantIndexation:
 {% if vitam_elasticsearch_tenant_indexation.collect_dedicated_tenants is defined and vitam_elasticsearch_tenant_indexation.collect_dedicated_tenants is not none %}
   dedicated_tenants:
   {% for entry in vitam_elasticsearch_tenant_indexation.collect_dedicated_tenants %}
-  - tenants: '{{ entry.tenants }}'
+    - tenants: '{{ entry.tenants }}'
     {% if entry.unit is defined %}
-    unit:
+      unit:
       {% if entry.collect_unit.number_of_shards is defined %}
-      number_of_shards: {{ entry.collect_unit.number_of_shards }}
+        number_of_shards: {{ entry.collect_unit.number_of_shards }}
       {% endif %}
       {% if entry.collect_unit.number_of_replicas is defined %}
-      number_of_replicas: {{ entry.collect_unit.number_of_replicas }}
+        number_of_replicas: {{ entry.collect_unit.number_of_replicas }}
       {% endif %}
       {% if entry.collect_unit.mappingFile is defined %}
-      mappingFile: {{ vitam.metadata_collect.elasticsearch_mapping_dir }}/{{ entry.collect_unit.mappingFile }}
+        mappingFile: {{ vitam.metadata_collect.elasticsearch_mapping_dir }}/{{ entry.collect_unit.mappingFile }}
       {% endif %}
     {% endif %}
     {% if entry.objectgroup is defined %}
-    objectgroup:
+      objectgroup:
       {% if entry.collect_objectgroup.number_of_shards is defined %}
-      number_of_shards: {{ entry.collect_objectgroup.number_of_shards }}
+        number_of_shards: {{ entry.collect_objectgroup.number_of_shards }}
       {% endif %}
       {% if entry.collect_objectgroup.number_of_replicas is defined %}
-      number_of_replicas: {{ entry.collect_objectgroup.number_of_replicas }}
+        number_of_replicas: {{ entry.collect_objectgroup.number_of_replicas }}
       {% endif %}
       {% if entry.collect_objectgroup.mappingFile is defined %}
-      mappingFile: {{ vitam.metadata_collect.elasticsearch_mapping_dir }}/{{ entry.collect_objectgroup.mappingFile }}
+        mappingFile: {{ vitam.metadata_collect.elasticsearch_mapping_dir }}/{{ entry.collect_objectgroup.mappingFile }}
       {% endif %}
     {% endif %}
   {% endfor %}
@@ -88,30 +88,30 @@ elasticsearchTenantIndexation:
 {% if vitam_elasticsearch_tenant_indexation.collect_grouped_tenants is defined and vitam_elasticsearch_tenant_indexation.collect_grouped_tenants is not none %}
   grouped_tenants:
   {% for entry in vitam_elasticsearch_tenant_indexation.collect_grouped_tenants %}
-  - name: '{{ entry.name }}'
-    tenants: '{{ entry.tenants }}'
+    - name: '{{ entry.name }}'
+      tenants: '{{ entry.tenants }}'
     {% if entry.unit is defined %}
-    unit:
+      unit:
       {% if entry.collect_unit.number_of_shards is defined %}
-      number_of_shards: {{ entry.collect_unit.number_of_shards }}
+        number_of_shards: {{ entry.collect_unit.number_of_shards }}
       {% endif %}
       {% if entry.collect_unit.number_of_replicas is defined %}
-      number_of_replicas: {{ entry.collect_unit.number_of_replicas }}
+        number_of_replicas: {{ entry.collect_unit.number_of_replicas }}
       {% endif %}
       {% if entry.collect_unit.mappingFile is defined %}
-      mappingFile: {{ vitam.metadata_collect.elasticsearch_mapping_dir }}/{{ entry.collect_unit.mappingFile }}
+        mappingFile: {{ vitam.metadata_collect.elasticsearch_mapping_dir }}/{{ entry.collect_unit.mappingFile }}
       {% endif %}
     {% endif %}
     {% if entry.objectgroup is defined %}
-    objectgroup:
+      objectgroup:
       {% if entry.collect_objectgroup.number_of_shards is defined %}
-      number_of_shards: {{ entry.collect_objectgroup.number_of_shards }}
+        number_of_shards: {{ entry.collect_objectgroup.number_of_shards }}
       {% endif %}
       {% if entry.collect_objectgroup.number_of_replicas is defined %}
-      number_of_replicas: {{ entry.collect_objectgroup.number_of_replicas }}
+        number_of_replicas: {{ entry.collect_objectgroup.number_of_replicas }}
       {% endif %}
       {% if entry.collect_objectgroup.mappingFile is defined %}
-      mappingFile: {{ vitam.metadata_collect.elasticsearch_mapping_dir }}/{{ entry.collect_objectgroup.mappingFile }}
+        mappingFile: {{ vitam.metadata_collect.elasticsearch_mapping_dir }}/{{ entry.collect_objectgroup.mappingFile }}
       {% endif %}
     {% endif %}
   {% endfor %}
@@ -119,30 +119,30 @@ elasticsearchTenantIndexation:
 
 #Basic Authentication
 adminBasicAuth:
-- userName: {{ admin_basic_auth_user }}
-  password: {{ admin_basic_auth_password }}
+  - userName: {{ admin_basic_auth_user }}
+    password: {{ admin_basic_auth_password }}
 
 refreshElasticIndexPostBulkIndexing: {{ vitam.metadata_collect.refreshElasticIndexPostBulkIndexing | default(true) }}
 
 {% if vitam_virtual_paths is defined and vitam_virtual_paths is not none %}
 # virtual Paths settings
 virtualPaths:
- {% if vitam_virtual_paths.default_fields is defined and vitam_virtual_paths.default_fields is not none %}
+  {% if vitam_virtual_paths.default_fields is defined and vitam_virtual_paths.default_fields is not none %}
   default_config:
-   source_fields :
-   {% for entry in vitam_virtual_paths.default_fields %}
-    - {{ entry }}
-   {% endfor %}
-{% endif %}
-
- {% if vitam_virtual_paths.dedicated_tenants is defined and vitam_virtual_paths.dedicated_tenants is not none %}
-  dedicated_tenants:
-   {% for entry in vitam_virtual_paths.dedicated_tenants %}
-   - tenants: '{{ entry.tenants }}'
-     source_fields:
-    {% for entryField in entry.fields %}
-      - {{ entryField }}
+    source_fields:
+    {% for entry in vitam_virtual_paths.default_fields %}
+      - {{ entry }}
     {% endfor %}
-   {% endfor %}
- {% endif %}
+  {% endif %}
+
+  {% if vitam_virtual_paths.dedicated_tenants is defined and vitam_virtual_paths.dedicated_tenants is not none %}
+  dedicated_tenants:
+    {% for entry in vitam_virtual_paths.dedicated_tenants %}
+    - tenants: '{{ entry.tenants }}'
+      source_fields:
+      {% for entryField in entry.fields %}
+        - {{ entryField }}
+      {% endfor %}
+    {% endfor %}
+  {% endif %}
 {% endif %}

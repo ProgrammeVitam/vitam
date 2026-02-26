@@ -60,7 +60,7 @@ public class WorkerRegistrationListener implements ServletContextListener {
 
     public WorkerRegistrationListener(WorkerConfiguration configuration) {
         this.configuration = configuration;
-        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
+        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
         this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
         this.workerRegister = new WorkerRegister(configuration, processingManagementClientFactory);
     }
@@ -104,7 +104,7 @@ public class WorkerRegistrationListener implements ServletContextListener {
             } catch (final Exception e) {
                 LOGGER.error(
                     "WorkerUnRegister run : unregister call failed => Processing (" +
-                    configuration.getProcessingUrl() +
+                    configuration.getUrlProcessing() +
                     ") will unregister worker automatically ",
                     e
                 );

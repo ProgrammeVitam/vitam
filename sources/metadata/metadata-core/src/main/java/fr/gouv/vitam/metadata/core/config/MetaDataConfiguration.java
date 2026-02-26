@@ -42,7 +42,7 @@ import java.util.List;
  */
 public class MetaDataConfiguration extends DbConfigurationImpl {
 
-    private String workspaceUrl;
+    private String urlWorkspace;
     private String urlProcessing;
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
@@ -223,12 +223,12 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
         return this;
     }
 
-    public String getWorkspaceUrl() {
-        return workspaceUrl;
+    public String getUrlWorkspace() {
+        return urlWorkspace;
     }
 
-    public MetaDataConfiguration setWorkspaceUrl(String workspaceUrl) {
-        this.workspaceUrl = workspaceUrl;
+    public MetaDataConfiguration setUrlWorkspace(String urlWorkspace) {
+        this.urlWorkspace = urlWorkspace;
         return this;
     }
 

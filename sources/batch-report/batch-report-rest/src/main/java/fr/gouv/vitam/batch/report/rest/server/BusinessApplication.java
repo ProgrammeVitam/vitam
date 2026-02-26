@@ -95,7 +95,7 @@ public class BusinessApplication extends ConfigurationApplication {
                 new UnitComputedInheritedRulesInvalidationRepository(mongoDbAccess);
             OriginatingAgencyReassignmentUnitsUpdateRepository originatingAgencyReassignmentUnitsUpdateRepository =
                 new OriginatingAgencyReassignmentUnitsUpdateRepository(mongoDbAccess);
-            WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl(), WorkFlowExecutionContext.VITAM);
+            WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace(), WorkFlowExecutionContext.VITAM);
             WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance(
                 WorkFlowExecutionContext.VITAM
             );

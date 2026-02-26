@@ -1,7 +1,7 @@
 #jinja2: lstrip_blocks: True
-workspaceUrl: {{vitam.workspace | client_url}}
+urlWorkspace: {{ vitam.workspace | client_url }}
 
-urlProcessing: {{vitam.processing | client_url}}
+urlProcessing: {{ vitam.processing | client_url }}
 contextPath: {{ vitam_struct.context_path }}
 
 # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
@@ -46,8 +46,8 @@ persistentIdentifierReconstructionBulkSize: {{ vitam.metadata.persistentIdentifi
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts_mongos_data'] %}
-- dbHost: {{ hostvars[server]['ip_service'] }}
-  dbPort: {{ mongodb.mongos_port }}
+  - dbHost: {{ hostvars[server]['ip_service'] }}
+    dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: metadata
 dbAuthentication: {{ mongodb.mongo_authentication }}
@@ -61,8 +61,8 @@ clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchConfigurationFile: {{ vitam_folder_conf }}/elasticsearch-settings/elasticsearch-configuration.json
 elasticsearchNodes:
 {% for server in groups['hosts_elasticsearch_data'] %}
-- hostName: {{ hostvars[server]['ip_service'] }}
-  httpPort: {{ elasticsearch.data.port_http }}
+  - hostName: {{ hostvars[server]['ip_service'] }}
+    httpPort: {{ elasticsearch.data.port_http }}
 {% endfor %}
 
 # ElasticSearch tenant indexation
@@ -80,29 +80,29 @@ elasticsearchTenantIndexation:
 {% if vitam_elasticsearch_tenant_indexation.dedicated_tenants is defined and vitam_elasticsearch_tenant_indexation.dedicated_tenants is not none %}
   dedicated_tenants:
   {% for entry in vitam_elasticsearch_tenant_indexation.dedicated_tenants %}
-  - tenants: '{{ entry.tenants }}'
+    - tenants: '{{ entry.tenants }}'
     {% if entry.unit is defined %}
-    unit:
+      unit:
       {% if entry.unit.number_of_shards is defined %}
-      number_of_shards: {{ entry.unit.number_of_shards }}
+        number_of_shards: {{ entry.unit.number_of_shards }}
       {% endif %}
       {% if entry.unit.number_of_replicas is defined %}
-      number_of_replicas: {{ entry.unit.number_of_replicas }}
+        number_of_replicas: {{ entry.unit.number_of_replicas }}
       {% endif %}
       {% if entry.unit.mappingFile is defined %}
-      mappingFile: {{ vitam.metadata.elasticsearch_mapping_dir }}/{{ entry.unit.mappingFile }}
+        mappingFile: {{ vitam.metadata.elasticsearch_mapping_dir }}/{{ entry.unit.mappingFile }}
       {% endif %}
     {% endif %}
     {% if entry.objectgroup is defined %}
-    objectgroup:
+      objectgroup:
       {% if entry.objectgroup.number_of_shards is defined %}
-      number_of_shards: {{ entry.objectgroup.number_of_shards }}
+        number_of_shards: {{ entry.objectgroup.number_of_shards }}
       {% endif %}
       {% if entry.objectgroup.number_of_replicas is defined %}
-      number_of_replicas: {{ entry.objectgroup.number_of_replicas }}
+        number_of_replicas: {{ entry.objectgroup.number_of_replicas }}
       {% endif %}
       {% if entry.objectgroup.mappingFile is defined %}
-      mappingFile: {{ vitam.metadata.elasticsearch_mapping_dir }}/{{ entry.objectgroup.mappingFile }}
+        mappingFile: {{ vitam.metadata.elasticsearch_mapping_dir }}/{{ entry.objectgroup.mappingFile }}
       {% endif %}
     {% endif %}
   {% endfor %}
@@ -111,30 +111,30 @@ elasticsearchTenantIndexation:
 {% if vitam_elasticsearch_tenant_indexation.grouped_tenants is defined and vitam_elasticsearch_tenant_indexation.grouped_tenants is not none %}
   grouped_tenants:
   {% for entry in vitam_elasticsearch_tenant_indexation.grouped_tenants %}
-  - name: '{{ entry.name }}'
-    tenants: '{{ entry.tenants }}'
+    - name: '{{ entry.name }}'
+      tenants: '{{ entry.tenants }}'
     {% if entry.unit is defined %}
-    unit:
+      unit:
       {% if entry.unit.number_of_shards is defined %}
-      number_of_shards: {{ entry.unit.number_of_shards }}
+        number_of_shards: {{ entry.unit.number_of_shards }}
       {% endif %}
       {% if entry.unit.number_of_replicas is defined %}
-      number_of_replicas: {{ entry.unit.number_of_replicas }}
+        number_of_replicas: {{ entry.unit.number_of_replicas }}
       {% endif %}
       {% if entry.unit.mappingFile is defined %}
-      mappingFile: {{ vitam.metadata.elasticsearch_mapping_dir }}/{{ entry.unit.mappingFile }}
+        mappingFile: {{ vitam.metadata.elasticsearch_mapping_dir }}/{{ entry.unit.mappingFile }}
       {% endif %}
     {% endif %}
     {% if entry.objectgroup is defined %}
-    objectgroup:
+      objectgroup:
       {% if entry.objectgroup.number_of_shards is defined %}
-      number_of_shards: {{ entry.objectgroup.number_of_shards }}
+        number_of_shards: {{ entry.objectgroup.number_of_shards }}
       {% endif %}
       {% if entry.objectgroup.number_of_replicas is defined %}
-      number_of_replicas: {{ entry.objectgroup.number_of_replicas }}
+        number_of_replicas: {{ entry.objectgroup.number_of_replicas }}
       {% endif %}
       {% if entry.objectgroup.mappingFile is defined %}
-      mappingFile: {{ vitam.metadata.elasticsearch_mapping_dir }}/{{ entry.objectgroup.mappingFile }}
+        mappingFile: {{ vitam.metadata.elasticsearch_mapping_dir }}/{{ entry.objectgroup.mappingFile }}
       {% endif %}
     {% endif %}
   {% endfor %}
@@ -142,8 +142,8 @@ elasticsearchTenantIndexation:
 
 #Basic Authentication
 adminBasicAuth:
-- userName: {{ admin_basic_auth_user }}
-  password: {{ admin_basic_auth_password }}
+  - userName: {{ admin_basic_auth_user }}
+    password: {{ admin_basic_auth_password }}
 
 {% if vitam.metadata.isDataConsistencyAuditRunnable | default(false) | bool %}
 # Metadata Consistency Audit (Experimental / Not for Production)
@@ -156,12 +156,12 @@ mongodShardsConf:
   dbPassword: {{ mongodb['mongo-data']['localadmin']['password'] }}
   mongoDbShards:
   {% for shard_id in groups['hosts_mongod_data'] | map('extract', hostvars, 'mongo_shard_id') | unique | sort %}
-  - shardName: shard{{ shard_id }}
-    mongoDbNodes:
+    - shardName: shard{{ shard_id }}
+      mongoDbNodes:
     {% for server in groups['hosts_mongod_data'] %}
       {% if hostvars[server]['mongo_shard_id'] == shard_id %}
-    - dbHost: {{ hostvars[server]['ip_service'] }}
-      dbPort: {{ mongodb.mongod_port }}
+        - dbHost: {{ hostvars[server]['ip_service'] }}
+          dbPort: {{ mongodb.mongod_port }}
       {% endif %}
     {% endfor %}
   {% endfor %}
@@ -170,22 +170,22 @@ mongodShardsConf:
 {% if vitam_virtual_paths is defined and vitam_virtual_paths is not none %}
 # virtual Paths settings
 virtualPaths:
- {% if vitam_virtual_paths.default_fields is defined and vitam_virtual_paths.default_fields is not none %}
+  {% if vitam_virtual_paths.default_fields is defined and vitam_virtual_paths.default_fields is not none %}
   default_config:
-   source_fields :
-   {% for entry in vitam_virtual_paths.default_fields %}
-    - {{ entry }}
-   {% endfor %}
-{% endif %}
-
- {% if vitam_virtual_paths.dedicated_tenants is defined and vitam_virtual_paths.dedicated_tenants is not none %}
-  dedicated_tenants:
-   {% for entry in vitam_virtual_paths.dedicated_tenants %}
-   - tenants: '{{ entry.tenants }}'
-     source_fields:
-    {% for entryField in entry.fields %}
-      - {{ entryField }}
+    source_fields:
+    {% for entry in vitam_virtual_paths.default_fields %}
+      - {{ entry }}
     {% endfor %}
-   {% endfor %}
- {% endif %}
+  {% endif %}
+
+  {% if vitam_virtual_paths.dedicated_tenants is defined and vitam_virtual_paths.dedicated_tenants is not none %}
+  dedicated_tenants:
+    {% for entry in vitam_virtual_paths.dedicated_tenants %}
+    - tenants: '{{ entry.tenants }}'
+      source_fields:
+      {% for entryField in entry.fields %}
+        - {{ entryField }}
+      {% endfor %}
+    {% endfor %}
+  {% endif %}
 {% endif %}

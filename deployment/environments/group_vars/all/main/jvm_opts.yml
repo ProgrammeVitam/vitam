@@ -28,10 +28,10 @@ vitam:
             # gc: ""
             # java: ""
     batch_report:
-          jvm_opts:
-              # memory: "-Xms128m -Xmx512m"
-              # gc: ""
-              # java: ""
+        jvm_opts:
+            # memory: "-Xms128m -Xmx512m"
+            # gc: ""
+            # java: ""
     ingest_internal:
         jvm_opts:
             # memory: "-Xms128m -Xmx512m"

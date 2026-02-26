@@ -1,8 +1,8 @@
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts_mongos_data'] %}
-- dbHost: {{ hostvars[server]['ip_service'] }}
-  dbPort: {{ mongodb.mongos_port }}
+  - dbHost: {{ hostvars[server]['ip_service'] }}
+    dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: report
 dbAuthentication: {{ mongodb.mongo_authentication }}
@@ -10,4 +10,4 @@ dbUserName: {{ mongodb['mongo-data'].report.user }}
 dbPassword: {{ mongodb['mongo-data'].report.password }}
 jettyConfig: jetty-config.xml
 
-workspaceUrl: {{ vitam.workspace | client_url }}
+urlWorkspace: {{ vitam.workspace | client_url }}

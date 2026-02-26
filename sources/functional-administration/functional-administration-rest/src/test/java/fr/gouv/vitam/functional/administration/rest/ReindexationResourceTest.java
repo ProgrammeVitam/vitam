@@ -155,7 +155,7 @@ public class ReindexationResourceTest {
         realAdminConfig.setMongoDbNodes(nodes);
         realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
-        realAdminConfig.setWorkspaceUrl("http://localhost:" + workspacePort);
+        realAdminConfig.setUrlWorkspace("http://localhost:" + workspacePort);
 
         realAdminConfig.setElasticsearchConfigurationFile(ElasticsearchTestHelper.loadElasticSearchSettings());
         serverPort = junitHelper.findAvailablePort();

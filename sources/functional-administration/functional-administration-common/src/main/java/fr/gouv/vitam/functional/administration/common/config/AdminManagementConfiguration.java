@@ -41,8 +41,8 @@ import java.util.Map;
  */
 public class AdminManagementConfiguration extends DbConfigurationImpl {
 
-    private String workspaceUrl;
-    private String processingUrl;
+    private String urlWorkspace;
+    private String urlProcessing;
 
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
@@ -120,29 +120,29 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
     /**
      * @return url workspace
      */
-    public String getWorkspaceUrl() {
-        return workspaceUrl;
+    public String getUrlWorkspace() {
+        return urlWorkspace;
     }
 
     /**
-     * @param workspaceUrl to set
+     * @param urlWorkspace to set
      */
-    public void setWorkspaceUrl(String workspaceUrl) {
-        this.workspaceUrl = workspaceUrl;
+    public void setUrlWorkspace(String urlWorkspace) {
+        this.urlWorkspace = urlWorkspace;
     }
 
     /**
      * @return processing Url
      */
-    public String getProcessingUrl() {
-        return processingUrl;
+    public String getUrlProcessing() {
+        return urlProcessing;
     }
 
     /**
-     * @param processingUrl to set
+     * @param urlProcessing to set
      */
-    public void setProcessingUrl(String processingUrl) {
-        this.processingUrl = processingUrl;
+    public void setUrlProcessing(String urlProcessing) {
+        this.urlProcessing = urlProcessing;
     }
 
     /**

@@ -858,7 +858,7 @@ public class VitamServerRunner extends ExternalResource {
         realAdminConfig.setDbName(dbname);
         realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(cluster);
-        realAdminConfig.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
+        realAdminConfig.setUrlWorkspace("http://localhost:" + PORT_SERVICE_WORKSPACE);
         realAdminConfig.setElasticsearchConfigurationFile(ElasticsearchTestHelper.loadElasticSearchSettings());
         realAdminConfig.setIndexationConfiguration(
             new FunctionalAdminIndexationConfiguration().setDefaultConfiguration(new CollectionConfiguration(1, 0))
@@ -909,7 +909,7 @@ public class VitamServerRunner extends ExternalResource {
         final LogbookConfiguration logbookConfiguration = readYaml(logbookConfigFile, LogbookConfiguration.class);
         logbookConfiguration.setElasticsearchNodes(esNodes);
         logbookConfiguration.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
-        logbookConfiguration.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
+        logbookConfiguration.setUrlWorkspace("http://localhost:" + PORT_SERVICE_WORKSPACE);
         if (this.customLogbookIndexationConfiguration != null) {
             logbookConfiguration.setLogbookTenantIndexation(customLogbookIndexationConfiguration);
         } else {

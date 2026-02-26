@@ -206,7 +206,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         this.functionalAdminAdmin = webApplicationConfigonfig.getFunctionalAdminAdmin();
         LOGGER.debug("init Admin Management Resource server");
 
-        WorkspaceClientFactory.changeMode(webApplicationConfigonfig.getWorkspaceUrl(), WorkFlowExecutionContext.VITAM);
+        WorkspaceClientFactory.changeMode(webApplicationConfigonfig.getUrlWorkspace(), WorkFlowExecutionContext.VITAM);
     }
 
     /**
