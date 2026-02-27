@@ -34,9 +34,12 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.common.enums.TransactionValidationMode;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalNotFoundException;
+import fr.gouv.vitam.collect.internal.core.common.Batch;
+import fr.gouv.vitam.collect.internal.core.common.BatchStatus;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.configuration.CollectInternalConfiguration;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
@@ -500,9 +503,9 @@ public class TransactionServiceTest {
         doReturn(Optional.of(transactionModel)).when(transactionRepository).findTransaction("id");
 
         // When / Then
-        assertThatThrownBy(() -> transactionService.closeTransaction(transactionModel)).isInstanceOf(
-            CollectInternalInvalidRequestException.class
-        );
+        assertThatThrownBy(
+            () -> transactionService.closeTransaction(transactionModel, TransactionValidationMode.VALIDATE)
+        ).isInstanceOf(CollectInternalInvalidRequestException.class);
 
         // Then
         assertThat(transactionModel.getStatus()).isEqualTo(SENDING);
@@ -526,7 +529,7 @@ public class TransactionServiceTest {
         TransactionModel transactionModel = new TransactionModel().setId("id").setStatus(OPEN);
 
         // When
-        transactionService.closeTransaction(transactionModel);
+        transactionService.closeTransaction(transactionModel, TransactionValidationMode.VALIDATE);
 
         // Then
         assertThat(transactionModel.getStatus()).isEqualTo(READY);
@@ -539,9 +542,9 @@ public class TransactionServiceTest {
         TransactionModel transactionModel = new TransactionModel().setId("id").setStatus(KO);
 
         // When / Then
-        assertThatThrownBy(() -> transactionService.closeTransaction(transactionModel)).isInstanceOf(
-            CollectInternalInvalidRequestException.class
-        );
+        assertThatThrownBy(
+            () -> transactionService.closeTransaction(transactionModel, TransactionValidationMode.VALIDATE)
+        ).isInstanceOf(CollectInternalInvalidRequestException.class);
 
         // Then
         assertThat(transactionModel.getStatus()).isEqualTo(KO);
@@ -668,5 +671,58 @@ public class TransactionServiceTest {
         assertThatThrownBy(() -> transactionService.awaitTransactionValidationForIngest(transactionId))
             .isInstanceOf(CollectInternalInvalidRequestException.class)
             .hasMessage("Timeout while waiting for transaction to become VALIDATED");
+    }
+
+    @Test
+    public void testCloseTransaction_WithIgnoreMode_OK() throws Exception {
+        // Given
+        TransactionModel transactionModel = new TransactionModel().setId("id").setStatus(OPEN);
+
+        // When
+        transactionService.closeTransaction(transactionModel, TransactionValidationMode.VALIDATE_IGNORE);
+
+        // Then
+        assertThat(transactionModel.getStatus()).isEqualTo(READY);
+        verify(transactionRepository).replaceTransaction(transactionModel);
+    }
+
+    @Test
+    public void testCloseTransaction_WithBatchKO() throws Exception {
+        // Given
+        Batch batch = new Batch();
+        batch.setBatchStatus(BatchStatus.KO);
+
+        TransactionModel transactionModel = new TransactionModel().setId("id").setBatches(List.of(batch));
+
+        //when // Then
+        assertThatThrownBy(
+            () -> transactionService.closeTransaction(transactionModel, TransactionValidationMode.VALIDATE)
+        )
+            .isInstanceOf(CollectInternalInvalidRequestException.class)
+            .hasMessage(
+                String.format(
+                    "Cannot generate the SIP for transaction %s because it has at least one batch KO.",
+                    transactionModel.getId()
+                )
+            );
+    }
+
+    @Test
+    public void testCloseTransaction_WithIgnoreMode_AndBatchKO() throws Exception {
+        // Given
+        Batch batch = new Batch();
+        batch.setBatchStatus(BatchStatus.KO);
+
+        TransactionModel transactionModel = new TransactionModel()
+            .setId("id")
+            .setStatus(OPEN)
+            .setBatches(List.of(batch));
+
+        // When
+        transactionService.closeTransaction(transactionModel, TransactionValidationMode.VALIDATE_IGNORE);
+
+        // Then
+        assertThat(transactionModel.getStatus()).isEqualTo(READY);
+        verify(transactionRepository).replaceTransaction(transactionModel);
     }
 }

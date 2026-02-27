@@ -41,6 +41,7 @@ import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.common.enums.TransactionValidationMode;
 import fr.gouv.vitam.collect.external.client.CollectExternalClient;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
 import fr.gouv.vitam.collect.external.rest.CollectExternalMain;
@@ -233,7 +234,11 @@ public class CollectIngestIT extends AbstractCollectIT {
             );
 
             assertEquals(6, unitsByTransaction.getResults().size());
-            collectClient.closeTransaction(vitamContext, transactionDtoResult.getId());
+            collectClient.closeTransaction(
+                vitamContext,
+                transactionDtoResult.getId(),
+                TransactionValidationMode.VALIDATE
+            );
         }
 
         InputStream inputStream = generateSip(idTransaction);
@@ -408,7 +413,7 @@ public class CollectIngestIT extends AbstractCollectIT {
         );
 
         // Close & send transaction to Vitam
-        closeTransaction(vitamContext, transaction.getId());
+        closeTransaction(vitamContext, transaction.getId(), TransactionValidationMode.VALIDATE);
 
         InputStream sip = generateSip(transaction.getId());
 
@@ -499,7 +504,7 @@ public class CollectIngestIT extends AbstractCollectIT {
                 );
                 assertThat(response.getStatus()).isEqualTo(200);
             }
-            collectClient.closeTransaction(vitamContext, idTransaction);
+            collectClient.closeTransaction(vitamContext, idTransaction, TransactionValidationMode.VALIDATE);
             retryAndWaitOperation(idTransaction, TransactionStatus.SENT);
         }
     }
@@ -566,7 +571,11 @@ public class CollectIngestIT extends AbstractCollectIT {
             }
 
             // Close the transaction
-            collectClient.closeTransaction(vitamContext, transactionDtoResult.getId());
+            collectClient.closeTransaction(
+                vitamContext,
+                transactionDtoResult.getId(),
+                TransactionValidationMode.VALIDATE
+            );
         }
 
         // Generate SIP from the transaction

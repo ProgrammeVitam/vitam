@@ -33,6 +33,7 @@ import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.dto.UploadSipResult;
+import fr.gouv.vitam.collect.common.enums.TransactionValidationMode;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -223,7 +224,7 @@ public interface CollectExternalClient extends MockOrRestClient {
     ) throws VitamClientException;
 
     /**
-     * Close Transaction
+     * Close Transaction with default validation mode (VALIDATE)
      *
      * Consume and produce MediaType.APPLICATION_JSON
      *
@@ -231,6 +232,20 @@ public interface CollectExternalClient extends MockOrRestClient {
      * @throws VitamClientException exception occurs when parse operation failed
      */
     RequestResponse closeTransaction(VitamContext vitamContext, String transactionId) throws VitamClientException;
+
+    /**
+     * Close Transaction with specified validation mode
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return Response
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    RequestResponse closeTransaction(
+        VitamContext vitamContext,
+        String transactionId,
+        TransactionValidationMode validationMode
+    ) throws VitamClientException;
 
     /**
      * Download the SIP of a transaction.

@@ -31,6 +31,7 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.dto.UploadSipResult;
+import fr.gouv.vitam.collect.common.enums.TransactionValidationMode;
 import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
 import fr.gouv.vitam.collect.external.exception.CollectExternalInvalidRequestException;
 import fr.gouv.vitam.collect.external.exception.CollectExternalNotFoundException;
@@ -66,6 +67,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Nullable;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
@@ -272,10 +274,15 @@ public class TransactionExternalResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_CLOSE, description = "Ferme une transaction")
-    public Response closeTransaction(@PathParam("transactionId") String transactionId) {
+    public Response closeTransaction(
+        @PathParam("transactionId") String transactionId,
+        @HeaderParam(GlobalDataRest.X_VALIDATION_MODE) @DefaultValue(
+            "VALIDATE"
+        ) TransactionValidationMode validationMode
+    ) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
-            client.closeTransaction(transactionId);
+            client.closeTransaction(transactionId, validationMode);
             return Response.status(OK).build();
         } catch (final VitamClientException e) {
             LOGGER.error("Error when closing transaction   ", e);

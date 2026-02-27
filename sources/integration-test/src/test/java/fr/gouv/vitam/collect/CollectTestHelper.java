@@ -31,6 +31,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.LegalStatusType;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.common.enums.TransactionValidationMode;
 import fr.gouv.vitam.collect.external.client.CollectExternalClient;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -135,9 +136,13 @@ public class CollectTestHelper {
         }
     }
 
-    public static void closeTransaction(final VitamContext vitamContext, final String transactionId) {
+    public static void closeTransaction(
+        final VitamContext vitamContext,
+        final String transactionId,
+        final TransactionValidationMode validationMode
+    ) {
         try (final CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient()) {
-            RequestResponse response = client.closeTransaction(vitamContext, transactionId);
+            RequestResponse response = client.closeTransaction(vitamContext, transactionId, validationMode);
 
             if (response.getStatus() != 200) {
                 throw new RuntimeException("Transaction close action is not OK, but hasn't raised any exception");

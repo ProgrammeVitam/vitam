@@ -296,6 +296,11 @@ public class GlobalDataRest {
     public static final String X_ENCODING = "X-Encoding";
     public static final String X_ATTACHEMENT_ID = "X-Attachement-Id";
 
+    /**
+     * Optional. Validation mode for transaction in collect
+     */
+    public static final String X_VALIDATION_MODE = "X-Validation-Mode";
+
     private GlobalDataRest() {
         // empty
     }

@@ -32,6 +32,7 @@ import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.dto.UploadSipResult;
+import fr.gouv.vitam.collect.common.enums.TransactionValidationMode;
 import fr.gouv.vitam.collect.external.exception.CollectExternalClientException;
 import fr.gouv.vitam.collect.external.exception.CollectExternalClientInvalidRequestException;
 import fr.gouv.vitam.collect.external.exception.CollectExternalClientNotFoundException;
@@ -345,14 +346,23 @@ public class CollectExternalClientRest extends DefaultClient implements CollectE
     @Override
     public RequestResponse<JsonNode> closeTransaction(VitamContext vitamContext, String transactionId)
         throws VitamClientException {
-        try (
-            Response response = make(
-                post()
-                    .withPath(TRANSACTION_PATH + "/" + transactionId + "/close")
-                    .withHeaders(vitamContext.getHeaders())
-                    .withJsonAccept()
-            )
-        ) {
+        return closeTransaction(vitamContext, transactionId, null);
+    }
+
+    @Override
+    public RequestResponse<JsonNode> closeTransaction(
+        VitamContext vitamContext,
+        String transactionId,
+        TransactionValidationMode validationMode
+    ) throws VitamClientException {
+        VitamRequestBuilder requestBuilder = post()
+            .withPath(TRANSACTION_PATH + "/" + transactionId + "/close")
+            .withHeaders(vitamContext.getHeaders())
+            .withJsonAccept();
+        if (validationMode != null) {
+            requestBuilder.withHeader(GlobalDataRest.X_VALIDATION_MODE, validationMode.name());
+        }
+        try (Response response = make(requestBuilder)) {
             check(response);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         }
