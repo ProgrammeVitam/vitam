@@ -10,6 +10,10 @@
   package:
     name: "{{ filebeat_package }}"
     state: absent
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
   notify: daemon reload
 
 - name: Clean systemd
