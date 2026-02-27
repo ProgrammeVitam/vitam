@@ -1,5 +1,5 @@
 secret : {{ plateforme_secret }}
-filterActivation : {{ vitam_struct.secret_platform }}
+filterActivation: {{ vitam_struct.secret_platform | default(true) | bool | lower }}
 {% if vitam_struct.vitam_component == vitam.processing.vitam_component %}
 distributeurBatchSize: 800
 workerBulkSize: 16
