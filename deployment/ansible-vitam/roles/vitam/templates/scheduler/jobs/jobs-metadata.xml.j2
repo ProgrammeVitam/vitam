@@ -14,7 +14,7 @@
         <ignore-duplicates>true</ignore-duplicates>
     </processing-directives>
 
-{% if primary_site | lower == "false" %}
+{% if not primary_site | bool %}
     <schedule>
         <job>
             <name>MetadataReconstructionJob</name>

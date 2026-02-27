@@ -1,7 +1,7 @@
 ---
 # defaults file for init_pronom
 nb_retries: 2000
-sip_name: "SIP-1000-102400.zip"
+sip_name: SIP-1000-102400.zip
 ingest_number: 1
-parallel: "false"
+parallel: false
 delay: 5000

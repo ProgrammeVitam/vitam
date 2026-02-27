@@ -1,20 +1,29 @@
 ---
 
 - hosts: hosts_dev_tools
-  gather_facts: no
+  gather_facts: false
   roles:
-    - {role: elasticsearch-head, when: "(inventory_hostname not in single_vm_hostnames) and (docker_install|lower == 'true')"}
+    - role: elasticsearch-head
+      when:
+        - inventory_hostname not in single_vm_hostnames
+        - docker_install | bool
 
 - hosts: hosts_mongos_data
-  gather_facts: no
+  gather_facts: false
   roles:
-    - {role: mongo-express, when: "(inventory_hostname not in single_vm_hostnames) and (docker_install|lower == 'true')"}
+    - role: mongo-express
+      when:
+        - inventory_hostname not in single_vm_hostnames
+        - docker_install | bool
   vars:
-    group_name: "hosts_mongos_data"
+    group_name: hosts_mongos_data
 
 - hosts: hosts_mongos_offer
-  gather_facts: no
+  gather_facts: false
   roles:
-    - {role: mongo-express, when: "(inventory_hostname not in single_vm_hostnames) and (docker_install|lower == 'true')"}
+    - role: mongo-express
+      when:
+        - inventory_hostname not in single_vm_hostnames
+        - docker_install | bool
   vars:
-    group_name: "hosts_mongos_offer"
+    group_name: hosts_mongos_offer

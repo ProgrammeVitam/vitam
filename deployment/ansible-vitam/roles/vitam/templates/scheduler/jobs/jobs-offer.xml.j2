@@ -13,7 +13,7 @@
             file), and over-write is false, ignore them rather then generating an error -->
         <ignore-duplicates>true</ignore-duplicates>
     </processing-directives>
-    {% if primary_site | lower == "true" %}
+    {% if primary_site | bool %}
     {% for item in all_used_offers %}
         <schedule>
             <job>

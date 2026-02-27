@@ -15,7 +15,7 @@
         <ignore-duplicates>true</ignore-duplicates>
     </processing-directives>
 
-    {% if primary_site | lower == "true" %}
+    {% if primary_site | bool %}
     <!-- Remove old job -->
     <pre-processing-commands>
         <delete-job>

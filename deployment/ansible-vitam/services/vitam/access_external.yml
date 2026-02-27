@@ -15,10 +15,11 @@
 
 # 2 differents steps, due to https://github.com/ansible/ansible/issues/15476
 - hosts: hosts_access_external
-  gather_facts: no
+  gather_facts: false
   any_errors_fatal: true
   roles:
-    - { role: init_pronom, when: primary_site | lower == "true" }
+    - role: init_pronom
+      when: primary_site | bool
   vars:
     vitam_struct: "{{ vitam.access_external }}"
     password_keystore: "{{ keystores.server.access_external }}"

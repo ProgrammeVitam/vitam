@@ -36,9 +36,11 @@
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
+  when:
+    - force_vitam_version is not defined
+    - install_mode != "container" or vitam_struct.vitam_component in legacy_components_list
   tags: update_package_vitam
-  notify: "vitam - restart service"
-  when: (force_vitam_version is not defined and install_mode != "container") or (force_vitam_version is not defined and (vitam_struct.vitam_component in legacy_components_list))
+  notify: vitam - restart service
 
 # Force a specific version to install (even downgrade)
 - block:
@@ -52,10 +54,8 @@
       retries: "{{ packages_install_retries_number }}"
       until: result is succeeded
       delay: "{{ packages_install_retries_delay }}"
-      tags:
-        - update_package_vitam
-      notify:
-        - "vitam - restart service"
+      tags: update_package_vitam
+      notify: vitam - restart service
       when: ansible_os_family == "Debian"
 
     - name: Install {{ package_name }} package
@@ -67,13 +67,13 @@
       retries: "{{ packages_install_retries_number }}"
       until: result is succeeded
       delay: "{{ packages_install_retries_delay }}"
-      tags:
-        - update_package_vitam
-      notify:
-        - "vitam - restart service"
+      tags: update_package_vitam
+      notify: vitam - restart service
       when: ansible_os_family in ['RedHat', 'Rocky']
 
-  when: (force_vitam_version is defined and install_mode != "container") or (force_vitam_version is defined and (vitam_struct.vitam_component in legacy_components_list))
+  when:
+    - force_vitam_version is defined
+    - install_mode != "container" or vitam_struct.vitam_component in legacy_components_list
 
 #### Configuration ####
 
@@ -94,8 +94,7 @@
     - script
     - tmp
     - run
-  notify:
-    - "vitam - restart service"
+  notify: vitam - restart service
 
 - name: Ensure that the sysconfig sub-directory exists
   file:
@@ -104,9 +103,8 @@
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.folder_permission }}"
-  notify:
-    - "vitam - restart service"
   when: install_mode != "container" or (vitam_struct.vitam_component in legacy_components_list)
+  notify: vitam - restart service
 
 - name: Deploy script for ExecStart
   template:
@@ -115,25 +113,21 @@
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.script_permission }}"
-  tags:
-    - update_vitam_configuration
-  notify:
-    - "vitam - restart service"
   when: install_mode != "container" or (vitam_struct.vitam_component in legacy_components_list)
+  tags: update_vitam_configuration
+  notify: vitam - restart service
 
 - name: Set Debian systemd directory
   set_fact:
     systemd_directory: "/lib/systemd/system"
   when: ansible_os_family == "Debian"
-  tags:
-    - update_vitam_configuration
+  tags: update_vitam_configuration
 
 - name: Set RedHat systemd directory
   set_fact:
     systemd_directory: "/usr/lib/systemd/system"
   when: ansible_os_family in ['RedHat', 'Rocky']
-  tags:
-    - update_vitam_configuration
+  tags: update_vitam_configuration
 
 - name: get passwd for vitam
   getent:
@@ -145,13 +139,11 @@
   template:
     src: "vitam-{{ 'container-' if install_mode == 'container' and vitam_struct.vitam_component not in legacy_components_list else '' }}componentid.service.j2"
     dest: "{{ systemd_directory }}/{{ package_name }}.service"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  tags:
-    - update_vitam_configuration
-  notify:
-    - "vitam - restart service"
+    owner: root
+    group: root
+    mode: '0644'
+  tags: update_vitam_configuration
+  notify: vitam - restart service
 
 - name: Deploy common configuration files in sysconfig subdir
   template:
@@ -161,12 +153,10 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_items:
-    - "java_opts"
-  tags:
-    - update_jvmoptions_vitam
-  notify:
-    - "vitam - restart service"
-  when: install_mode != "container" or (vitam_struct.vitam_component in legacy_components_list)
+    - java_opts
+  when: install_mode != "container" or vitam_struct.vitam_component in legacy_components_list
+  tags: update_jvmoptions_vitam
+  notify: vitam - restart service
 
 - name: Deploy common configuration files
   template:
@@ -176,41 +166,36 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_items:
-    - "java.security"
-    - "server-identity.conf"
-    - "logback.xml"
-    - "logback-access.xml"
-    - "jetty-config.xml"
-    - "vitam.conf"
-  tags:
-    - update_vitam_configuration
-  notify:
-    - "vitam - restart service"
+    - java.security
+    - server-identity.conf
+    - logback.xml
+    - logback-access.xml
+    - jetty-config.xml
+    - vitam.conf
+  tags: update_vitam_configuration
+  notify: vitam - restart service
 
 - name: Cleanup old configuration files
   file:
     path: "{{ vitam_folder_conf }}/{{ item }}"
     state: absent
   with_items:
-    - "antisamy-esapi.xml"
-    - "vitam.metrics.conf"
-  tags:
-    - update_vitam_configuration
-  notify:
-    - "vitam - restart service"
+    - antisamy-esapi.xml
+    - vitam.metrics.conf
+  tags: update_vitam_configuration
+  notify: vitam - restart service
 
 - include_tasks: scheduler.yml
-  tags: always
   when: vitam_struct.vitam_component == "scheduler"
+  tags: always
 
 - include_tasks: storage.yml
+  when: vitam_struct.vitam_component in ['storage', 'ihm-recette']
   tags: always
-  when: vitam_struct.vitam_component == "storage" or vitam_struct.vitam_component == "ihm-recette"
 
 - include_tasks: elasticsearch-settings.yml
   when: vitam_struct.vitam_component in ['metadata', 'metadata-collect','ihm-recette', 'logbook', 'functional-administration']
-  tags:
-    - update_vitam_configuration
+  tags: update_vitam_configuration
 
 - name: Deploy specific configuration files (can override the common configuration files)
   template:
@@ -219,13 +204,10 @@
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  with_fileglob:
-    - "{{ role_path }}/templates/{{ vitam_struct.vitam_component }}/*"
+  with_fileglob: "{{ role_path }}/templates/{{ vitam_struct.vitam_component }}/*"
   no_log: "{{ hide_passwords_during_deploy }}"
-  tags:
-    - update_vitam_configuration
-  notify:
-    - "vitam - restart service"
+  tags: update_vitam_configuration
+  notify: vitam - restart service
 
 - name: Ensure that sub directories exists
   file:
@@ -236,8 +218,8 @@
     mode: "{{ vitam_defaults.folder.folder_permission }}"
   with_filetree: "{{ role_path }}/files/{{ vitam_struct.vitam_component }}/"
   when: item.state == 'directory'
-  notify:
-    - "vitam - restart service"
+  tags: update_vitam_configuration
+  notify: vitam - restart service
 
 - name: Copy files and directories recursively
   template:
@@ -248,8 +230,8 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_filetree: "{{ role_path }}/files/{{ vitam_struct.vitam_component }}/"
   when: item.state == 'file'
-  notify:
-    - "vitam - restart service"
+  tags: update_vitam_configuration
+  notify: vitam - restart service
 
 #### Certificates stores deployment ####
 
@@ -258,8 +240,7 @@
     path: "{{ inventory_dir }}/keystores/server/{{ inventory_hostname }}/keystore_{{ vitam_struct.vitam_component }}.jks"
   delegate_to: localhost
   register: component_jks_keystore
-  tags:
-    - update_vitam_certificates
+  tags: update_vitam_certificates
 
 - name: "Copy {{ vitam_struct.vitam_component }} server jks keystore"
   copy:
@@ -269,11 +250,8 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   when: component_jks_keystore.stat.exists
-  tags:
-    - update_vitam_certificates
-  notify:
-    - "vitam - restart service"
-    - "vitam - reload consul configuration"
+  tags: update_vitam_certificates
+  notify: vitam - restart service
 
 - name: "Check if {{ vitam_struct.vitam_component }} jks truststore exists"
   stat:
@@ -281,8 +259,7 @@
   delegate_to: localhost
   register: component_truststore
   when: vitam_certificate_client_type is defined
-  tags:
-    - update_vitam_certificates
+  tags: update_vitam_certificates
 
 - name: "Copy {{ vitam_struct.vitam_component }} jks truststore"
   copy:
@@ -292,11 +269,8 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   when: vitam_certificate_client_type is defined and component_truststore.stat.exists
-  tags:
-    - update_vitam_certificates
-  notify:
-    - "vitam - restart service"
-    - "vitam - reload consul configuration"
+  tags: update_vitam_certificates
+  notify: vitam - restart service
 
 - name: "Check if {{ vitam_struct.vitam_component }} jks grantedstore exists"
   stat:
@@ -304,8 +278,7 @@
   delegate_to: localhost
   register: component_grantedstore
   when: vitam_certificate_client_type is defined
-  tags:
-    - update_vitam_certificates
+  tags: update_vitam_certificates
 
 - name: "Copy {{ vitam_struct.vitam_component }} jks grantedstore"
   copy:
@@ -315,11 +288,8 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   when: vitam_certificate_client_type is defined and component_jks_keystore.stat.exists and component_grantedstore.stat.exists
-  tags:
-    - update_vitam_certificates
-  notify:
-    - "vitam - restart service"
-    - "vitam - reload consul configuration"
+  tags: update_vitam_certificates
+  notify: vitam - restart service
 
 - name: "Check if {{ vitam_struct.vitam_component }} client p12 keystore exists"
   stat:
@@ -327,8 +297,7 @@
   delegate_to: localhost
   register: component_p12_keystore
   when: vitam_certificate_client_type is defined
-  tags:
-    - update_vitam_certificates
+  tags: update_vitam_certificates
 
 - name: "Copy {{ vitam_struct.vitam_component }} client p12 keystore"
   copy:
@@ -338,22 +307,18 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   when: vitam_certificate_client_type is defined and component_p12_keystore.stat.exists
-  tags:
-    - update_vitam_certificates
-  notify:
-    - "vitam - restart service"
-    - "vitam - reload consul configuration"
+  tags: update_vitam_certificates
+  notify: vitam - restart service
 
-- name: "Check if timestamp keystore exists"
+- name: Check if timestamp keystore exists
   stat:
     path: "{{ inventory_dir }}/keystores/timestamping/keystore_{{ vitam_timestamp_usage }}.p12"
   delegate_to: localhost
   register: timestamp_keystore
   when: vitam_timestamp_usage is defined
-  tags:
-    - update_vitam_certificates
+  tags: update_vitam_certificates
 
-- name: "Copy timestamp keystore"
+- name: Copy timestamp keystore
   copy:
     src: "{{ inventory_dir }}/keystores/timestamping/keystore_{{ vitam_timestamp_usage }}.p12"
     dest: "{{ vitam_folder_conf }}/keystore_{{ vitam_timestamp_usage }}.p12"
@@ -361,11 +326,8 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   when: vitam_timestamp_usage is defined and timestamp_keystore.stat.exists
-  tags:
-    - update_vitam_certificates
-  notify:
-    - "vitam - restart service"
-    - "vitam - reload consul configuration"
+  tags: update_vitam_certificates
+  notify: vitam - restart service
 
 - import_tasks: consul.yml
   tags: consul_conf
@@ -422,7 +384,7 @@
         - result.status == 200
       retries: "{{ vitam_defaults.services.status_retries_number }}"
       delay: "{{ vitam_defaults.services.status_retries_delay }}"
-      when: consul_disabled is not defined or consul_disabled | lower != 'true'
+      when: not consul_disabled | default(false) | bool
 
   tags: always
 
@@ -435,5 +397,5 @@
       fail:
         msg: "{{ journalctl_logs.stdout_lines }}"
 
-  when: ( primary_site | lower == "true" ) or
+  when: ( primary_site | bool ) or
     ( vitam_struct.vitam_component in vitam_secondary_site_components )

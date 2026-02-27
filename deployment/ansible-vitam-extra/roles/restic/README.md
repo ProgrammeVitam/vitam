@@ -72,10 +72,11 @@ Example Playbook
 
 ```yml
 - hosts: hosts_offer
-  any_errors_fatal: yes
-  gather_facts: no
+  any_errors_fatal: true
+  gather_facts: false
   roles:
-    - { role: restic, when: "restic_enabled | default(false) | bool == true" }
+    - role: restic
+      when: restic_enabled | default(false) | bool
 ```
 
 License

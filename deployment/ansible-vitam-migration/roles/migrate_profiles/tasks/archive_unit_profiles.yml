@@ -20,7 +20,7 @@
       X-Tenant-Id: "{{ item._tenant }}"
     client_cert: "{{ _tmp_pem }}"
     validate_certs: false
-    return_content: yes
+    return_content: true
     status_code: 200
     timeout: 36000
   with_items: "{{ __get_archive_unit_profiles_results.stdout }}"

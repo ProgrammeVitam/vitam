@@ -18,7 +18,7 @@
     timeout: "{{ vitam_defaults.services.api_call_timeout }}"
     body: "{ \"swiftMigrationMode\" : \"{{ swiftMigrationMode }}\" }"
     url: "http://{{ hostvars[inventory_hostname]['ip_admin'] }}:{{ vitam.offer.port_admin }}/offer/v1/swift-migration"
-    body_format: "json"
+    body_format: json
   run_once: true
 
 - name: Wait until Swift migration is finished
@@ -36,7 +36,7 @@
     user: "{{ admin_basic_auth_user }}"
     password: "{{ admin_basic_auth_password }}"
     url: "http://{{ hostvars[inventory_hostname]['ip_admin'] }}:{{ vitam.offer.port_admin }}/offer/v1/swift-migration"
-    body_format: "json"
+    body_format: json
     return_content: true
     headers:
       Accept: application/json

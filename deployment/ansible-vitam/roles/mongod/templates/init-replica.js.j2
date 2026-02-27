@@ -75,11 +75,11 @@ function buildTargetReplicaSetMemberConfiguration() {
     members.push({
         _id: idCpt++,
         host: "{{ hostvars[host]['ip_service'] }}:{{ mongodb.mongod_port }}",
-        {% if (hostvars[host]['mongo_rs_bootstrap'] | default(false) | bool != true) and (hostvars[host]['mongo_arbiter'] | default(false) | bool == true) %}
+        {% if not hostvars[host]['mongo_rs_bootstrap'] | default(false) | bool and hostvars[host]['mongo_arbiter'] | default(false) | bool %}
         arbiterOnly: true
         {% else %}
         arbiterOnly: false,
-        priority: {{ '1' if (hostvars[host]['is_small'] | default(false) | bool == true) else '10' }}
+        priority: {{ '1' if hostvars[host]['is_small'] | default(false) | bool else '10' }}
         {% endif %}
     });
     {% endif %}

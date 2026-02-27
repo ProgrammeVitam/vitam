@@ -11,13 +11,13 @@
     -nodes
   no_log: "{{ hide_passwords_during_deploy }}"
   vars:
-    ansible_become: no
+    ansible_become: false
 
 - name: Copy temporary PEM certificate
   copy:
     src: "{{ _pem }}"
     dest: "{{ _tmp_pem }}"
-    remote_src: no
+    remote_src: false
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"

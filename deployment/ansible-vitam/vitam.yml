@@ -21,17 +21,18 @@
 
 ### CONFIRM PLAYBOOK LAUNCH ###
 - hosts: localhost
-  any_errors_fatal: yes
-  gather_facts: no
+  any_errors_fatal: true
+  gather_facts: false
   vars_prompt:
-    name: "confirmation"
-    prompt: "Are you sure you want to run this playbook ?\nAnswer with 'YES'"
-    default: "NO"
-    private: no
+    name: confirmation
+    prompt: "Are you sure you want to run this playbook?\nAnswer with 'YES'"
+    default: 'NO'
+    private: false
   tasks:
     - name: Check Confirmation
-      fail: msg="Playbook run confirmation failed"
-      when: confirmation|upper != "YES"
+      fail:
+        msg: Playbook run confirmation failed
+      when: not confirmation | bool
       tags: always
 
 ### INFRASTRUCTURE CHECKS AND HOSTS NETWORK VARS CHECK ###
@@ -90,7 +91,7 @@
 - import_playbook: services/vitam/functional_administration.yml
 
 - import_playbook: services/others/test_install.yml
-  when: tests_install | default(false) | bool == true
+  when: tests_install | default(false) | bool
 
 - import_playbook: services/vitam/security_internal.yml
 

@@ -2,8 +2,8 @@
 serverHost: {{ ip_service }}
 port: {{ vitam_struct.port_service }}
 
-baseUrl: "/{{ vitam_struct.baseuri }}"
-baseUri: "/{{ vitam_struct.baseuri }}"
+baseUrl: /{{ vitam_struct.baseuri }}
+baseUri: /{{ vitam_struct.baseuri }}
 
 jettyConfig: jetty-config.xml
 authentication: true
@@ -35,7 +35,7 @@ dbName: admin
 masterdataDbName: masterdata
 logbookDbName: logbook
 metadataDbName: metadata
-dbAuthentication: {{ mongodb.mongo_authentication }}
+dbAuthentication: {{ mongodb.mongo_authentication | bool | lower }}
 dbUserName: {{ mongodb['mongo-data']['admin']['user'] }}
 dbPassword: {{ mongodb['mongo-data']['admin']['password'] }}
 

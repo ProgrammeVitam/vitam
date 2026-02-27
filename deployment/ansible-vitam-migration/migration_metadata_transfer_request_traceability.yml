@@ -3,21 +3,22 @@
 
 # Confirm launching this playbook
 - hosts: localhost
-  any_errors_fatal: yes
-  gather_facts: no
+  any_errors_fatal: true
+  gather_facts: false
   vars_prompt:
-    name: "confirmation"
-    prompt: "You are about to run transfer request traceability migration playbook.\nThis might take some time.\nAre you sure you want to run this playbook ?\nAnswer with 'YES'"
-    default: "NO"
-    private: no
+    name: confirmation
+    prompt: "You are about to run transfer request traceability migration playbook.\nThis might take some time.\nAre you sure you want to run this playbook?\nAnswer with 'YES'"
+    default: 'NO'
+    private: false
   tasks:
     - name: Check Confirmation
-      fail: msg="Playbook run confirmation failed"
-      when: confirmation|upper != "YES"
+      fail:
+        msg: Playbook run confirmation failed
+      when: not confirmation | bool
       tags: always
 
 - hosts: hosts_metadata
-  gather_facts: no
+  gather_facts: false
   roles:
     - migration_metadata_transfer_request_traceability
   vars:

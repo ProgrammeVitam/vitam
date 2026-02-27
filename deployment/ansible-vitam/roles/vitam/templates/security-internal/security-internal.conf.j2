@@ -6,7 +6,7 @@ mongoDbNodes:
     dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: identity
-dbAuthentication: {{ mongodb.mongo_authentication }}
+dbAuthentication: {{ mongodb.mongo_authentication | bool | lower }}
 dbUserName: {{ mongodb['mongo-data'].securityInternal.user }}
 dbPassword: {{ mongodb['mongo-data'].securityInternal.password }}
 

@@ -22,43 +22,43 @@
 # RedHat config
 - block:
 
-  - name: Configure YUM repository for Avast
-    yum_repository:
-      name: avast
-      description: Avast YUM repo
-      baseurl: "{{ avast.repository.baseurl | default('https://repo.avcdn.net/linux-av/rpm/el9/release') }}"
-      gpgcheck: "{{ avast.repository.gpgcheck | default('no') }}"
-      state: "{{ avast.repository.state | default('present') }}"
-      proxy: "{{ avast.repository.proxy | default('_none_') }}"
+    - name: Configure YUM repository for Avast
+      yum_repository:
+        name: avast
+        description: Avast YUM repo
+        baseurl: "{{ avast.repository.baseurl | default('https://repo.avcdn.net/linux-av/rpm/el9/release') }}"
+        gpgcheck: "{{ avast.repository.gpgcheck | default(false) | bool }}"
+        state: "{{ avast.repository.state | default('present') }}"
+        proxy: "{{ avast.repository.proxy | default('_none_') }}"
 
-  - name: Add Avast public rpm_key
-    rpm_key:
-      key: "{{ vitam_defaults.folder.root_path }}/conf/avast/avast.gpg"
-      state: "{{ avast.repository.state | default('present') }}"
-    when: avast.repository.gpgcheck | default('no') | bool == true
+    - name: Add Avast public rpm_key
+      rpm_key:
+        key: "{{ vitam_defaults.folder.root_path }}/conf/avast/avast.gpg"
+        state: "{{ avast.repository.state | default('present') }}"
+      when: avast.repository.gpgcheck | default(false) | bool
 
   when:
     - ansible_os_family in ['RedHat', 'Rocky']
-    - avast.manage_repository | default(true) | bool == true
+    - avast.manage_repository | default(true) | bool
 
 # Debian config
 - block:
 
-  - name: Configure DEB repository for Avast
-    apt_repository:
-      filename: avast
-      repo: "{{ avast.repository.baseurl | default('deb https://repo.avcdn.net/linux-av/deb debian-bookworm release') }}"
-      state: "{{ avast.repository.state | default('present') }}"
+    - name: Configure DEB repository for Avast
+      apt_repository:
+        filename: avast
+        repo: "{{ avast.repository.baseurl | default('deb https://repo.avcdn.net/linux-av/deb debian-bookworm release') }}"
+        state: "{{ avast.repository.state | default('present') }}"
 
-  # Or configure: echo 'APT::Get::AllowUnauthenticated "true";' > /etc/apt/apt.conf.d/99unauthenticated
-  - name: Add Avast public apt_key
-    apt_key:
-      file: "{{ vitam_defaults.folder.root_path }}/conf/avast/avast.gpg"
-      state: "{{ avast.repository.state | default('present') }}"
+    # Or configure: echo 'APT::Get::AllowUnauthenticated "true";' > /etc/apt/apt.conf.d/99unauthenticated
+    - name: Add Avast public apt_key
+      apt_key:
+        file: "{{ vitam_defaults.folder.root_path }}/conf/avast/avast.gpg"
+        state: "{{ avast.repository.state | default('present') }}"
 
   when:
     - ansible_os_family == "Debian"
-    - avast.manage_repository | default(true) | bool == true
+    - avast.manage_repository | default(true) | bool
 
 - name: Install Avast and required packages
   package:

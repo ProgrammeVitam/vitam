@@ -6,7 +6,7 @@ mongoDbNodes:
     dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: masterdata
-dbAuthentication: {{ mongodb.mongo_authentication }}
+dbAuthentication: {{ mongodb.mongo_authentication | bool | lower }}
 dbUserName: {{ mongodb['mongo-data'].functionalAdmin.user }}
 dbPassword: {{ mongodb['mongo-data'].functionalAdmin.password }}
 
@@ -76,7 +76,7 @@ listMinimumRuleDuration:
 accessionRegisterSymbolicThreadPoolSize: {{ vitam.functional_administration.accessionRegisterSymbolicThreadPoolSize | default(16) }}
 ruleAuditThreadPoolSize: {{ vitam.functional_administration.ruleAuditThreadPoolSize | default(16) }}
 
-{% if primary_site | lower != "true" %}
+{% if not primary_site | bool %}
 # Reconstruction cache duration (in minutes)
 reconstructionMetricsCacheDurationInMinutes: {{ vitam.functional_administration.reconstructionMetricsCacheDurationInMinutes | default(15) }}
 {% endif %}

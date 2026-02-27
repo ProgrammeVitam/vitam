@@ -188,7 +188,7 @@ vitam:
     host: "access-external.service.{{ consul_domain }}"
     port_admin: 28102
     port_service: 8444
-    baseuri: "access-external"
+    baseuri: access-external
     https_enabled: true
     # Use platform secret for this component ? : do not modify
     secret_platform: false
@@ -198,14 +198,14 @@ vitam:
     host: "access-internal.service.{{ consul_domain }}"
     port_service: 8101
     port_admin: 28101
-    baseuri: "access-internal"
+    baseuri: access-internal
     https_enabled: false
   functional_administration:
     vitam_component: functional-administration
     host: "functional-administration.service.{{ consul_domain }}"
     port_service: 8004
     port_admin: 18004
-    baseuri: "adminmanagement"
+    baseuri: adminmanagement
     https_enabled: false
     cluster_name: "{{ elasticsearch.data.cluster_name }}"
     # Number of AccessionRegisterSymbolic creation threads that can be run in parallel.
@@ -219,7 +219,7 @@ vitam:
     host: "scheduler.service.{{ consul_domain }}"
     port_service: 8799
     port_admin: 28799
-    baseuri: "scheduler"
+    baseuri: scheduler
     https_enabled: false
   elastic_kibana_interceptor:
     vitam_component: elastic-kibana-interceptor
@@ -244,7 +244,7 @@ vitam:
     host: "ingest-external.service.{{ consul_domain }}"
     port_admin: 28001
     port_service: 8443
-    baseuri: "ingest-external"
+    baseuri: ingest-external
     https_enabled: true
     secret_platform: false
     # this variable has containerization purposes only : must not be used in production environment
@@ -256,7 +256,7 @@ vitam:
     # Directory where failed ingested files will be moved to
     fail_dir: "/vitam/data/ingest-external/upload/failure"
     # Action done to file after local ingest (see below for further information)
-    upload_final_action: "MOVE"
+    upload_final_action: MOVE
     # upload_final_action can be set to three different values (lower or upper case does not matter)
     #   MOVE : After upload, the local file will be moved to either success_dir or fail_dir depending on the status of the ingest towards ingest-internal
     #   DELETE : After upload, the local file will be deleted if the upload succeeded
@@ -266,16 +266,15 @@ vitam:
     host: "ingest-internal.service.{{ consul_domain }}"
     port_service: 8100
     port_admin: 28100
-    baseuri: "ingest"
+    baseuri: ingest
     https_enabled: false
   ihm_demo:
     vitam_component: ihm-demo
     host: "ihm-demo.service.{{ consul_domain }}"
     port_service: 8446
     port_admin: 28002
-    baseurl: "/ihm-demo"
     static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-demo/v2"
-    baseuri: "ihm-demo"
+    baseuri: ihm-demo
     https_enabled: true
     secret_platform: false
     # User session timeout in milliseconds (for shiro)
@@ -293,20 +292,20 @@ vitam:
       # - x509Realm
       # - ldapRealm
     allowedMediaTypes:
-      - type: "application"
-        subtype: "pdf"
-      - type: "text"
-        subtype: "plain"
-      - type: "image"
-        subtype: "jpeg"
-      - type: "image"
-        subtype: "tiff"
+      - type: application
+        subtype: pdf
+      - type: text
+        subtype: plain
+      - type: image
+        subtype: jpeg
+      - type: image
+        subtype: tiff
   logbook:
     vitam_component: logbook
     host: "logbook.service.{{ consul_domain }}"
     port_service: 9002
     port_admin: 29002
-    baseuri: "logbook"
+    baseuri: logbook
     https_enabled: false
     cluster_name: "{{ elasticsearch.data.cluster_name }}"
     # Temporization delay (in seconds) for recent logbook operation events.
@@ -378,7 +377,7 @@ vitam:
     reconstructionBatchSize: 1_000
     # Timeout for batch metadata loading from offers
     reconstructionBatchLoadingTimeoutInSeconds: 600
-    context_path: "/metadata"
+    context_path: /metadata
   processing:
     vitam_component: processing
     host: "processing.service.{{ consul_domain }}"
@@ -393,14 +392,14 @@ vitam:
     host: "security-internal.service.{{ consul_domain }}"
     port_service: 8005
     port_admin: 28005
-    baseuri: "security-internal"
+    baseuri: security-internal
     https_enabled: false
   storage:
     vitam_component: storage
     host: "storage.service.{{ consul_domain }}"
     port_service: 9102
     port_admin: 29102
-    baseuri: "storage"
+    baseuri: storage
     https_enabled: false
     storageTraceabilityOverlapDelay: 300
     restoreBulkSize: 1000
@@ -421,10 +420,10 @@ vitam:
     logback_total_size_cap:
       offersync:
         history_days: 30
-        totalsize: "5GB"
+        totalsize: 5GB
       offerdiff:
         history_days: 30
-        totalsize: "5GB"
+        totalsize: 5GB
     # unit time per kB (in ms) used while calculating the timeout of an http request between storage and offer.
     timeoutMsPerKB: 100
     # minimum timeout (in ms) for writing objects to offers
@@ -449,7 +448,7 @@ vitam:
     host: "worker.service.{{ consul_domain }}"
     port_service: 9104
     port_admin: 29104
-    baseuri: "worker"
+    baseuri: worker
     https_enabled: false
     api_output_index_tenants: "{{ vitam_tenant_ids }}"
     rules_index_tenants: "{{ vitam_tenant_ids }}"
@@ -469,7 +468,7 @@ vitam:
     bulkAtomicUpdateThreadPoolQueueSize: 16
     # Dip/transfer threshold file size
     binarySizePlatformThreshold: 1
-    binarySizePlatformThresholdSizeUnit: "GIGABYTE"
+    binarySizePlatformThresholdSizeUnit: GIGABYTE
     # this variable has containerization purposes only : must not be used in production environment
     ignore_antivirus_check: false
   workspace:
@@ -477,15 +476,15 @@ vitam:
     host: "workspace.service.{{ consul_domain }}"
     port_service: 8201
     port_admin: 28201
-    baseuri: "workspace"
+    baseuri: workspace
     https_enabled: false
-    context_path: "/workspace"
+    context_path: /workspace
   collect_internal:
     vitam_component: collect-internal
     host: "collect-internal.service.{{ consul_domain }}"
     port_service: 8038
     port_admin: 28038
-    baseuri: "collect-internal"
+    baseuri: collect-internal
     https_enabled: false
     transactionStatusThreadPoolSize: 4
     statusTransactionThreadFrequency: 5
@@ -499,7 +498,7 @@ vitam:
     host: "collect-external.service.{{ consul_domain }}"
     port_service: 8030
     port_admin: 28030
-    baseuri: "collect-external"
+    baseuri: collect-external
     https_enabled: true
     secret_platform: false
     authorizeTrackTotalHits: false # if false, limit results to 10K. if true, authorize results overs 10K (can overload elasticsearch-data)
@@ -526,23 +525,23 @@ vitam:
     workspaceFreespaceThreshold: 25 # when below use critical time to live when above use normal time to live
     elasticsearch_mapping_dir: "{{ vitam_defaults.folder.root_path }}/conf/metadata-collect/mapping" # Directory of elasticsearch metadata-collect mapping
     refreshElasticIndexPostIndexingMode: true
-    context_path: "/metadata-collect"
+    context_path: /metadata-collect
   workspace_collect:
     vitam_component: workspace-collect
     host: "workspace-collect.service.{{ consul_domain }}"
     port_service: 8291
     port_admin: 28291
-    baseuri: "workspace-collect"
+    baseuri: workspace-collect
     https_enabled: false
-    context_path: "/workspace-collect"
+    context_path: /workspace-collect
   antivirus:
     vitam_component: antivirus
     host: "antivirus.service.{{ consul_domain }}"
     port_service: 8082
     port_admin: 28082
-    baseuri: "antivirus"
+    baseuri: antivirus
     https_enabled: false
-    engine: "clamav" # or avast
+    engine: clamav # or avast
   ina_tape_proxy:
     vitam_component: ina-tape-proxy
     host: "ina-tape-proxy.service.{{ consul_domain }}"

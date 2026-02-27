@@ -21,7 +21,7 @@ DatabaseMirror database.clamav.net
 PrivateMirror {{ clamav.freshclam.private_mirror_address }}
 {% endif %}
 
-{% if http_proxy_environnement is defined and http_proxy_environnement != '' and clamav.freshclam.use_proxy == 'yes' %}
+{% if http_proxy_environnement is defined and http_proxy_environnement != '' and clamav.freshclam.use_proxy | bool %}
 HTTPProxyServer {{ http_proxy_environnement | urlsplit('hostname') }}
 HTTPProxyPort {{ http_proxy_environnement | urlsplit('port')}}
 {% endif %}

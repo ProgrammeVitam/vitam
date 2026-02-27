@@ -1,17 +1,18 @@
 ---
 # Confirm launching this playbook
 - hosts: localhost
-  any_errors_fatal: yes
-  gather_facts: no
+  any_errors_fatal: true
+  gather_facts: false
   vars_prompt:
-    name: "confirmation"
-    prompt: "Are you sure you want to run this playbook ?\nAnswer with 'YES'"
-    default: "NO"
-    private: no
+    name: confirmation
+    prompt: "Are you sure you want to run this playbook?\nAnswer with 'YES'"
+    default: 'NO'
+    private: false
   tasks:
     - name: Check Confirmation
-      fail: msg="Playbook run confirmation failed"
-      when: confirmation|upper != "YES"
+      fail:
+        msg: Playbook run confirmation failed
+      when: not confirmation | bool
       tags: always
 
 - import_playbook: ../ansible-vitam-exploitation/stop_external.yml

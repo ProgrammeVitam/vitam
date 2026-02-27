@@ -91,7 +91,7 @@
     mode: "{{ '0644' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
   with_items:
     - vitam_workflow.yml
-  when: primary_site | lower == "true"
+  when: primary_site | bool
 
 - name: Copy prometheus secondary-site rule files
   copy:
@@ -102,7 +102,7 @@
     mode: "{{ '0644' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
   with_items:
     - reconstruction.yml
-  when: primary_site | lower != "true"
+  when: not primary_site | bool
   notify: "prometheus-server - restart service"
 
 - name: Cleanup prometheus primary-site rule files from secondary sites
@@ -111,7 +111,7 @@
     state: absent
   with_items:
     - vitam_workflow.yml
-  when: primary_site | lower != "true"
+  when: not primary_site | bool
   notify: "prometheus-server - restart service"
 
 - name: Cleanup prometheus secondary-site rule files from primary sites
@@ -120,7 +120,7 @@
     state: absent
   with_items:
     - reconstruction.yml
-  when: primary_site | lower == "true"
+  when: primary_site | bool
   notify: "prometheus-server - restart service"
 
 - name: Check that the prometheus scrape_configs directory exist

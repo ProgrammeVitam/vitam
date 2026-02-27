@@ -3,7 +3,7 @@
 - name: "Migrate tenant {{ tenantId }}"
   uri:
     url: "http://{{ ip_admin }}:{{ vitam_struct.port_admin }}/metadata/v1/migrateUnitsWithTransferRequests?threshold={{ threshold | default('100000') }}"
-    method: "POST"
+    method: POST
     headers:
       X-Tenant-Id: "{{ tenantId }}"
       Host: "{{ vitam_struct.host }}"
@@ -11,7 +11,7 @@
     user: "{{ admin_basic_auth_user }}"
     password: "{{ admin_basic_auth_password }}"
     status_code: [ 200, 202 ]
-    return_content: yes
+    return_content: true
     timeout: 3600
   register: migration_response
 

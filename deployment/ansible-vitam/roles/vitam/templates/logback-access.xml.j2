@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-{% if logback_rolling_policy|lower == "true" %}
+{% if logback_rolling_policy | bool %}
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <fileNamePattern>{{ vitam_folder_log }}/accesslog-{{ vitam_struct.vitam_component }}.%d{yyyy-MM-dd}.log.gz</fileNamePattern>

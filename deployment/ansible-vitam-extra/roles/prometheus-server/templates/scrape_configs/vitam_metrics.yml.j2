@@ -147,7 +147,7 @@ scrape_configs:
       - targets: ["{{ hostvars[host.host]['ip_admin'] }}:{{ vitam.offer.port_admin }}"]
         labels:
           offerId: {{ offerId }}
-          hostname: "{{ host.host }}"
+          hostname: {{ host.host }}
       {% endfor %}
     {% endfor %}
 {% endif %}
@@ -170,7 +170,7 @@ scrape_configs:
       {% for host in groups['hosts_metadata_collect'] %}
       - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ vitam.metadata_collect.port_admin }}"]
         labels:
-          hostname: "{{ host.split(".")[0] }}"
+          hostname: {{ host.split(".")[0] }}
       {% endfor %}
 {% endif %}
 {% if groups['hosts_workspace_collect'] | default([]) | length > 0 %}
@@ -181,7 +181,7 @@ scrape_configs:
       {% for host in groups['hosts_workspace_collect'] %}
       - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ vitam.workspace_collect.port_admin }}"]
         labels:
-          hostname: "{{ host.split(".")[0] }}"
+          hostname: {{ host.split(".")[0] }}
       {% endfor %}
 {% endif %}
 {% if groups['hosts_collect_internal'] | default([]) | length > 0 %}
@@ -192,7 +192,7 @@ scrape_configs:
       {% for host in groups['hosts_collect_internal'] %}
       - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ vitam.collect_internal.port_admin }}"]
         labels:
-          hostname: "{{ host.split(".")[0] }}"
+          hostname: {{ host.split(".")[0] }}
       {% endfor %}
 {% endif %}
 {% if groups['hosts_collect_external'] | default([]) | length > 0 %}
@@ -203,7 +203,7 @@ scrape_configs:
       {% for host in groups['hosts_collect_external'] %}
       - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ vitam.collect_external.port_admin }}"]
         labels:
-          hostname: "{{ host.split(".")[0] }}"
+          hostname: {{ host.split(".")[0] }}
       {% endfor %}
 {% endif %}
 {% if groups['hosts_scheduler'] | length > 0 %}
@@ -215,6 +215,6 @@ scrape_configs:
       {% for host in [groups['hosts_scheduler'] | first] %}
       - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ vitam.scheduler.port_admin }}"]
         labels:
-          hostname: "{{ host.split(".")[0] }}"
+          hostname: {{ host.split(".")[0] }}
       {% endfor %}
 {% endif %}

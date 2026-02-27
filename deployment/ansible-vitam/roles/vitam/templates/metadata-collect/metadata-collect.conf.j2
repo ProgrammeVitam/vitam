@@ -27,7 +27,7 @@ mongoDbNodes:
     dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: metadataCollect
-dbAuthentication: {{ mongodb.mongo_authentication }}
+dbAuthentication: {{ mongodb.mongo_authentication | bool | lower }}
 dbUserName: {{ mongodb['mongo-data'].metadataCollect.user }}
 dbPassword: {{ mongodb['mongo-data'].metadataCollect.password }}
 
@@ -122,7 +122,7 @@ adminBasicAuth:
   - userName: {{ admin_basic_auth_user }}
     password: {{ admin_basic_auth_password }}
 
-refreshElasticIndexPostBulkIndexing: {{ vitam.metadata_collect.refreshElasticIndexPostBulkIndexing | default(true) }}
+refreshElasticIndexPostBulkIndexing: {{ vitam.metadata_collect.refreshElasticIndexPostBulkIndexing | default(true) | bool | lower }}
 
 {% if vitam_virtual_paths is defined and vitam_virtual_paths is not none %}
 # virtual Paths settings

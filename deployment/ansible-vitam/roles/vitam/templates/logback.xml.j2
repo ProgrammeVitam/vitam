@@ -10,7 +10,7 @@
     </encoder>
   </appender>
 
-{% if logback_rolling_policy|lower == "true" %}
+{% if logback_rolling_policy | bool %}
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
       <fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
@@ -28,7 +28,7 @@
     </encoder>
   </appender>
 
-{% if logback_rolling_policy|lower == "true" %}
+{% if logback_rolling_policy | bool %}
   <appender name="SECURITY" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
       <fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_security.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
@@ -48,7 +48,7 @@
   </appender>
 
 {% if vitam_struct.vitam_component == 'storage' %}
-  {% if logback_rolling_policy|lower == "true" %}
+  {% if logback_rolling_policy | bool %}
   <appender name="OFFERSYNC" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
       <fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_sync.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
@@ -67,7 +67,7 @@
     </encoder>
   </appender>
 
-  {% if logback_rolling_policy|lower == "true" %}
+  {% if logback_rolling_policy | bool %}
   <appender name="OFFERDIFF" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
       <fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_diff.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
@@ -88,7 +88,7 @@
 {% endif %}
 
 {% if vitam_struct.vitam_component == 'offer' and vitam_offers[offer_conf]["provider"] == 'tape-library' %}
-  {% if logback_rolling_policy|lower == "true" %}
+  {% if logback_rolling_policy | bool %}
   <appender name="OFFER_TAPE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
       <fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_tape.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
@@ -107,7 +107,7 @@
     </encoder>
   </appender>
 
-  {% if logback_rolling_policy|lower == "true" %}
+  {% if logback_rolling_policy | bool %}
   <appender name="OFFER_TAPE_BACKUP" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
       <fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_tape_backup.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
@@ -153,7 +153,7 @@
   <logger name="fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl" level="{{ vitam_struct.reconstruction.log_level | default(reconstruction.log_level) }}"/>
 {% endif %}
 
-{% if performance_logger|lower == "true" %}
+{% if performance_logger | bool %}
   <logger name="fr.gouv.vitam.common.performance.PerformanceLogger" level="DEBUG" additivity="false" >
     <appender-ref ref="SYSLOG" />
   </logger>

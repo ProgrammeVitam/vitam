@@ -5,7 +5,7 @@
     - name: Ensure that current site is a secondary site.
       fail:
         msg: "Cannot run this migration playbook on a primary site"
-      when: primary_site | lower != 'false'
+      when: primary_site | bool
 
     - name: Ensure Elasticsearch data cluster is in "green" state
       uri:

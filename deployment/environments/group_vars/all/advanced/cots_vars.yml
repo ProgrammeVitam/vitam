@@ -15,11 +15,11 @@ consul:
 elasticsearch:
     log:
         host: "elasticsearch-log.service.{{ consul_domain }}"
-        port_http: "9201"
+        port_http: 9201
         at_boot: true
-        groupe: "log"
-        baseuri: "elasticsearch-log"
-        cluster_name: "elasticsearch-log"
+        groupe: log
+        baseuri: elasticsearch-log
+        cluster_name: elasticsearch-log
         consul_check_http: 10 # in seconds
         consul_check_tcp: 10 # in seconds
         action_log_level: error
@@ -30,18 +30,18 @@ elasticsearch:
         # log configuration
         log_appenders:
             root:
-                log_level: "info"
+                log_level: info
             rolling:
                 max_log_file_size: "10MB"
                 max_total_log_size: "2GB"
             deprecation_rolling:
                 max_log_file_size: "10MB"
-                max_files: "20"
-                log_level: "warn"
+                max_files: 20
+                log_level: warn
             index_search_slowlog_rolling:
-                log_level: "warn"
+                log_level: warn
             index_indexing_slowlog_rolling:
-                log_level: "warn"
+                log_level: warn
         # By default, is commented. Should be uncommented if ansible computes badly vCPUs number ;  values are associated vCPUs numbers ; please adapt to your configuration
         # thread_pool:
         #     index:
@@ -58,10 +58,10 @@ elasticsearch:
         host: "elasticsearch-data.service.{{ consul_domain }}"
         # default is 0.1 (10%) and should be quite enough in most cases
         #index_buffer_size_ratio: "0.15"
-        port_http: "9200"
-        groupe: "data"
-        baseuri: "elasticsearch-data"
-        cluster_name: "elasticsearch-data"
+        port_http: 9200
+        groupe: data
+        baseuri: elasticsearch-data
+        cluster_name: elasticsearch-data
         consul_check_http: 10 # in seconds
         consul_check_tcp: 10 # in seconds
         action_log_level: warn
@@ -72,18 +72,18 @@ elasticsearch:
         # log configuration
         log_appenders:
             root:
-                log_level: "info"
+                log_level: info
             rolling:
                 max_log_file_size: "10MB"
                 max_total_log_size: "5GB"
             deprecation_rolling:
                 max_log_file_size: "10MB"
-                max_files: "20"
-                log_level: "warn"
+                max_files: 20
+                log_level: warn
             index_search_slowlog_rolling:
-                log_level: "warn"
+                log_level: warn
             index_indexing_slowlog_rolling:
-                log_level: "warn"
+                log_level: warn
         # By default, is commented. Should be uncommented if ansible computes badly vCPUs number ;  values are associated vCPUs numbers ; please adapt to your configuration
         # thread_pool:
         #     index:
@@ -101,7 +101,7 @@ mongodb:
     mongos_port: 27017
     mongoc_port: 27018
     mongod_port: 27019
-    mongo_authentication: "true"
+    mongo_authentication: true
     check_consul: 10 # in seconds
     drop_info_log: true # Drop mongo (I)nformational log, for Verbosity Level of 0
     # logs configuration
@@ -228,10 +228,10 @@ kibana:
 
 syslog:
     # value can be syslog-ng, rsyslog or filebeat (default)
-    name: "filebeat"
+    name: filebeat
 
 cerebro:
-    baseuri: "cerebro"
+    baseuri: cerebro
     port: 9000
     check_consul: 10 # in seconds
     # logs configuration
@@ -251,7 +251,7 @@ clamav:
         # frequency freshclam for database update per day (from 0 to 24 - 24 meaning hourly check)
         db_update_periodicity: 1
         private_mirror_address:
-        use_proxy: "no"
+        use_proxy: false
 
 ## Avast Business Antivirus for Linux
 ## if undefined, the following default values are applied.
@@ -264,7 +264,7 @@ clamav:
 #         state: present
 #         # For RedHat family
 #         baseurl: https://repo.avcdn.net/linux-av/rpm/el9/release
-#         gpgcheck: no
+#         gpgcheck: false
 #         proxy: _none_
 #         # For Debian family
 #         baseurl: 'deb https://repo.avcdn.net/linux-av/deb debian-bookworm release'
@@ -275,7 +275,7 @@ clamav:
 #         - yyyyyy
 
 mongo_express:
-    baseuri: "mongo-express"
+    baseuri: mongo-express
 
 ## Mandatory LDAP authentification params when vitam.ihm-demo.authentication_realms: ['ldapRealm'] is set
 # ldap_authentification:

@@ -221,4 +221,4 @@
       command: "mongosh --host configsvr/{{ mongoc_nodes | join(',') }} --quiet --file {{ vitam_defaults.folder.root_path }}/app/mongoc/local-user.js"
       tags: update_mongodb_configuration
 
-  when: mongo_rs_bootstrap | default(false) | bool == true
+  when: mongo_rs_bootstrap | default(false) | bool
