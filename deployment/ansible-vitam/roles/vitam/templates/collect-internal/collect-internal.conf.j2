@@ -1,12 +1,12 @@
 authentication: false
-workspaceCollectUrl: {{vitam.workspace_collect | client_url}}
-workspaceUrl: {{vitam.workspace | client_url}}
+workspaceCollectUrl: {{ vitam.workspace_collect | client_url }}
+workspaceUrl: {{ vitam.workspace | client_url }}
 
 # Configuration MongoDB
 mongoDbNodes:
 {% for host in groups['hosts_mongos_data'] %}
-- dbHost: {{ hostvars[host]['ip_service'] }}
-  dbPort: {{ mongodb.mongos_port }}
+  - dbHost: {{ hostvars[host]['ip_service'] }}
+    dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: collect
 dbAuthentication: {{ mongodb.mongo_authentication }}
@@ -17,9 +17,8 @@ jettyConfig: jetty-config.xml
 
 #Basic Authentication
 adminBasicAuth:
-- userName: {{ admin_basic_auth_user }}
-  password: {{ admin_basic_auth_password }}
-
+  - userName: {{ admin_basic_auth_user }}
+    password: {{ admin_basic_auth_password }}
 
 statusTransactionThreadFrequency: {{ vitam.collect_internal.statusTransactionThreadFrequency | default(5) }}
 transactionStatusThreadPoolSize: {{ vitam.collect_internal.transactionStatusThreadPoolSize | default(4) }}
@@ -32,5 +31,5 @@ purgeTransactionThreadFrequency: 60
 purgeTransactionThreadPoolSize: 3
 purgeTransactionDelayInMinutes:
 {% for tenant in vitam_tenant_ids %}
-   {{ tenant }} : 60
+  {{ tenant }}: 60
 {% endfor %}

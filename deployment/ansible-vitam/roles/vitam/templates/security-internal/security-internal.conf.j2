@@ -2,8 +2,8 @@
 # Configuration MongoDB
 mongoDbNodes:
 {% for host in groups['hosts_mongos_data'] %}
-- dbHost: {{ hostvars[host]['ip_service'] }}
-  dbPort: {{ mongodb.mongos_port }}
+  - dbHost: {{ hostvars[host]['ip_service'] }}
+    dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: identity
 dbAuthentication: {{ mongodb.mongo_authentication }}
@@ -16,5 +16,5 @@ personalCertificatePermissionConfig: personal-certificate-permissions.conf
 
 #Basic Authentication
 adminBasicAuth:
-- userName: {{ admin_basic_auth_user }}
-  password: {{ admin_basic_auth_password }}
+  - userName: {{ admin_basic_auth_user }}
+    password: {{ admin_basic_auth_password }}
