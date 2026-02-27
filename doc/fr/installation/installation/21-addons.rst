@@ -291,9 +291,9 @@ Exemple:
         - AppraisalRule : "1 year" # rule name : rule value
     - name: 3
       rules:
-        AppraisaleRule : "5 year"
-        StorageRule : "5 year"
-        ReuseRule : "2 year"
+        - AppraisalRule : "5 year"
+        - StorageRule : "5 year"
+        - ReuseRule : "2 year"
 
 
 Par `tenant`, les directives possibles sont :

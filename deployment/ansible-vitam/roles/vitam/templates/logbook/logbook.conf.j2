@@ -2,8 +2,8 @@
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts_mongos_data'] %}
-- dbHost: {{ hostvars[server]['ip_service'] }}
-  dbPort: {{ mongodb.mongos_port }}
+  - dbHost: {{ hostvars[server]['ip_service'] }}
+    dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: logbook
 dbAuthentication: {{ mongodb.mongo_authentication }}
@@ -20,8 +20,8 @@ clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchConfigurationFile: {{ vitam_folder_conf }}/elasticsearch-settings/elasticsearch-configuration.json
 elasticsearchNodes:
 {% for server in groups['hosts_elasticsearch_data'] %}
-- hostName: {{ hostvars[server]['ip_service'] }}
-  httpPort: {{ elasticsearch.data.port_http }}
+  - hostName: {{ hostvars[server]['ip_service'] }}
+    httpPort: {{ elasticsearch.data.port_http }}
 {% endfor %}
 
 # ElasticSearch tenant indexation
@@ -34,14 +34,14 @@ elasticsearchTenantIndexation:
 {% if vitam_elasticsearch_tenant_indexation.dedicated_tenants is defined and vitam_elasticsearch_tenant_indexation.dedicated_tenants is not none %}
   dedicated_tenants:
   {% for entry in vitam_elasticsearch_tenant_indexation.dedicated_tenants %}
-  - tenants: '{{ entry.tenants }}'
+    - tenants: '{{ entry.tenants }}'
     {% if entry.logbookoperation is defined %}
-    logbookoperation:
+      logbookoperation:
       {% if entry.logbookoperation.number_of_shards is defined %}
-      number_of_shards: {{ entry.logbookoperation.number_of_shards }}
+        number_of_shards: {{ entry.logbookoperation.number_of_shards }}
       {% endif %}
       {% if entry.logbookoperation.number_of_replicas is defined %}
-      number_of_replicas: {{ entry.logbookoperation.number_of_replicas }}
+        number_of_replicas: {{ entry.logbookoperation.number_of_replicas }}
       {% endif %}
     {% endif %}
   {% endfor %}
@@ -50,15 +50,15 @@ elasticsearchTenantIndexation:
 {% if vitam_elasticsearch_tenant_indexation.grouped_tenants is defined and vitam_elasticsearch_tenant_indexation.grouped_tenants is not none %}
   grouped_tenants:
   {% for entry in vitam_elasticsearch_tenant_indexation.grouped_tenants %}
-  - name: '{{ entry.name }}'
-    tenants: '{{ entry.tenants }}'
+    - name: '{{ entry.name }}'
+      tenants: '{{ entry.tenants }}'
     {% if entry.logbookoperation is defined %}
-    logbookoperation:
+      logbookoperation:
       {% if entry.logbookoperation.number_of_shards is defined %}
-      number_of_shards: {{ entry.logbookoperation.number_of_shards }}
+        number_of_shards: {{ entry.logbookoperation.number_of_shards }}
       {% endif %}
       {% if entry.logbookoperation.number_of_replicas is defined %}
-      number_of_replicas: {{ entry.logbookoperation.number_of_replicas }}
+        number_of_replicas: {{ entry.logbookoperation.number_of_replicas }}
       {% endif %}
     {% endif %}
   {% endfor %}
@@ -66,8 +66,8 @@ elasticsearchTenantIndexation:
 
 #Basic Authentication
 adminBasicAuth:
-- userName: {{ admin_basic_auth_user }}
-  password: {{ admin_basic_auth_password }}
+  - userName: {{ admin_basic_auth_user }}
+    password: {{ admin_basic_auth_password }}
 
 ## Configuration for logbook coherence check
 # list of operations that generate LFC
@@ -93,16 +93,16 @@ opLfcEventsToSkip: [
   "LIST_OBJECTGROUP_ID", "REPORT_AUDIT",
   "LIST_ARCHIVE_UNITS", "LIST_RUNNING_INGESTS"]
 
-# Configuration des alertes de securite
+# Security alerts configuration
 alertEvents:
-- evType: 'CHECK_HEADER.CHECK_CONTRACT_INGEST'
-  outcome: 'KO'
-- evType: 'CHECK_RULES.MAX_DURATION_EXCEEDS'
-  outcome: 'KO'
-- evType: 'CHECK_RULES'
-  outcome: 'KO'
-- outDetail: 'CHECK_CLASSIFICATION_LEVEL.KO'
-- outDetail: 'STP_PERSONAL_CERTIFICATE_CHECK.KO'
+  - evType: 'CHECK_HEADER.CHECK_CONTRACT_INGEST'
+    outcome: 'KO'
+  - evType: 'CHECK_RULES.MAX_DURATION_EXCEEDS'
+    outcome: 'KO'
+  - evType: 'CHECK_RULES'
+    outcome: 'KO'
+  - outDetail: 'CHECK_CLASSIFICATION_LEVEL.KO'
+  - outDetail: 'STP_PERSONAL_CERTIFICATE_CHECK.KO'
 
 # Traceability params
 operationTraceabilityTemporizationDelay: {{ vitam.logbook.operationTraceabilityTemporizationDelay | default(300) }}
