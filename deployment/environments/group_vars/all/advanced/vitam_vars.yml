@@ -191,7 +191,7 @@ vitam:
     baseuri: "access-external"
     https_enabled: true
     # Use platform secret for this component ? : do not modify
-    secret_platform: "false"
+    secret_platform: false
     authorizeTrackTotalHits: false # if false, limit results to 10K. if true, authorize results overs 10K (can overload elasticsearch-data)
   accessinternal:
     vitam_component: access-internal
@@ -200,7 +200,6 @@ vitam:
     port_admin: 28101
     baseuri: "access-internal"
     https_enabled: false
-    secret_platform: "true"
   functional_administration:
     vitam_component: functional-administration
     host: "functional-administration.service.{{ consul_domain }}"
@@ -208,7 +207,6 @@ vitam:
     port_admin: 18004
     baseuri: "adminmanagement"
     https_enabled: false
-    secret_platform: "true"
     cluster_name: "{{ elasticsearch.data.cluster_name }}"
     # Number of AccessionRegisterSymbolic creation threads that can be run in parallel.
     accessionRegisterSymbolicThreadPoolSize: 16
@@ -223,7 +221,6 @@ vitam:
     port_admin: 28799
     baseuri: "scheduler"
     https_enabled: false
-    secret_platform: "true"
     schedulerThreadSize: 8
   elastickibanainterceptor:
     vitam_component: elastic-kibana-interceptor
@@ -232,7 +229,7 @@ vitam:
     port_admin: 18014
     baseuri: ""
     https_enabled: false
-    secret_platform: "false"
+    secret_platform: false
     cluster_name: "{{ elasticsearch.data.cluster_name }}"
   batchreport:
     vitam_component: batch-report
@@ -241,7 +238,6 @@ vitam:
     port_admin: 18015
     baseuri: "batchreport"
     https_enabled: false
-    secret_platform: "false"
   ingestexternal:
     vitam_component: ingest-external
     # DNS record for the service:
@@ -251,7 +247,7 @@ vitam:
     port_service: 8443
     baseuri: "ingest-external"
     https_enabled: true
-    secret_platform: "false"
+    secret_platform: false
     antivirus: "clamav" # or avast
     # this variable has containerization purposes only : must not be used in production environment
     ignore_antivirus_check: false
@@ -275,7 +271,6 @@ vitam:
     port_admin: 28100
     baseuri: "ingest"
     https_enabled: false
-    secret_platform: "true"
   ihm_demo:
     vitam_component: ihm-demo
     host: "ihm-demo.service.{{ consul_domain }}"
@@ -285,7 +280,7 @@ vitam:
     static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-demo/v2"
     baseuri: "ihm-demo"
     https_enabled: true
-    secret_platform: "false"
+    secret_platform: false
     # User session timeout in milliseconds (for shiro)
     session_timeout: 1800000
     secure_cookie: true
@@ -319,7 +314,6 @@ vitam:
     port_admin: 29002
     baseuri: "logbook"
     https_enabled: false
-    secret_platform: "true"
     cluster_name: "{{ elasticsearch.data.cluster_name }}"
     # Temporization delay (in seconds) for recent logbook operation events.
     # Set it to a reasonable delay to cover max clock difference across servers + VM/GC pauses
@@ -356,7 +350,6 @@ vitam:
     port_admin: 28200
     baseuri: "metadata"
     https_enabled: false
-    secret_platform: "true"
     cluster_name: "{{ elasticsearch.data.cluster_name }}"
     # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
     archiveUnitProfileCacheMaxEntries: 100
@@ -398,7 +391,6 @@ vitam:
     port_admin: 28203
     baseuri: "processing"
     https_enabled: false
-    secret_platform: "true"
     maxDistributionInMemoryBufferSize: 100000
     maxDistributionOnDiskBufferSize: 100000000
   security_internal:
@@ -408,7 +400,6 @@ vitam:
     port_admin: 28005
     baseuri: "security-internal"
     https_enabled: false
-    secret_platform: "true"
   storageengine:
     vitam_component: storage
     host: "storage.service.{{ consul_domain }}"
@@ -416,7 +407,6 @@ vitam:
     port_admin: 29102
     baseuri: "storage"
     https_enabled: false
-    secret_platform: "true"
     storageTraceabilityOverlapDelay: 300
     restoreBulkSize: 1000
     # Storage write/access log backup max thread pool size
@@ -452,7 +442,6 @@ vitam:
     port_admin: 29900
     baseuri: "offer"
     https_enabled: false
-    secret_platform: "true"
     logback_total_size_cap:
       offer_tape:
         history_days: 30
@@ -467,7 +456,6 @@ vitam:
     port_admin: 29104
     baseuri: "worker"
     https_enabled: false
-    secret_platform: "true"
     api_output_index_tenants: [ 0,1,2,3,4,5,6,7,8,9 ]
     rules_index_tenants: [ 0,1,2,3,4,5,6,7,8,9 ]
     # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
@@ -494,7 +482,6 @@ vitam:
     port_admin: 28201
     baseuri: "workspace"
     https_enabled: false
-    secret_platform: "true"
     context_path: "/workspace"
   collect_internal:
     vitam_component: collect-internal
@@ -503,7 +490,6 @@ vitam:
     port_admin: 28038
     baseuri: "collect-internal"
     https_enabled: false
-    secret_platform: "true"
     transactionStatusThreadPoolSize: 4
     statusTransactionThreadFrequency: 5
     bulkAtomicUpdateThreadPoolSize: 8
@@ -516,7 +502,7 @@ vitam:
     port_admin: 28030
     baseuri: "collect-external"
     https_enabled: true
-    secret_platform: "false"
+    secret_platform: false
     authorizeTrackTotalHits: false # if false, limit results to 10K. if true, authorize results overs 10K (can overload elasticsearch-data)
     ingestionThreadPoolSize: 4
     ingestionThreadFrequencySeconds: 5
@@ -527,7 +513,6 @@ vitam:
     port_admin: 28290
     baseuri: "metadata-collect"
     https_enabled: false
-    secret_platform: "true"
     cluster_name: "{{ elasticsearch.data.cluster_name }}"
     # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
     archiveUnitProfileCacheMaxEntries: 100
@@ -550,7 +535,6 @@ vitam:
     port_admin: 28291
     baseuri: "workspace-collect"
     https_enabled: false
-    secret_platform: "true"
     context_path: "/workspace-collect"
 
 # http://www.programmevitam.fr/ressources/DocCourante/html/installation/installation/21-addons.html#durees-minimales-permettant-de-controler-les-valeurs-saisies

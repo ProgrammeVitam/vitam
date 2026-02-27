@@ -12,7 +12,7 @@ vitam:
         secure_mode:
             - authc
         https_enabled: true
-        secret_platform: "false"
+        secret_platform: false
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
         session_timeout: 1800000
         secure_cookie: true
@@ -25,7 +25,7 @@ vitam:
         port_admin: 28090
         baseuri: "doc"
         https_enabled: false
-        secret_platform: "false"
+        secret_platform: false
         consul_business_check: 30 # value in seconds
         consul_admin_check: 30 # value in seconds
 
