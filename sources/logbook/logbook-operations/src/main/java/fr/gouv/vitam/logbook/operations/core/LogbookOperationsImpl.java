@@ -28,9 +28,9 @@ package fr.gouv.vitam.logbook.operations.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -252,35 +252,17 @@ public class LogbookOperationsImpl implements LogbookOperations {
     }
 
     @Override
-    public MongoCursor<LogbookOperation> selectOperationsByLastPersistenceDateInterval(
+    public CloseableIterator<LogbookOperation> selectOperationsByLastPersistenceDateInterval(
         LocalDateTime startDate,
-        LocalDateTime endDate
-    ) throws LogbookDatabaseException, InvalidCreateOperationException, InvalidParseOperationException {
-        Select select = new Select();
-        select.setQuery(
-            QueryHelper.and()
-                .add(
-                    QueryHelper.gte(
-                        VitamFieldsHelper.lastPersistedDate(),
-                        LocalDateUtil.getFormattedDateTimeForMongo(startDate)
-                    )
-                )
-                .add(
-                    QueryHelper.lte(
-                        VitamFieldsHelper.lastPersistedDate(),
-                        LocalDateUtil.getFormattedDateTimeForMongo(endDate)
-                    )
-                )
-        );
-        select.addOrderByAscFilter(VitamFieldsHelper.lastPersistedDate());
-
-        MongoCursor<LogbookOperation> cursor = null;
-        try {
-            cursor = mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false);
-        } catch (VitamDBException e) {
-            LOGGER.error(e);
-        }
-        return cursor;
+        LocalDateTime endDate,
+        int softLimit
+    ) throws LogbookDatabaseException {
+        return this.mongoDbAccess.selectRawByLastPersistenceDateInterval(
+                LogbookCollections.OPERATION,
+                LocalDateUtil.getFormattedDateTimeForMongo(startDate),
+                LocalDateUtil.getFormattedDateTimeForMongo(endDate),
+                softLimit
+            );
     }
 
     @Override

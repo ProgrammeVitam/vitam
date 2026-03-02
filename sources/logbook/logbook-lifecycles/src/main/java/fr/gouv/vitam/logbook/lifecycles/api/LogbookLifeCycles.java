@@ -302,9 +302,13 @@ public interface LogbookLifeCycles {
      *
      * @param startDate the selection start date
      * @param endDate the selection end date
-     * @param limit the max limit
+     * @param softLimit the max softLimit
      */
-    CloseableIterator<JsonNode> getRawUnitLifecyclesByLastPersistedDate(String startDate, String endDate, int limit);
+    CloseableIterator<JsonNode> getRawUnitLifecyclesByLastPersistedDate(
+        String startDate,
+        String endDate,
+        int softLimit
+    ) throws LogbookDatabaseException;
 
     /**
      * Gets a list of raw object group life cycles by request
@@ -317,7 +321,7 @@ public interface LogbookLifeCycles {
         String startDate,
         String endDate,
         int limit
-    );
+    ) throws LogbookDatabaseException;
 
     /**
      * Checks existence of new unit life cycles

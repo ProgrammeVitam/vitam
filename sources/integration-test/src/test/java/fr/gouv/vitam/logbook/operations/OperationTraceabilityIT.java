@@ -38,9 +38,12 @@ import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -55,6 +58,10 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.model.TraceabilityType;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -87,6 +94,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -470,6 +478,191 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
             LogbookEventOperation lastEvent = logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1);
             assertThat(lastEvent.getOutDetail()).isEqualTo("STP_OP_SECURISATION.OK");
         }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testOperationTraceability_MultipleCasesOfMaxEntriesLimits() throws Exception {
+        // Given :
+        // - Soft limit defined to 20 in test configuration
+        // - Multiple LogbookOperations have same _lastPersistedDate
+        // Expected :
+        // - First traceability should select the first 20 operations.
+        //   Since 21st operation has same _lastPersistedDate as the 19th & 20th operations, it as also secured.
+        // - Second traceability starts selecting 20 more operations, starting over from first traceability endDate (included)
+        //   It will select 19th operation to 38th. Since the 39th operation has same _lastPersistedDate as the 38th & 37th operations, it a also secured
+        // - Third traceability starts selecting 20 more operations, starting over from second traceability endDate (included)
+        //   It will select 37th operation to 56th. Since the 57th operation does NOT have the same _lastPersistedDate as the 36th, it will not be secured
+        // - Last traceability starts selecting up to 20 next operations, starting over from third traceability endDate (included)
+        //   It will find select all operations from the 56th+. The 20-operation limit won't be reached ==> endDate = traceability start date - 5 minutes
+
+        logicalClock.freezeTime();
+
+        List<String> operationsToSecure = new ArrayList<>();
+        Map<String, String> operationsDate = new HashMap<>();
+        try (final LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
+            for (int i = 0; i < 60; i++) {
+                if (i % 3 == 0 || i > 50) {
+                    logicalClock.logicalSleep(1, ChronoUnit.SECONDS);
+                }
+
+                GUID eip = GUIDFactory.newGUID();
+                final LogbookOperationParameters logbookParameters =
+                    LogbookParameterHelper.newLogbookOperationParameters(
+                        eip,
+                        Contexts.ARCHIVE_TRANSFER.getEventType(),
+                        eip,
+                        LogbookTypeProcess.MASTERDATA,
+                        StatusCode.STARTED,
+                        VitamLogbookMessages.getCodeOp(Contexts.ARCHIVE_TRANSFER.getEventType(), StatusCode.STARTED),
+                        eip
+                    );
+
+                client.create(logbookParameters);
+
+                operationsToSecure.add(eip.toString());
+                operationsDate.put(eip.toString(), LocalDateUtil.nowFormatted());
+            }
+        }
+
+        // When : Traceability 1
+        logicalClock.logicalSleep(1, ChronoUnit.HOURS);
+        String traceability1DateTime = LocalDateUtil.nowFormatted();
+        String traceabilityOperationId1 = runTraceability();
+
+        operationsToSecure.add(traceabilityOperationId1);
+        operationsDate.put(traceabilityOperationId1, traceability1DateTime);
+
+        // Then : Traceability 1 OK, limited to 21 (limit=20 + 1 last operation with same lastPersistedDate that the 20th)
+        LogbookOperation traceabilityLogbookOperation1 = getLogbookInformation(traceabilityOperationId1);
+
+        LogbookEventOperation lastTraceability1Event = traceabilityLogbookOperation1
+            .getEvents()
+            .get(traceabilityLogbookOperation1.getEvents().size() - 1);
+        assertThat(lastTraceability1Event.getOutDetail()).isEqualTo("STP_OP_SECURISATION.OK");
+
+        assertThat(traceabilityLogbookOperation1.getEvDetData()).isNotNull();
+        TraceabilityEvent traceabilityEvent1 = JsonHandler.getFromString(
+            traceabilityLogbookOperation1.getEvDetData(),
+            TraceabilityEvent.class
+        );
+
+        assertThat(traceabilityEvent1.getNumberOfElements()).isEqualTo(21);
+        assertThat(traceabilityEvent1.getLogType()).isEqualTo(TraceabilityType.OPERATION);
+        assertThat(traceabilityEvent1.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
+        assertThat(traceabilityEvent1.getEndDate()).isEqualTo(operationsDate.get(operationsToSecure.get(20)));
+        assertThat(traceabilityEvent1.isMaxEntriesReached()).isTrue();
+
+        File tmp1 = tmpFolder.newFolder("traceability1");
+        downloadZip(traceabilityEvent1.getFileName(), tmp1);
+        List<String> traceability1DataEntries = FileUtils.readLines(new File(tmp1, "data.txt"), StandardCharsets.UTF_8);
+        List<String> traceability1OperationIds = parseLines(traceability1DataEntries);
+        assertThat(traceability1OperationIds).containsExactlyInAnyOrderElementsOf(operationsToSecure.subList(0, 21));
+
+        // When : Traceability 2
+        logicalClock.logicalSleep(1, ChronoUnit.HOURS);
+        String traceability2DateTime = LocalDateUtil.nowFormatted();
+        String traceabilityOperationId2 = runTraceability();
+
+        operationsToSecure.add(traceabilityOperationId2);
+        operationsDate.put(traceabilityOperationId2, traceability2DateTime);
+
+        // Then : Traceability 2 OK, limited to 22 (limit=20 + 2 last operation with same lastPersistedDate that the 20th)
+        LogbookOperation traceabilityLogbookOperation2 = getLogbookInformation(traceabilityOperationId2);
+
+        LogbookEventOperation lastTraceability2Event = traceabilityLogbookOperation2
+            .getEvents()
+            .get(traceabilityLogbookOperation2.getEvents().size() - 1);
+        assertThat(lastTraceability2Event.getOutDetail()).isEqualTo("STP_OP_SECURISATION.OK");
+
+        assertThat(traceabilityLogbookOperation2.getEvDetData()).isNotNull();
+        TraceabilityEvent traceabilityEvent2 = JsonHandler.getFromString(
+            traceabilityLogbookOperation2.getEvDetData(),
+            TraceabilityEvent.class
+        );
+
+        assertThat(traceabilityEvent2.getNumberOfElements()).isEqualTo(21);
+        assertThat(traceabilityEvent2.getLogType()).isEqualTo(TraceabilityType.OPERATION);
+        assertThat(traceabilityEvent2.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
+        assertThat(traceabilityEvent2.getEndDate()).isEqualTo(operationsDate.get(operationsToSecure.get(38)));
+        assertThat(traceabilityEvent2.isMaxEntriesReached()).isTrue();
+
+        File tmp2 = tmpFolder.newFolder("traceability2");
+        downloadZip(traceabilityEvent2.getFileName(), tmp2);
+        List<String> traceability2DataEntries = FileUtils.readLines(new File(tmp2, "data.txt"), StandardCharsets.UTF_8);
+        List<String> traceability2OperationIds = parseLines(traceability2DataEntries);
+        assertThat(traceability2OperationIds).containsExactlyInAnyOrderElementsOf(operationsToSecure.subList(18, 39));
+
+        // When : Traceability 3
+        logicalClock.logicalSleep(1, ChronoUnit.HOURS);
+        LocalDateTime traceability3DateTime = LocalDateUtil.now();
+        String traceabilityOperationId3 = runTraceability();
+
+        operationsToSecure.add(traceabilityOperationId3);
+        operationsDate.put(traceabilityOperationId3, LocalDateUtil.getFormattedDateTimeForMongo(traceability3DateTime));
+
+        // Then : Traceability 3 OK, limited to 20 (The 21th entry does NOT have the same lastPersistedDate as the 20th)
+        LogbookOperation traceabilityLogbookOperation3 = getLogbookInformation(traceabilityOperationId3);
+
+        LogbookEventOperation lastTraceability3Event = traceabilityLogbookOperation3
+            .getEvents()
+            .get(traceabilityLogbookOperation3.getEvents().size() - 1);
+        assertThat(lastTraceability3Event.getOutDetail()).isEqualTo("STP_OP_SECURISATION.OK");
+
+        assertThat(traceabilityLogbookOperation3.getEvDetData()).isNotNull();
+        TraceabilityEvent traceabilityEvent3 = JsonHandler.getFromString(
+            traceabilityLogbookOperation3.getEvDetData(),
+            TraceabilityEvent.class
+        );
+
+        assertThat(traceabilityEvent3.getNumberOfElements()).isEqualTo(20);
+        assertThat(traceabilityEvent3.getLogType()).isEqualTo(TraceabilityType.OPERATION);
+        assertThat(traceabilityEvent3.getStartDate()).isEqualTo(traceabilityEvent2.getEndDate());
+        assertThat(traceabilityEvent3.getEndDate()).isEqualTo(operationsDate.get(operationsToSecure.get(55)));
+        assertThat(traceabilityEvent3.isMaxEntriesReached()).isTrue();
+
+        File tmp3 = tmpFolder.newFolder("traceability3");
+        downloadZip(traceabilityEvent3.getFileName(), tmp3);
+        List<String> traceability3DataEntries = FileUtils.readLines(new File(tmp3, "data.txt"), StandardCharsets.UTF_8);
+        List<String> traceability3OperationIds = parseLines(traceability3DataEntries);
+        assertThat(traceability3OperationIds).containsExactlyInAnyOrderElementsOf(operationsToSecure.subList(36, 56));
+
+        // When : Traceability 4
+        logicalClock.logicalSleep(1, ChronoUnit.HOURS);
+        LocalDateTime traceability4DateTime = LocalDateUtil.now();
+        String traceabilityOperationId4 = runTraceability();
+
+        operationsToSecure.add(traceabilityOperationId4);
+        operationsDate.put(traceabilityOperationId4, LocalDateUtil.getFormattedDateTimeForMongo(traceability4DateTime));
+
+        // Then : Traceability 4 OK, limited to 22 (limit=20 + 2 last operation with same lastPersistedDate that the 20th)
+        LogbookOperation traceabilityLogbookOperation4 = getLogbookInformation(traceabilityOperationId4);
+
+        LogbookEventOperation lastTraceability4Event = traceabilityLogbookOperation4
+            .getEvents()
+            .get(traceabilityLogbookOperation4.getEvents().size() - 1);
+        assertThat(lastTraceability4Event.getOutDetail()).isEqualTo("STP_OP_SECURISATION.OK");
+
+        assertThat(traceabilityLogbookOperation4.getEvDetData()).isNotNull();
+        TraceabilityEvent traceabilityEvent4 = JsonHandler.getFromString(
+            traceabilityLogbookOperation4.getEvDetData(),
+            TraceabilityEvent.class
+        );
+
+        assertThat(traceabilityEvent4.getNumberOfElements()).isEqualTo(8);
+        assertThat(traceabilityEvent4.getLogType()).isEqualTo(TraceabilityType.OPERATION);
+        assertThat(traceabilityEvent4.getStartDate()).isEqualTo(traceabilityEvent3.getEndDate());
+        // Expected endDate is TraceabilityOperation - 5mins when maxEntriesReached=false
+        assertThat(traceabilityEvent4.getEndDate()).isEqualTo(
+            LocalDateUtil.getFormattedDateTimeForMongo(traceability4DateTime.minusMinutes(5))
+        );
+        assertThat(traceabilityEvent4.isMaxEntriesReached()).isFalse();
+
+        File tmp4 = tmpFolder.newFolder("traceability4");
+        downloadZip(traceabilityEvent4.getFileName(), tmp4);
+        List<String> traceability4DataEntries = FileUtils.readLines(new File(tmp4, "data.txt"), StandardCharsets.UTF_8);
+        List<String> traceability4OperationIds = parseLines(traceability4DataEntries);
+        assertThat(traceability4OperationIds).containsExactlyInAnyOrderElementsOf(operationsToSecure.subList(55, 63));
     }
 
     private String injectTestLogbookOperation() throws Exception {
