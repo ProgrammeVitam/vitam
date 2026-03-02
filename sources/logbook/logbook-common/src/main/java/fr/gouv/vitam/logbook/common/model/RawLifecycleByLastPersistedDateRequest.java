@@ -39,8 +39,8 @@ public class RawLifecycleByLastPersistedDateRequest {
     @JsonProperty("endDate")
     private String endDate;
 
-    @JsonProperty("limit")
-    private int limit;
+    @JsonProperty("softLimit")
+    private int softLimit;
 
     /**
      * Deserialization constructor
@@ -50,10 +50,10 @@ public class RawLifecycleByLastPersistedDateRequest {
     /**
      * Constructor
      */
-    public RawLifecycleByLastPersistedDateRequest(String startDate, String endDate, int limit) {
+    public RawLifecycleByLastPersistedDateRequest(String startDate, String endDate, int softLimit) {
         this.startDate = startDate;
         this.endDate = endDate;
-        this.limit = limit;
+        this.softLimit = softLimit;
     }
 
     public String getStartDate() {
@@ -72,11 +72,11 @@ public class RawLifecycleByLastPersistedDateRequest {
         this.endDate = endDate;
     }
 
-    public int getLimit() {
-        return limit;
+    public int getSoftLimit() {
+        return softLimit;
     }
 
-    public void setLimit(int limit) {
-        this.limit = limit;
+    public void setSoftLimit(int softLimit) {
+        this.softLimit = softLimit;
     }
 }

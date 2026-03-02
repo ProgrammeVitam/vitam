@@ -27,10 +27,10 @@
 package fr.gouv.vitam.logbook.operations.core;
 
 import com.google.common.collect.Lists;
-import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
@@ -448,8 +448,8 @@ public class LogbookOperationsImplWithDatabasesTest {
         logbookOperationsImpl.update(eip4.getId(), event);
         LocalDateTime snapshotDate2 = LocalDateUtil.now();
 
-        MongoCursor<LogbookOperation> cursor;
-        cursor = logbookOperationsImpl.selectOperationsByLastPersistenceDateInterval(snapshotDate1, snapshotDate2);
+        CloseableIterator<LogbookOperation> cursor =
+            logbookOperationsImpl.selectOperationsByLastPersistenceDateInterval(snapshotDate1, snapshotDate2, 100000);
         assertTrue(cursor.hasNext());
         final LogbookOperation op = cursor.next();
 
@@ -475,7 +475,6 @@ public class LogbookOperationsImplWithDatabasesTest {
     @Test
     public void selectOperationsByLastPersistenceDateIntervalTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        String operationId = GUIDFactory.newOperationLogbookGUID(tenantId).getId();
 
         mockWorkspaceClient();
         logbookOperationsImpl = new LogbookOperationsImpl(
@@ -500,8 +499,8 @@ public class LogbookOperationsImplWithDatabasesTest {
 
         logbookOperationsImpl.create(eip4.getId(), logbookParameters4);
 
-        MongoCursor<LogbookOperation> cursor;
-        cursor = logbookOperationsImpl.selectOperationsByLastPersistenceDateInterval(snapshot1, snapshot2);
+        CloseableIterator<LogbookOperation> cursor =
+            logbookOperationsImpl.selectOperationsByLastPersistenceDateInterval(snapshot1, snapshot2, 100000);
 
         assertEquals(eip3.toString(), cursor.next().get("evId"));
         assertFalse(cursor.hasNext());
