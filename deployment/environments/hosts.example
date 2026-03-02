@@ -138,7 +138,7 @@ hosts_workspace_collect
 
 [hosts_scheduler]
 # TODO: Put here servers where this service will be deployed : scheduler
-# Optional parameter after each host : vitam_scheduler_thread_count=<integer> ; This is the number of threads that are available for concurrent execution of jobs. ; default is 3 thread
+# WARNING: Only ONE server is currently supported for this service. Scheduler component will automatically be removed on other nodes (Mandatory while upgrading Vitam, do not modify this group before!).
 
 
 [hosts_processing]
