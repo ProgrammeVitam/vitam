@@ -221,7 +221,6 @@ vitam:
     port_admin: 28799
     baseuri: "scheduler"
     https_enabled: false
-    schedulerThreadSize: 8
   elastic_kibana_interceptor:
     vitam_component: elastic-kibana-interceptor
     host: "elastic-kibana-interceptor.service.{{ consul_domain }}"
