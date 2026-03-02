@@ -28,8 +28,8 @@ package fr.gouv.vitam.logbook.administration.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -45,12 +45,12 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
-import fr.gouv.vitam.logbook.common.model.TraceabilityIterator;
 import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
 import fr.gouv.vitam.logbook.common.model.TraceabilityType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
@@ -102,10 +102,10 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     private final GUID operationID;
     private final int temporizationDelayInSeconds;
     private final int traceabilityExpirationInSeconds;
+    private final int operationTraceabilityMaxEntries;
 
     private List<String> expectedLogbookId = null;
     private LogbookOperation lastTraceabilityOperation = null;
-    private TraceabilityIterator<LogbookOperation> traceabilityIterator = null;
 
     private Boolean isLastEventInit = false;
     private Boolean isLastMonthEventInit = false;
@@ -119,23 +119,28 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
 
     private LocalDateTime traceabilityStartDate;
     private LocalDateTime traceabilityEndDate;
+    private int nbEntries = 0;
+    private boolean maxEntriesReached;
 
     /**
      * @param logbookOperations used to search the operation to secure
      * @param operationID guid of the traceability operation
      * @param temporizationDelayInSeconds temporization delay (in seconds) for recent logbook operation events.
      * @param traceabilityExpirationInSeconds
+     * @param operationTraceabilityMaxEntries
      */
     public LogbookOperationTraceabilityHelper(
         LogbookOperations logbookOperations,
         GUID operationID,
         int temporizationDelayInSeconds,
-        int traceabilityExpirationInSeconds
+        int traceabilityExpirationInSeconds,
+        int operationTraceabilityMaxEntries
     ) {
         this.logbookOperations = logbookOperations;
         this.operationID = operationID;
         this.temporizationDelayInSeconds = temporizationDelayInSeconds;
         this.traceabilityExpirationInSeconds = traceabilityExpirationInSeconds;
+        this.operationTraceabilityMaxEntries = operationTraceabilityMaxEntries;
     }
 
     public void initialize() throws TraceabilityException {
@@ -211,12 +216,39 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
 
     @Override
     public void saveDataInZip(MerkleTreeAlgo algo, TraceabilityFile file) throws IOException, TraceabilityException {
-        MongoCursor<LogbookOperation> mongoCursor;
-        try {
-            mongoCursor = logbookOperations.selectOperationsByLastPersistenceDateInterval(
-                traceabilityStartDate,
-                traceabilityEndDate
-            );
+        try (
+            CloseableIterator<LogbookOperation> iterator =
+                logbookOperations.selectOperationsByLastPersistenceDateInterval(
+                    traceabilityStartDate,
+                    traceabilityEndDate,
+                    operationTraceabilityMaxEntries
+                )
+        ) {
+            LocalDateTime maxEntryLastPersistedDate = null;
+            file.initStoreLog();
+
+            while (iterator.hasNext()) {
+                final LogbookOperation logbookOperation = iterator.next();
+                JsonNode logbookOperationJsonNode = JsonHandler.toJsonNode(logbookOperation);
+                byte[] logbookOperationJsonBytes = CanonicalJsonFormatter.serializeToByteArray(
+                    logbookOperationJsonNode
+                );
+
+                file.storeLog(logbookOperationJsonBytes);
+                algo.addLeaf(logbookOperationJsonBytes);
+                nbEntries++;
+
+                String entryLastPersistedDateStr = logbookOperation.getString(LogbookDocument.LAST_PERSISTED_DATE);
+                maxEntryLastPersistedDate = LocalDateUtil.parseMongoFormattedDate(entryLastPersistedDateStr);
+            }
+
+            file.closeStoreLog();
+
+            maxEntriesReached = nbEntries >= operationTraceabilityMaxEntries;
+            if (maxEntriesReached) {
+                // Override end date if max entries reached
+                traceabilityEndDate = maxEntryLastPersistedDate;
+            }
         } catch (
             LogbookDatabaseException
             | LogbookNotFoundException
@@ -225,26 +257,6 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
         ) {
             throw new TraceabilityException(e);
         }
-        traceabilityIterator = new LogbookTraceabilityIterator(mongoCursor);
-
-        file.initStoreLog();
-
-        try {
-            while (traceabilityIterator.hasNext()) {
-                final LogbookOperation logbookOperation = traceabilityIterator.next();
-                JsonNode logbookOperationJsonNode = JsonHandler.toJsonNode(logbookOperation);
-                byte[] logbookOperationJsonBytes = CanonicalJsonFormatter.serializeToByteArray(
-                    logbookOperationJsonNode
-                );
-
-                file.storeLog(logbookOperationJsonBytes);
-                algo.addLeaf(logbookOperationJsonBytes);
-            }
-        } catch (InvalidParseOperationException e) {
-            throw new TraceabilityException("Could not convert document to json", e);
-        }
-
-        file.closeStoreLog();
     }
 
     @Override
@@ -432,7 +444,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
 
     @Override
     public boolean getMaxEntriesReached() {
-        return false;
+        return maxEntriesReached;
     }
 
     @Override
@@ -441,11 +453,8 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     @Override
-    public long getDataSize() throws TraceabilityException {
-        if (traceabilityIterator != null) {
-            return traceabilityIterator.getNumberOfLines();
-        }
-        throw new TraceabilityException("Iterator is not yet initialized");
+    public long getDataSize() {
+        return nbEntries;
     }
 
     @Override

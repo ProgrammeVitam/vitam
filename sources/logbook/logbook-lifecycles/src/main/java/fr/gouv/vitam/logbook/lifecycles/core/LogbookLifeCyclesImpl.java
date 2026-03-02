@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
-import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
@@ -417,41 +416,33 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     public CloseableIterator<JsonNode> getRawUnitLifecyclesByLastPersistedDate(
         String startDate,
         String endDate,
-        int limit
-    ) {
-        return getRawLifecyclesByLastPersistedDate(LogbookCollections.LIFECYCLE_UNIT, startDate, endDate, limit);
+        int softLimit
+    ) throws LogbookDatabaseException {
+        return getRawLifecyclesByLastPersistedDate(LogbookCollections.LIFECYCLE_UNIT, startDate, endDate, softLimit);
     }
 
     @Override
     public CloseableIterator<JsonNode> getRawObjectGroupLifecyclesByLastPersistedDate(
         String startDate,
         String endDate,
-        int limit
-    ) {
-        return getRawLifecyclesByLastPersistedDate(LogbookCollections.LIFECYCLE_OBJECTGROUP, startDate, endDate, limit);
+        int softLimit
+    ) throws LogbookDatabaseException {
+        return getRawLifecyclesByLastPersistedDate(
+            LogbookCollections.LIFECYCLE_OBJECTGROUP,
+            startDate,
+            endDate,
+            softLimit
+        );
     }
 
     private CloseableIterator<JsonNode> getRawLifecyclesByLastPersistedDate(
         LogbookCollections collection,
         String startDate,
         String endDate,
-        int limit
-    ) {
-        VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection.getCollection());
-        // Get new LFC entries last operation
-        // Select operations greater OR equal to startDate to include last secured elements in next traceability
-        MongoCursor<Document> lifecycleIterator = vitamMongoRepository
-            .findDocuments(
-                Filters.and(
-                    Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId()),
-                    Filters.gte(LogbookDocument.LAST_PERSISTED_DATE, startDate),
-                    Filters.lte(LogbookDocument.LAST_PERSISTED_DATE, endDate)
-                ),
-                VitamConfiguration.getBatchSize()
-            )
-            .sort(Sorts.ascending(LogbookDocument.LAST_PERSISTED_DATE))
-            .limit(limit)
-            .iterator();
+        int softLimit
+    ) throws LogbookDatabaseException {
+        CloseableIterator<? extends VitamDocument<?>> lifecycleIterator =
+            mongoDbAccess.selectRawByLastPersistenceDateInterval(collection, startDate, endDate, softLimit);
 
         return new CloseableIterator<>() {
             @Override

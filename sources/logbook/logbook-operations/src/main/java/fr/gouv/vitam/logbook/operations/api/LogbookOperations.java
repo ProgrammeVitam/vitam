@@ -27,7 +27,7 @@
 package fr.gouv.vitam.logbook.operations.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
@@ -124,9 +124,10 @@ public interface LogbookOperations {
      * @throws InvalidParseOperationException if invalid parse for selecting the operation
      * @throws InvalidCreateOperationException if the query could not be created
      */
-    MongoCursor<LogbookOperation> selectOperationsByLastPersistenceDateInterval(
+    CloseableIterator<LogbookOperation> selectOperationsByLastPersistenceDateInterval(
         LocalDateTime startDate,
-        LocalDateTime endDate
+        LocalDateTime endDate,
+        int limit
     )
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, InvalidCreateOperationException;
 

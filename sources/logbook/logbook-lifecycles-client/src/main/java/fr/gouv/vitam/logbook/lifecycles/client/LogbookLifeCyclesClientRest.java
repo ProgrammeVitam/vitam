@@ -283,12 +283,12 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         String uri,
         LocalDateTime startDate,
         LocalDateTime endDate,
-        int limit
+        int softLimit
     ) throws LogbookClientException, InvalidParseOperationException, IOException {
         RawLifecycleByLastPersistedDateRequest request = new RawLifecycleByLastPersistedDateRequest(
             LocalDateUtil.getFormattedDateTimeForMongo(startDate),
             LocalDateUtil.getFormattedDateTimeForMongo(endDate),
-            limit
+            softLimit
         );
         Response response = null;
         boolean doNotCloseResponse = false;

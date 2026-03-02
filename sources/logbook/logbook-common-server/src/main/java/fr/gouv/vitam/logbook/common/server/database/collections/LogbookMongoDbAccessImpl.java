@@ -33,7 +33,9 @@ import co.elastic.clients.elasticsearch.core.search.ResponseBody;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+import com.google.common.collect.PeekingIterator;
 import com.mongodb.BasicDBObject;
 import com.mongodb.ErrorCategory;
 import com.mongodb.MongoException;
@@ -50,6 +52,7 @@ import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.ReturnDocument;
+import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
@@ -58,6 +61,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.OntologyLoader;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.builder.query.NopQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -108,6 +112,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
@@ -155,6 +160,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     private static final int LAST_EVENT_SLICE = -1;
     private static final int TWO_LAST_EVENTS_SLICE = -2;
+
+    private static final int OVERFLOW_LIMIT = 10_000;
 
     static {
         for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
@@ -272,16 +279,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     @Override
     public long getLogbookLifeCyleObjectGroupSize() {
         return LogbookCollections.LIFECYCLE_OBJECTGROUP.getCollection().countDocuments();
-    }
-
-    @Override
-    public long getLogbookLifeCyleUnitInProcessSize() {
-        return LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getCollection().countDocuments();
-    }
-
-    @Override
-    public long getLogbookLifeCyleObjectGroupInProcessSize() {
-        return LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS.getCollection().countDocuments();
     }
 
     /**
@@ -705,6 +702,76 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                     logbookLifeCycleParametersBulk.size()
                 )
             );
+        }
+    }
+
+    /**
+     * Select raw documents persisted during a given interval, sorted by last persisted date.
+     * If "soft limit" is reached, it may still return next few entries having same exact last persisted date.
+     */
+    @Override
+    public <T extends VitamDocument<T>> CloseableIterator<T> selectRawByLastPersistenceDateInterval(
+        LogbookCollections logbookCollection,
+        String startDate,
+        String endDate,
+        int softLimit
+    ) throws LogbookDatabaseException {
+        int limit = softLimit + OVERFLOW_LIMIT;
+
+        MongoCollection<T> logbookOperationMongoCollection = logbookCollection.getCollection();
+
+        try {
+            MongoCursor<T> mongoCursor = logbookOperationMongoCollection
+                .find(
+                    and(
+                        eq(TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId()),
+                        Filters.gte(LAST_PERSISTED_DATE, startDate),
+                        Filters.lte(LAST_PERSISTED_DATE, endDate)
+                    )
+                )
+                .sort(Sorts.ascending(LAST_PERSISTED_DATE))
+                .limit(limit)
+                .batchSize(VitamConfiguration.getBatchSize())
+                .iterator();
+
+            PeekingIterator<T> peekingIterator = Iterators.peekingIterator(mongoCursor);
+
+            return new CloseableIterator<>() {
+                String maxEntryLastPersistedDate = null;
+                int nbEntries = 0;
+
+                @Override
+                public boolean hasNext() {
+                    if (!peekingIterator.hasNext()) {
+                        return false;
+                    }
+                    if (nbEntries + 1 <= softLimit) {
+                        return true;
+                    }
+                    // Once softLimit is reached, keep returning entries with same exact timestamp
+                    T nextEntry = peekingIterator.peek();
+                    String entryLastPersistedDate = nextEntry.getString(LogbookDocument.LAST_PERSISTED_DATE);
+                    return entryLastPersistedDate.equals(maxEntryLastPersistedDate);
+                }
+
+                @Override
+                public T next() {
+                    if (!hasNext()) {
+                        throw new NoSuchElementException();
+                    }
+                    T nextDocument = peekingIterator.next();
+                    this.maxEntryLastPersistedDate = nextDocument.getString(LogbookDocument.LAST_PERSISTED_DATE);
+                    nbEntries += 1;
+                    return nextDocument;
+                }
+
+                @Override
+                public void close() {
+                    mongoCursor.close();
+                }
+            };
+        } catch (MongoException e) {
+            throw new LogbookDatabaseException(e);
         }
     }
 
