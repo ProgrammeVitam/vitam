@@ -35,6 +35,7 @@ import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
+import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientErrorsDetailsInvalidRequestException;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientInvalidRequestException;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientNotFoundException;
 import fr.gouv.vitam.common.CommonMediaType;
@@ -330,6 +331,13 @@ public class ProjectExternalResource extends ApplicationStatusResource {
         } catch (final CollectInternalClientNotFoundException e) {
             LOGGER.error("Error when uploading Zip to project", e);
             return CollectRequestResponse.toVitamError(NOT_FOUND, e.getLocalizedMessage());
+        } catch (final CollectInternalClientErrorsDetailsInvalidRequestException e) {
+            LOGGER.error("Error when uploading Zip to project", e);
+            return CollectRequestResponse.toVitamError(
+                BAD_REQUEST,
+                e.getLocalizedMessage(),
+                e.getVitamError().getErrorsDetails()
+            );
         } catch (final VitamClientException e) {
             LOGGER.error("Error when uploading Zip to project", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());

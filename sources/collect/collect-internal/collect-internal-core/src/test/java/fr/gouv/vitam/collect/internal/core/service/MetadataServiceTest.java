@@ -388,6 +388,22 @@ public class MetadataServiceTest {
 
     @Test
     @RunWithCustomExecutor
+    public void testUpdateUnitsWithCsvMetadataKoWhenIllegalArgumentExceptionIsRejected() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0).getId());
+
+        try (
+            InputStream is = PropertiesUtils.getResourceAsStream(
+                "update/metadata_update_operation_invalid_duplicate_header.csv"
+            )
+        ) {
+            assertThatThrownBy(() -> metadataService.updateUnitsWithMetadataCsv(transactionModel, is)).hasMessage(
+                "Invalid header names. Duplicate header name 'Content.DescriptionLevel'"
+            );
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void testUpdateUnitsWithJsonlMetadataKoWhenUpdateOperationHeaderSet() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0).getId());
 
