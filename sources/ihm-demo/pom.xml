@@ -1469,12 +1469,6 @@
       </dependency>
 
       <dependency>
-        <groupId>org.quartz-scheduler</groupId>
-        <artifactId>quartz-jobs</artifactId>
-        <version>${quartz.version}</version>
-      </dependency>
-
-      <dependency>
         <groupId>io.fluidsonic.mirror</groupId>
         <artifactId>quartz-mongodb</artifactId>
         <version>${quartz-mongodb.version}</version>
