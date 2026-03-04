@@ -111,7 +111,7 @@
     <!-- object storing-->
     <jclouds.version>2.7.0</jclouds.version>
     <openstack4j.version>3.12</openstack4j.version>
-    <awssdk.v2.version>2.33.2</awssdk.v2.version>
+    <awssdk.v2.version>2.42.5</awssdk.v2.version>
 
     <!-- jetty -->
     <jetty.version>12.0.19</jetty.version>
@@ -133,8 +133,8 @@
 
     <!-- other -->
     <slf4j.version>2.0.12</slf4j.version>
-    <logback.version>1.5.18</logback.version>
-    <resteasy.client.version>6.2.12.Final</resteasy.client.version>
+    <logback.version>1.5.32</logback.version>
+    <resteasy.client.version>6.2.15.Final</resteasy.client.version>
     <resteasy.core.version>6.2.12.Final</resteasy.core.version>
     <guava.version>33.1.0-jre</guava.version>
     <log4j2.version>2.17.1</log4j2.version>
@@ -145,7 +145,7 @@
     <commons-text>1.11.0</commons-text>
     <easymock.version>5.2.0</easymock.version>
     <jackson.version>2.18.3</jackson.version>
-    <apache-shiro.version>2.0.5</apache-shiro.version>
+    <apache-shiro.version>2.1.0</apache-shiro.version>
     <assertj.version>3.25.3</assertj.version>
     <rest-assured.version>5.5.5</rest-assured.version>
     <org.json.version>20240303</org.json.version>
