@@ -35,6 +35,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterators;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalMultipleErrorsDetailsException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalServerSideException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalSingleErrorsDetailException;
 import fr.gouv.vitam.collect.internal.core.common.CollectErrorMessagesEnum;
@@ -233,7 +234,14 @@ public class FluxService {
             bulkWriteObjectGroups(objectGroupsToWriteFile);
 
             bulkUpdateUnits(transactionId, jsonlMetadataFile);
-        } catch (CollectInternalInvalidRequestException e) {
+        } catch (
+            /* Here we gather CollectInternalSingleErrorsDetailException and CollectInternalMultipleErrorsDetailsException
+                in order to get an unique error or a list of errors (more easily exploitable by the front-office) instead of
+                a message concatenating multiple errors, more difficult to read **/
+            CollectInternalInvalidRequestException
+            | CollectInternalSingleErrorsDetailException
+            | CollectInternalMultipleErrorsDetailsException e
+        ) {
             throw e;
         } catch (Exception e) {
             throw CollectErrorDetailHelper.generateException(

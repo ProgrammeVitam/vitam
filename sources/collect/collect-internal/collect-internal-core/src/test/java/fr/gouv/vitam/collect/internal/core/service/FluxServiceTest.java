@@ -385,7 +385,7 @@ public class FluxServiceTest {
                 () -> fluxService.processStream(resourceAsStream, PROJECT_ID, TRANSACTION_ID, null, null)
             )
                 .isInstanceOf(CollectInternalErrorsDetailsException.class)
-                .hasMessage("An unexpected error occurs when try to upload the ZIP: Empty zip file");
+                .hasMessage("Empty zip file");
         }
 
         verify(metadataRepository, never()).saveArchiveUnits(anyList());
@@ -521,7 +521,7 @@ public class FluxServiceTest {
                 () -> fluxService.processStream(resourceAsStream, PROJECT_ID, TRANSACTION_ID, null, null)
             );
             Assert.assertEquals(
-                "An unexpected error occurs when try to upload the ZIP: Invalid header names. Missing required 'File' or '_id' header name",
+                "Invalid header names. Missing required 'File' or '_id' header name",
                 exception.getMessage()
             );
         }
@@ -1165,9 +1165,7 @@ public class FluxServiceTest {
             // Then
             assertThatThrownBy(invocation)
                 .isInstanceOf(CollectInternalErrorsDetailsException.class)
-                .hasMessage(
-                    "An unexpected error occurs when try to upload the ZIP: Duplicate File or #uploadPath selector declaration for 'SomeFile.xml'"
-                );
+                .hasMessage("Duplicate File or #uploadPath selector declaration for 'SomeFile.xml'");
         }
 
         verify(metadataRepository, never()).saveArchiveUnits(anyList());
@@ -1193,9 +1191,7 @@ public class FluxServiceTest {
             // Then
             assertThatThrownBy(invocation)
                 .isInstanceOf(CollectInternalErrorsDetailsException.class)
-                .hasMessage(
-                    "An unexpected error occurs when try to upload the ZIP: Duplicate File or #uploadPath selector declaration for 'My Root Folder'"
-                );
+                .hasMessage("Duplicate File or #uploadPath selector declaration for 'My Root Folder'");
         }
 
         verify(metadataRepository, never()).saveArchiveUnits(anyList());
@@ -1221,9 +1217,7 @@ public class FluxServiceTest {
             // Then
             assertThatThrownBy(invocation)
                 .isInstanceOf(CollectInternalErrorsDetailsException.class)
-                .hasMessage(
-                    "An unexpected error occurs when try to upload the ZIP: Duplicate ObjectFiles declaration for 'My Root Folder/MyFile2.txt'"
-                );
+                .hasMessage("Duplicate ObjectFiles declaration for 'My Root Folder/MyFile2.txt'");
         }
 
         verify(metadataRepository, never()).saveArchiveUnits(anyList());
@@ -1250,7 +1244,7 @@ public class FluxServiceTest {
             assertThatThrownBy(invocation)
                 .isInstanceOf(CollectInternalErrorsDetailsException.class)
                 .hasMessage(
-                    "An unexpected error occurs when try to upload the ZIP: ObjectFiles value 'SomeFile.xml' can only be set when File or #uploadPath selector 'My Root Folder/MyFile1.txt' is a directory"
+                    "ObjectFiles value 'SomeFile.xml' can only be set when File or #uploadPath selector 'My Root Folder/MyFile1.txt' is a directory"
                 );
         }
 
@@ -1277,9 +1271,7 @@ public class FluxServiceTest {
             // Then
             assertThatThrownBy(invocation)
                 .isInstanceOf(CollectInternalErrorsDetailsException.class)
-                .hasMessage(
-                    "An unexpected error occurs when try to upload the ZIP: Invalid ObjectFiles value 'My Root Folder'. Must be a file"
-                );
+                .hasMessage("Invalid ObjectFiles value 'My Root Folder'. Must be a file");
         }
 
         verify(metadataRepository, never()).saveArchiveUnits(anyList());
@@ -1305,9 +1297,7 @@ public class FluxServiceTest {
             // Then
             assertThatThrownBy(invocation)
                 .isInstanceOf(CollectInternalErrorsDetailsException.class)
-                .hasMessage(
-                    "An unexpected error occurs when try to upload the ZIP: Invalid ObjectFiles value 'Unknown/file.Txt'. No such file"
-                );
+                .hasMessage("Invalid ObjectFiles value 'Unknown/file.Txt'. No such file");
         }
 
         verify(metadataRepository, never()).saveArchiveUnits(anyList());

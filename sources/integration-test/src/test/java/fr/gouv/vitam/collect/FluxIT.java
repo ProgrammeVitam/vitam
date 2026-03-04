@@ -475,9 +475,7 @@ public class FluxIT extends VitamRuleRunner {
                         )
                 )
                     .isExactlyInstanceOf(CollectExternalClientInvalidRequestException.class)
-                    .hasMessage(
-                        "An unexpected error occurs when try to upload the ZIP: Invalid File or #uploadPath selector 'UnknownFile'. No such file or directory"
-                    );
+                    .hasMessage("Invalid File or #uploadPath selector 'UnknownFile'. No such file or directory");
             }
         }
     }
@@ -559,7 +557,7 @@ public class FluxIT extends VitamRuleRunner {
                 )
                     .isExactlyInstanceOf(CollectExternalClientInvalidRequestException.class)
                     .hasMessage(
-                        "An unexpected error occurs when try to upload the ZIP: JSONL validation failed. 1 error:\n" +
+                        "JSONL validation failed. 1 error:\n" +
                         "- Invalid unit metadata at index: 0. Empty metadata content"
                     );
             }
@@ -897,9 +895,7 @@ public class FluxIT extends VitamRuleRunner {
                         )
                 )
                     .isExactlyInstanceOf(CollectExternalClientInvalidRequestException.class)
-                    .hasMessage(
-                        "An unexpected error occurs when try to upload the ZIP: Cannot upload empty file 'A/C.txt'"
-                    );
+                    .hasMessage("Cannot upload empty file 'A/C.txt'");
             }
         }
     }
