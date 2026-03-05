@@ -169,7 +169,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>fr.gouv.vitam.collect.external.external.rest.CollectExternalMain</mainClass>
+                            <mainClass>fr.gouv.vitam.collect.external.rest.CollectExternalMain</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

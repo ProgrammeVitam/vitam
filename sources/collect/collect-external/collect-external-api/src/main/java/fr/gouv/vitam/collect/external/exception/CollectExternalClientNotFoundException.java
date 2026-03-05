@@ -24,22 +24,38 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.external.external.exception;
+package fr.gouv.vitam.collect.external.exception;
 
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.VitamClientException;
+/**
+ * NotFound Access Client Exception
+ */
+public class CollectExternalClientNotFoundException extends CollectExternalClientException {
 
-public class CollectExternalClientInvalidRequestException extends VitamClientException {
-
-    private final VitamError<?> vitamError;
-
-    public CollectExternalClientInvalidRequestException(String message, VitamError<?> vitamError) {
+    /**
+     * constructor with message
+     *
+     * @param message associated message
+     */
+    public CollectExternalClientNotFoundException(String message) {
         super(message);
-        this.vitamError = vitamError;
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> VitamError<T> getVitamError() {
-        return ((VitamError<T>) vitamError);
+    /**
+     * constructor with throwable
+     *
+     * @param cause associated cause
+     */
+    public CollectExternalClientNotFoundException(Throwable cause) {
+        super(cause);
+    }
+
+    /**
+     * constructor with message and throwable
+     *
+     * @param message associated message
+     * @param cause associated cause
+     */
+    public CollectExternalClientNotFoundException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

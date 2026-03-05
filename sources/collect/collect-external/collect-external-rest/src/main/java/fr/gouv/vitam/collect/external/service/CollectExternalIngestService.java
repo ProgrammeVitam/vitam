@@ -25,13 +25,13 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.collect.external.external.service;
+package fr.gouv.vitam.collect.external.service;
 
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
-import fr.gouv.vitam.collect.external.external.exception.CollectExternalException;
-import fr.gouv.vitam.collect.external.external.exception.CollectExternalInvalidRequestException;
-import fr.gouv.vitam.collect.external.external.exception.CollectExternalNotFoundException;
-import fr.gouv.vitam.collect.external.external.exception.CollectExternalServerSideException;
+import fr.gouv.vitam.collect.external.exception.CollectExternalException;
+import fr.gouv.vitam.collect.external.exception.CollectExternalInvalidRequestException;
+import fr.gouv.vitam.collect.external.exception.CollectExternalNotFoundException;
+import fr.gouv.vitam.collect.external.exception.CollectExternalServerSideException;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientInvalidRequestException;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientNotFoundException;
