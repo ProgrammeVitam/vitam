@@ -91,22 +91,22 @@ public class InaIoService {
      * Checks tape capacity before writing and increments size after successful write.
      */
     public void writeToTape(int driveIndex, String inputPath) throws InaTapeProxyException {
-        Path source = sanityCheckPath(inputPath);
-        String filename = source.getFileName().toString();
+        Path offerStorage = sanityCheckPath(inputPath);
+        String filename = offerStorage.getFileName().toString();
         LOGGER.info("WRITE START: {}", filename);
 
         try {
-            long fileSize = Files.size(source);
+            long fileSize = Files.size(offerStorage);
             LOGGER.debug("File size to write: {} bytes", fileSize);
 
-            Path destination = fsManager.getWritePath(filename);
+            Path writePath = fsManager.getWritePath(filename);
 
             // Atomic sequence: capacity check -> copy -> marker -> increment tape size
             executeAtomicWrite(fileSize, driveIndex, () -> {
-                if (Files.exists(destination) && isSameContent(source, destination)) {
+                if (Files.exists(writePath) && isSameContent(offerStorage, writePath)) {
                     LOGGER.info("Checksums match for {}. Skipping copy.", filename);
                 } else {
-                    Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+                    Files.copy(offerStorage, writePath, StandardCopyOption.REPLACE_EXISTING);
                     Thread.sleep(configuration.getWriteLatencyMs());
                 }
                 markerManager.createMarker(filename, MarkerType.WRITE_OK);
@@ -116,9 +116,14 @@ public class InaIoService {
                 new Thread(
                     () -> {
                         try {
-                            Files.move(source, inaStorage.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
+                            // Delay to allow tests to verify file exists in write directory
+                            Thread.sleep(2000);
+                            Files.move(writePath, inaStorage.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
                         } catch (IOException e) {
                             LOGGER.error("Error while copying to INA storage for {}", filename, e);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            LOGGER.error("Thread interrupted while copying to INA storage for {}", filename, e);
                         }
                     },
                     "thread-ina-tape-write-copy-" + filename
