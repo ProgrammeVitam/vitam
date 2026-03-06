@@ -39,7 +39,7 @@ import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.batch.report.rest.server.BatchReportConfiguration;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
-import fr.gouv.vitam.collect.external.external.rest.CollectExternalMain;
+import fr.gouv.vitam.collect.external.rest.CollectExternalMain;
 import fr.gouv.vitam.collect.internal.CollectInternalMain;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
 import fr.gouv.vitam.common.client.MockOrRestClient;

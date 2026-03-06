@@ -24,55 +24,58 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.external.external.rest;
+package fr.gouv.vitam.collect.external.rest;
 
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
-import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
-import fr.gouv.vitam.common.security.rest.Unsecured;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.ws.rs.OPTIONS;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import jakarta.ws.rs.core.Response;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-@Path("/collect-external/v1")
-@Tag(name = "Collect")
-public class CollectExternalResource extends ApplicationStatusResource {
+import static io.restassured.RestAssured.given;
+import static org.junit.Assert.assertEquals;
 
-    private final SecureEndpointRegistry secureEndpointRegistry;
+public class CollectExternalResourceTest {
 
-    CollectExternalResource(SecureEndpointRegistry secureEndpointRegistry) {
-        this.secureEndpointRegistry = secureEndpointRegistry;
+    private static CollectExternalMain application;
+    private static JunitHelper junitHelper;
+    private static int portAvailable;
+
+    @BeforeClass
+    public static void setUpBeforeMethod() throws VitamApplicationServerException {
+        junitHelper = JunitHelper.getInstance();
+        portAvailable = junitHelper.findAvailablePort();
+        RestAssured.port = portAvailable;
+        RestAssured.basePath = "collect-external/v1";
+        application = new CollectExternalMain("collect-external-test.conf", BusinessApplicationTest.class, null);
+        application.start();
     }
 
-    /**
-     * Get all Endpoints
-     *
-     * @return Response of EndpointInfo
-     */
-    @Path("/")
-    @OPTIONS
-    @Produces(MediaType.APPLICATION_JSON)
-    @Unsecured
-    public Response listResourceEndpoints() {
-        final Set<EndpointInfo> securedEndpointSet = Arrays.asList(
-            ProjectExternalResource.class.getAnnotation(Path.class).value(),
-            TransactionExternalResource.class.getAnnotation(Path.class).value(),
-            CollectMetadataExternalResource.class.getAnnotation(Path.class).value()
-        )
-            .stream()
-            .map(this.secureEndpointRegistry::getEndPointsByResourcePath)
-            .flatMap(List::stream)
-            .collect(Collectors.toSet());
+    @Test
+    public void shouldNotHaveDuplicatesInApiListResponse() {
+        final EndpointInfo[] endpointInfoArray = given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .when()
+            .options()
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode())
+            .extract()
+            .body()
+            .as(EndpointInfo[].class);
+        final List<EndpointInfo> endpointInfoList = Arrays.asList(endpointInfoArray);
+        final Set<EndpointInfo> endpointInfoSet = new HashSet<>(endpointInfoList);
 
-        return Response.status(Response.Status.OK).entity(new ArrayList<>(securedEndpointSet)).build();
+        assertEquals(endpointInfoArray.length, endpointInfoSet.size());
     }
 }

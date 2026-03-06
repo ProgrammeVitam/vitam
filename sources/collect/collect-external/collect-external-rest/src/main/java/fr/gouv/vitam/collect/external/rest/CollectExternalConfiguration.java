@@ -24,19 +24,47 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.external.external.exception;
+package fr.gouv.vitam.collect.external.rest;
 
-public class CollectExternalServerSideException extends CollectExternalException {
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
-    public CollectExternalServerSideException(String message, Throwable cause) {
-        super(message, cause);
+/**
+ * Collect external Configuration
+ */
+public class CollectExternalConfiguration extends DefaultVitamApplicationConfiguration {
+
+    private boolean allowSslClientHeader = false;
+    private long ingestionThreadFrequencySeconds = 5;
+    private int ingestionThreadPoolSize = 4;
+
+    /**
+     * CollectExternalConfiguration empty constructor for YAMLFactory
+     */
+    public CollectExternalConfiguration() {
+        // Empty constructor
     }
 
-    public CollectExternalServerSideException(Throwable cause) {
-        super(cause);
+    public boolean isAllowSslClientHeader() {
+        return allowSslClientHeader;
     }
 
-    public CollectExternalServerSideException(String message) {
-        super(message);
+    public void setAllowSslClientHeader(boolean allowSslClientHeader) {
+        this.allowSslClientHeader = allowSslClientHeader;
+    }
+
+    public int getIngestionThreadPoolSize() {
+        return ingestionThreadPoolSize;
+    }
+
+    public long getIngestionThreadFrequencySeconds() {
+        return ingestionThreadFrequencySeconds;
+    }
+
+    public void setIngestionThreadFrequencySeconds(long ingestionThreadFrequencySeconds) {
+        this.ingestionThreadFrequencySeconds = ingestionThreadFrequencySeconds;
+    }
+
+    public void setIngestionThreadPoolSize(int ingestionThreadPoolSize) {
+        this.ingestionThreadPoolSize = ingestionThreadPoolSize;
     }
 }

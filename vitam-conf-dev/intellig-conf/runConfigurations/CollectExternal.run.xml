@@ -2,7 +2,7 @@
   <configuration default="false" name="CollectExternal" type="Application" factoryName="Application">
     <log_file alias="Logs" path="$vitamLocalShareFolder$/log/collect-external/collect-external.*.log" />
     <log_file alias="AccessLogs" path="$vitamLocalShareFolder$/log/collect-external/accesslog-collect-external.*.log" />
-    <option name="MAIN_CLASS_NAME" value="fr.gouv.vitam.collect.external.external.rest.CollectExternalMain" />
+    <option name="MAIN_CLASS_NAME" value="fr.gouv.vitam.collect.external.rest.CollectExternalMain" />
     <module name="collect-external-rest" />
     <option name="PROGRAM_PARAMETERS" value="$vitamLocalShareFolder$/conf/collect-external/collect-external.conf" />
     <option name="VM_PARAMETERS" value="-Dlogback.configurationFile=$vitamLocalShareFolder$/conf/collect-external/logback.xml -Dvitam.tmp.folder=$vitamLocalShareFolder$/tmp/collect-external -Dvitam.config.folder=$vitamLocalShareFolder$/conf/collect-external -Dvitam.data.folder=$vitamLocalShareFolder$/data/collect-external -Dvitam.log.folder=$vitamLocalShareFolder$/log/collect-external" />
