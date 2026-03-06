@@ -53,10 +53,6 @@
             <artifactId>quartz</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.quartz-scheduler</groupId>
-            <artifactId>quartz-jobs</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.fluidsonic.mirror</groupId>
             <artifactId>quartz-mongodb</artifactId>
         </dependency>
