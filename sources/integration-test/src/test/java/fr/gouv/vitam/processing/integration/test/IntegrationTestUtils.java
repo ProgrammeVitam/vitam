@@ -78,6 +78,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -326,7 +327,8 @@ public class IntegrationTestUtils {
         String sourceOriginatingAgency,
         String newOriginatingAgency,
         boolean propagateToObjectGroups,
-        SelectMultiQuery selectQuery
+        SelectMultiQuery selectQuery,
+        Set<StatusCode> expectedStatus
     )
         throws ContentAddressableStorageServerException, InvalidParseOperationException, InternalServerException, BadRequestException, VitamClientException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException {
         GUID operationId = null;
@@ -397,7 +399,7 @@ public class IntegrationTestUtils {
                 .findOneProcessWorkflow(operationId.toString(), tenantId);
             assertNotNull(cirWorkflow);
             assertEquals(COMPLETED, cirWorkflow.getState());
-            assertThat(cirWorkflow.getStatus()).isIn(StatusCode.OK, StatusCode.WARNING);
+            assertThat(expectedStatus).contains(cirWorkflow.getStatus());
         } catch (AssertionError e) {
             if (operationId != null) {
                 printDebutInformation(operationId.toString());

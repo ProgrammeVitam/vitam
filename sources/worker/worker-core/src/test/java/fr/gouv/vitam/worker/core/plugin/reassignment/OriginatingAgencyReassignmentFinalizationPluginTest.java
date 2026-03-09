@@ -30,6 +30,7 @@ import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.plugin.reassignment.report.OriginatingAgencyReassignmentReportService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,6 +38,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -52,12 +55,20 @@ public class OriginatingAgencyReassignmentFinalizationPluginTest {
 
     HandlerIO handlerIO = mock(HandlerIO.class);
 
+    OriginatingAgencyReassignmentReportService reassignmentReportService = mock(
+        OriginatingAgencyReassignmentReportService.class
+    );
+    OriginatingAgencyReassignmentService reassignmentService = mock(OriginatingAgencyReassignmentService.class);
+
     private OriginatingAgencyReassignmentFinalizationPlugin originatingAgencyReassignmentFinalizationPlugin;
 
     @Before
     public void setUp() throws Exception {
         when(handlerIO.getBatchReportClient()).thenReturn(batchReportClient);
-        originatingAgencyReassignmentFinalizationPlugin = new OriginatingAgencyReassignmentFinalizationPlugin();
+        originatingAgencyReassignmentFinalizationPlugin = new OriginatingAgencyReassignmentFinalizationPlugin(
+            reassignmentReportService,
+            reassignmentService
+        );
     }
 
     @Test
@@ -75,5 +86,7 @@ public class OriginatingAgencyReassignmentFinalizationPluginTest {
         verify(batchReportClient).cleanupReport("container", ReportType.REASSIGNMENT_CHILD_UNITS);
         verify(batchReportClient).cleanupReport("container", ReportType.REASSIGNMENT_OBJECT_GROUPS);
         verify(batchReportClient).cleanupReport("container", ReportType.REASSIGNMENT_CHILD_OBJECT_GROUPS);
+
+        verify(reassignmentReportService).generateReassignmentReport(eq(handlerIO), eq(workerParameters), any());
     }
 }

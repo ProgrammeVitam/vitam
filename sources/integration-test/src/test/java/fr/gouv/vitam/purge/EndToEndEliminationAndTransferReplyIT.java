@@ -473,10 +473,22 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         SelectMultiQuery ingestSelect = new SelectMultiQuery();
         CompareQuery operationQuery = QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid);
         ingestSelect.setQuery(operationQuery);
-        launchOriginatingAgencyReassignmentOperation("RATP", "FRAN_NP_009913", true, ingestSelect);
+        launchOriginatingAgencyReassignmentOperation(
+            "RATP",
+            "FRAN_NP_009913",
+            true,
+            ingestSelect,
+            Set.of(StatusCode.OK, StatusCode.WARNING)
+        );
 
         // When another reassignment
-        launchOriginatingAgencyReassignmentOperation("FRAN_NP_009913", "RATP", true, ingestSelect);
+        launchOriginatingAgencyReassignmentOperation(
+            "FRAN_NP_009913",
+            "RATP",
+            true,
+            ingestSelect,
+            Set.of(StatusCode.OK, StatusCode.WARNING)
+        );
 
         Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
         assertThat(ingestedObjectIds).hasSize(3);
@@ -875,10 +887,22 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         CompareQuery operationQuery = QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid);
         ingestSelect.setQuery(operationQuery);
 
-        launchOriginatingAgencyReassignmentOperation("RATP", "FRAN_NP_009913", true, ingestSelect);
+        launchOriginatingAgencyReassignmentOperation(
+            "RATP",
+            "FRAN_NP_009913",
+            true,
+            ingestSelect,
+            Set.of(StatusCode.OK, StatusCode.WARNING)
+        );
 
         // When another reassignment
-        launchOriginatingAgencyReassignmentOperation("FRAN_NP_009913", "RATP", true, ingestSelect);
+        launchOriginatingAgencyReassignmentOperation(
+            "FRAN_NP_009913",
+            "RATP",
+            true,
+            ingestSelect,
+            Set.of(StatusCode.OK, StatusCode.WARNING)
+        );
 
         // Export transfer archive
         String transferOperation = transfer(ingestedUnitIds, OK, SupportedSedaVersions.SEDA_2_3);

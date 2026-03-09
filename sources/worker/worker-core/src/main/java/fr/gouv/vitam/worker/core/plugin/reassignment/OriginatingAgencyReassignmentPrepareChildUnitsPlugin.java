@@ -325,6 +325,7 @@ public class OriginatingAgencyReassignmentPrepareChildUnitsPlugin extends Action
                         processId,
                         objectGroupIds
                     );
+
                 if (CollectionUtils.isEmpty(notHandledObjectGroupIds)) {
                     continue;
                 }

@@ -303,7 +303,8 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
             currentOriginatingAgency,
             targetOriginatingAgency,
             true,
-            partialSelect
+            partialSelect,
+            Set.of(StatusCode.OK, StatusCode.WARNING)
         );
 
         // Then
@@ -416,7 +417,8 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
             currentOriginatingAgency,
             targetOriginatingAgency,
             true,
-            partialSelect
+            partialSelect,
+            Set.of(StatusCode.OK, StatusCode.WARNING)
         );
 
         // Then
@@ -537,7 +539,8 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
             currentOriginatingAgency,
             targetOriginatingAgency,
             false,
-            partialSelect
+            partialSelect,
+            Set.of(StatusCode.OK, StatusCode.WARNING)
         );
 
         // Then
@@ -798,7 +801,7 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowOriginatingAgencyReassignmentWithPartialDettachement() throws Exception {
+    public void testWorkflowOriginatingAgencyReassignmentWithPartialDetachement() throws Exception {
         prepareVitamSession();
         workspaceClient = WorkspaceClientFactory.getInstance(WorkFlowExecutionContext.VITAM).getClient();
         // Given ingest
@@ -931,7 +934,8 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
             currentOriginatingAgency,
             targetOriginatingAgency,
             propagateToObjectGroups,
-            reassignmentDslRequest
+            reassignmentDslRequest,
+            Set.of(StatusCode.OK, StatusCode.WARNING)
         );
         //check SP on unit
         JsonNode newUnitsNodes = metaDataClient.selectUnits(newUnitDslRequest.getFinalSelect()).get("$results");
@@ -962,7 +966,8 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
             currentOriginatingAgency,
             targetOriginatingAgency,
             propagateToObjectGroups,
-            reassignmentDslRequest2
+            reassignmentDslRequest2,
+            Set.of(StatusCode.OK, StatusCode.WARNING)
         );
 
         JsonNode resultsUnitsAfterReassignment2 = metaDataClient
