@@ -113,7 +113,6 @@ large-app-vm-2
 
 [hosts_scheduler]
 large-app-vm-3
-large-app-vm-4
 
 [hosts_processing]
 large-app-vm-8
