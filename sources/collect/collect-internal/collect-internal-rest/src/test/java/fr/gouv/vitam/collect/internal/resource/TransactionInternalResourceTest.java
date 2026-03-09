@@ -598,6 +598,21 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
     }
 
     @Test
+    public void updateUnitsCsv_ko_throws_illegal_argument_exception() throws Exception {
+        when(transactionService.findTransaction("TxId")).thenThrow(new IllegalArgumentException("error"));
+        given()
+            .contentType(TEXT_CSV)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body(DATA_HTML)
+            .when()
+            .put(TRANSACTIONS + "/TxId/units/metadata/csv")
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+        verify(metadataService, never()).updateUnitsWithMetadataCsv(any(), any());
+    }
+
+    @Test
     public void updateUnitsCsv_OK() throws Exception {
         TransactionModel transactionModel = new TransactionModel();
         transactionModel.setId("TxId");

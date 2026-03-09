@@ -446,7 +446,7 @@ public class TransactionInternalResource {
         } catch (CollectInternalNotFoundException e) {
             LOGGER.error("An occurred while updating metadata. Not Found", e);
             return CollectRequestResponse.toVitamError(NOT_FOUND, e.getLocalizedMessage());
-        } catch (InvalidParseOperationException | CollectInternalInvalidRequestException e) {
+        } catch (InvalidParseOperationException | CollectInternalInvalidRequestException | IllegalArgumentException e) {
             LOGGER.error("An occurred while updating metadata. Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (Exception e) {
