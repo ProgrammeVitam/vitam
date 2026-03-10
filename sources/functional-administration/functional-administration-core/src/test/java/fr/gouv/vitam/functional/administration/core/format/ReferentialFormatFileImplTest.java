@@ -110,7 +110,7 @@ public class ReferentialFormatFileImplTest {
     );
 
     String FILE_TO_TEST_KO = "FF-vitam-format-KO.xml";
-    String FILE_TO_TEST_OK = "DROID_SignatureFile_V121.xml";
+    String FILE_TO_TEST_OK = "DROID_SignatureFile_V122.xml";
     String FILE_TO_TEST_OK_V1 = "FF-vitam-V1.xml";
     String FILE_TO_TEST_OK_V2 = "FF-vitam-V2.xml";
 
@@ -169,7 +169,7 @@ public class ReferentialFormatFileImplTest {
         FormatImportReport report = importFormatFileAndDownloadReport(FILE_TO_TEST_OK);
 
         // Then
-        checkFormatsInDb(2521);
+        checkFormatsInDb(2544);
         final Select select = new Select();
         select.setQuery(QueryHelper.eq("PUID", "fmt/163"));
         final RequestResponseOK<FileFormat> fileList = formatFile.findDocuments(select.getFinalSelect());
@@ -186,13 +186,13 @@ public class ReferentialFormatFileImplTest {
         assertThat(report.getOperation().getEvId()).isEqualTo(VitamThreadUtils.getVitamSession().getRequestId());
         assertThat(report.getPreviousPronomCreationDate()).isNull();
         assertThat(report.getPreviousPronomVersion()).isNull();
-        assertThat(report.getNewPronomCreationDate()).isEqualTo("2025-09-25T09:58:27.000");
-        assertThat(report.getNewPronomVersion()).isEqualTo("121");
+        assertThat(report.getNewPronomCreationDate()).isEqualTo("2026-01-19T10:53:18.000");
+        assertThat(report.getNewPronomVersion()).isEqualTo("122");
         assertThat(report.getStatusCode()).isEqualTo(StatusCode.OK);
         assertThat(report.getWarnings()).isEmpty();
         assertThat(report.getRemovedPuids()).isEmpty();
         assertThat(report.getUpdatedPuids()).isEmpty();
-        assertThat(report.getAddedPuids()).hasSize(2521);
+        assertThat(report.getAddedPuids()).hasSize(2544);
     }
 
     @Test

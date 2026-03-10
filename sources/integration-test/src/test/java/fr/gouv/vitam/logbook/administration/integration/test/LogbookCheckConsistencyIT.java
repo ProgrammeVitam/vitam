@@ -126,8 +126,8 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
     private static final String MGT_RULES_REF_CSV = "jeu_donnees_OK_regles_CSV_regles.csv";
     private static final String AGENCIES_CSV = "agencies.csv";
     private static final String CHECK_LOGBOOK_DROID_SIGNATURE_FILE_XML =
-        "integration-logbook/data/DROID_SignatureFile_V121.xml";
-    private static final String DROID_SIGNATURE_FILE_XML = "DROID_SignatureFile_V121.xml";
+        "integration-logbook/data/DROID_SignatureFile_V122.xml";
+    private static final String DROID_SIGNATURE_FILE_XML = "DROID_SignatureFile_V122.xml";
 
     private static final String SIP_KO_ARBO_RECURSIVE = "integration-logbook/data/KO_ARBO_recursif.zip";
     private static final String EXPECTED_RESULTS_JSON = "integration-logbook/data/expected_results.json";
