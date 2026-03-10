@@ -46,7 +46,7 @@ public class TapeDriveModel {
     public static final String INITIAL_TAPE_SLOT_NUMBER = "initialTapeSlotNumber";
     public static final String CREATION_DATE = "CreationDate";
     public static final String UPDATE_DATE = "UpdateDate";
-    private static final String VERSION_FIELD = "_v";
+    public static final String VERSION_FIELD = "_v";
 
     @JsonProperty(ID)
     private String id;

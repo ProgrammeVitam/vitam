@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.cold.server.simulator.repository;
 
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndReplaceOptions;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -53,12 +54,12 @@ public class TapeDriveRepository {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeDriveRepository.class);
 
-    private static final String VERSION_FIELD = "_v";
+    public static final String COLLECTION_NAME = "tape_drive";
 
     private final MongoCollection<Document> collection;
 
-    public TapeDriveRepository(MongoCollection<Document> collection) {
-        this.collection = collection;
+    public TapeDriveRepository(MongoDatabase mongoDatabase) {
+        this.collection = mongoDatabase.getCollection(COLLECTION_NAME);
     }
 
     /**
@@ -75,7 +76,7 @@ public class TapeDriveRepository {
 
             Bson filter = Filters.and(
                 Filters.eq(TapeDriveModel.ID, drive.getId()),
-                Filters.eq(VERSION_FIELD, currentVersion)
+                Filters.eq(TapeDriveModel.VERSION_FIELD, currentVersion)
             );
 
             FindOneAndReplaceOptions options = new FindOneAndReplaceOptions().upsert(currentVersion == 0);

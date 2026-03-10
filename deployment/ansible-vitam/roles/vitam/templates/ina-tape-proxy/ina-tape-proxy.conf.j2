@@ -5,7 +5,7 @@ jettyConfig: jetty-config.xml
 # INA_LIBRARY CONFIGURATION
 # =============================================================================
 
-libraryName: {{ vitam.ina_tape_proxy.libraryName | default('INA_LIBRARY') }}
+libraryName: INA_LIBRARY
 nbDrives: {{ vitam.ina_tape_proxy.nbDrives | default(1) }}
 nbSlots: {{ vitam.ina_tape_proxy.nbSlots | default(15) }}
 tapeMaxCapacityMB: {{ vitam.ina_tape_proxy.tapeMaxCapacityMB | default(1000000) }} # 1 TB default
@@ -30,13 +30,13 @@ offerStorageDirectory: {{ vitam_defaults.folder.root_path }}/data/{{ vitam.offer
 # LATENCIES CONFIGURATION (milliseconds)
 # =============================================================================
 
-writeLatencyMs:   {{ vitam.ina_tape_proxy.writeLatencyMs | default(3000) }}   # 3 seconds
-readLatencyMs:    {{ vitam.ina_tape_proxy.readLatencyMs | default(6000) }}    # 6 seconds
-readTimeout:      {{ vitam.ina_tape_proxy.readTimeout | default(30000) }}     # 30 seconds
-loadLatencyMs:    {{ vitam.ina_tape_proxy.loadLatencyMs | default(2000) }}    # 2 seconds
-unloadLatencyMs:  {{ vitam.ina_tape_proxy.unloadLatencyMs | default(2000) }}  # 2 seconds
-ejectLatencyMs:   {{ vitam.ina_tape_proxy.ejectLatencyMs | default(2000) }}   # 2 seconds
-roboticLatencyMs: {{ vitam.ina_tape_proxy.roboticLatencyMs | default(2000) }} # 2 seconds (move, rewind, goto...)
+writeLatencyMs:   {{ vitam.ina_tape_proxy.writeLatencyMs | default(30000) }}   # 30 seconds
+readLatencyMs:    {{ vitam.ina_tape_proxy.readLatencyMs | default(60000) }}    # 60 seconds
+readTimeout:      {{ vitam.ina_tape_proxy.readTimeout | default(300000) }}     # 5*60 seconds
+loadLatencyMs:    {{ vitam.ina_tape_proxy.loadLatencyMs | default(20000) }}    # 20 seconds
+unloadLatencyMs:  {{ vitam.ina_tape_proxy.unloadLatencyMs | default(20000) }}  # 20 seconds
+ejectLatencyMs:   {{ vitam.ina_tape_proxy.ejectLatencyMs | default(20000) }}   # 20 seconds
+roboticLatencyMs: {{ vitam.ina_tape_proxy.roboticLatencyMs | default(20000) }} # 20 seconds (move, rewind, goto...)
 
 # =============================================================================
 # MONGODB CONFIGURATION

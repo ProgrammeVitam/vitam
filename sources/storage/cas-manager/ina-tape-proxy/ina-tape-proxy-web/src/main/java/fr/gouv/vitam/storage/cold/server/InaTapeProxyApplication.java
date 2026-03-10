@@ -92,12 +92,8 @@ public class InaTapeProxyApplication extends Application {
             LOGGER.info("MongoDB client created");
 
             // Initialize repositories
-            TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(
-                mongoDatabase.getCollection("tape_catalog")
-            );
-            TapeDriveRepository tapeDriveRepository = new TapeDriveRepository(
-                mongoDatabase.getCollection("tape_drive")
-            );
+            TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(mongoDatabase);
+            TapeDriveRepository tapeDriveRepository = new TapeDriveRepository(mongoDatabase);
 
             // Initialize services
             TapeInitializationService tapeInitializationService = new TapeInitializationService(

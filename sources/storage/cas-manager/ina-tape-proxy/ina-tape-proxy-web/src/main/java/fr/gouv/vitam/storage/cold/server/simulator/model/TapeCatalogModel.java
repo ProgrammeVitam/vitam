@@ -44,7 +44,7 @@ public class TapeCatalogModel {
     public static final String TOTAL_SIZE_USED = "totalSizeUsed";
     public static final String CREATION_DATE = "CreationDate";
     public static final String UPDATE_DATE = "UpdateDate";
-    private static final String VERSION_FIELD = "_v";
+    public static final String VERSION_FIELD = "_v";
 
     @JsonProperty(ID)
     private String id;

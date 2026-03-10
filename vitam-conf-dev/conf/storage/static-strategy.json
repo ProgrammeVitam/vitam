@@ -5,11 +5,6 @@
       {
         "id": "offer-fs-1.service.consul",
         "referent": true,
-        "rank": 1
-      },
-      {
-        "id": "offer-tape-1.service.consul",
-        "referent": false,
         "rank": 0
       }
     ]

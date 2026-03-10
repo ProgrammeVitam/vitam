@@ -39,8 +39,10 @@ import java.time.Instant;
 /**
  * Manages marker files for tracking operation states
  * Marker files indicate the state of write/read operations:
- * - .written: Write operation completed
- * - .read: Read operation completed
+ * - .WRITE_OK: File fully written by proxy ==> available for INA for read
+ * - .READ_REQUEST: File read request emitted by the proxy
+ * - .READ_OK: Requested file is fully written by INA, and is available for read for the proxy
+ * - .READ_KO_NOT_FOUND: Requested file does not exist
  */
 public class MarkerManager {
 

@@ -41,6 +41,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -54,6 +55,7 @@ import java.util.stream.IntStream;
 public class TapeInitializationService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeInitializationService.class);
+    private static final String TAPE_CODE_PATTERN = "^[a-zA-Z0-9_-]+$";
 
     private final InaTapeProxyConfiguration configuration;
     private final TapeCatalogRepository tapeCatalogRepository;
@@ -69,9 +71,76 @@ public class TapeInitializationService {
         this.tapeDriveRepository = tapeDriveRepository;
     }
 
+    public InaService initializeService() throws IOException, InaTapeProxyRepositoryException {
+        // Validate config
+        validateConfig(configuration);
+
+        // Seed tape catalog from config (idempotent) and initialize drives
+        ensureTapeCatalogExists(configuration);
+        ensureDrivesExist(configuration.getNbDrives());
+
+        // 1. Initialize filesystem manager
+        LOGGER.info("Initializing FileSystemManager...");
+        FileSystemManager fileSystemManager = new FileSystemManager(configuration);
+        fileSystemManager.initialize();
+        LOGGER.info("FileSystemManager initialized");
+
+        // 2. Initialize marker manager
+        LOGGER.info("Initializing MarkerManager...");
+        MarkerManager markerManager = new MarkerManager(fileSystemManager);
+        LOGGER.info("MarkerManager initialized");
+
+        // 3. Initialize tape helper
+        LOGGER.info("Initializing InaTapeHelper...");
+        InaTapeHelper inaTapeHelper = new InaTapeHelper(tapeCatalogRepository, tapeDriveRepository);
+        LOGGER.info("InaTapeHelper initialized");
+
+        // 4. Initialize library service (tape lifecycle + robotic simulation)
+        LOGGER.info("Initializing InaLibraryService...");
+        InaLibraryService libraryService = new InaLibraryService(
+            configuration,
+            tapeCatalogRepository,
+            tapeDriveRepository,
+            inaTapeHelper
+        );
+        LOGGER.info("  - InaLibraryService initialized");
+
+        // 5. Initialize I/O service
+        LOGGER.info("Initializing InaIoService...");
+        InaIoService ioService = new InaIoService(
+            configuration,
+            fileSystemManager,
+            markerManager,
+            tapeCatalogRepository,
+            tapeDriveRepository,
+            inaTapeHelper
+        );
+        LOGGER.info("  - InaIoService initialized");
+
+        // 6. Create main service
+        LOGGER.info("Initializing main InaService...");
+        InaService service = new InaService(ioService, libraryService);
+        LOGGER.info("InaService initialized");
+
+        return service;
+    }
+
     private void validateConfig(InaTapeProxyConfiguration configuration) {
         if (CollectionUtils.isEmpty(configuration.getTapeCodes())) {
             throw new IllegalArgumentException("Empty tape codes list");
+        }
+
+        Set<String> uniqueTapeCodes = new HashSet<>();
+        for (String tapeCode : configuration.getTapeCodes()) {
+            if (!uniqueTapeCodes.add(tapeCode)) {
+                throw new IllegalArgumentException("Duplicate tape code " + tapeCode);
+            }
+        }
+
+        for (String tapeCode : configuration.getTapeCodes()) {
+            if (tapeCode.matches(TAPE_CODE_PATTERN)) {
+                throw new IllegalArgumentException("Invalid tape code '" + tapeCode + "'.");
+            }
         }
 
         if (configuration.getTapeMaxCapacityMB() <= 0) {
@@ -108,7 +177,7 @@ public class TapeInitializationService {
      * @param configuration ordered list of tape codes from configuration
      * @throws IllegalStateException if tape codes exist in database but not in configuration
      */
-    public void ensureTapeCatalogExists(InaTapeProxyConfiguration configuration)
+    private void ensureTapeCatalogExists(InaTapeProxyConfiguration configuration)
         throws InaTapeProxyRepositoryException {
         List<String> tapeCodes = configuration.getTapeCodes();
 
@@ -188,7 +257,7 @@ public class TapeInitializationService {
      *
      * @param nbDrives Number of drives to initialize
      */
-    public void ensureDrivesExist(int nbDrives) throws InaTapeProxyRepositoryException {
+    private void ensureDrivesExist(int nbDrives) throws InaTapeProxyRepositoryException {
         List<TapeDriveModel> existingDrivesInDb = tapeDriveRepository.findAll();
 
         if (!existingDrivesInDb.isEmpty()) {
@@ -213,59 +282,5 @@ public class TapeInitializationService {
             tapeDriveRepository.save(drive);
             LOGGER.info("Initialized drive: {}", id);
         }
-    }
-
-    public InaService initializeService() throws IOException, InaTapeProxyRepositoryException {
-        // Validate config
-        validateConfig(configuration);
-
-        // Seed tape catalog from config (idempotent) and initialize drives
-        ensureTapeCatalogExists(configuration);
-        ensureDrivesExist(configuration.getNbDrives());
-
-        // 1. Initialize filesystem manager
-        LOGGER.info("Initializing FileSystemManager...");
-        FileSystemManager fileSystemManager = new FileSystemManager(configuration);
-        fileSystemManager.initialize();
-        LOGGER.info("FileSystemManager initialized");
-
-        // 2. Initialize marker manager
-        LOGGER.info("Initializing MarkerManager...");
-        MarkerManager markerManager = new MarkerManager(fileSystemManager);
-        LOGGER.info("MarkerManager initialized");
-
-        // 3. Initialize tape helper
-        LOGGER.info("Initializing InaTapeHelper...");
-        InaTapeHelper inaTapeHelper = new InaTapeHelper(tapeCatalogRepository, tapeDriveRepository);
-        LOGGER.info("InaTapeHelper initialized");
-
-        // 4. Initialize library service (tape lifecycle + robotic simulation)
-        LOGGER.info("Initializing InaLibraryService...");
-        InaLibraryService libraryService = new InaLibraryService(
-            configuration,
-            tapeCatalogRepository,
-            tapeDriveRepository,
-            inaTapeHelper
-        );
-        LOGGER.info("  - InaLibraryService initialized");
-
-        // 5. Initialize I/O service
-        LOGGER.info("Initializing InaIoService...");
-        InaIoService ioService = new InaIoService(
-            configuration,
-            fileSystemManager,
-            markerManager,
-            tapeCatalogRepository,
-            tapeDriveRepository,
-            inaTapeHelper
-        );
-        LOGGER.info("  - InaIoService initialized");
-
-        // 6. Create main service
-        LOGGER.info("Initializing main InaService...");
-        InaService service = new InaService(ioService, libraryService);
-        LOGGER.info("InaService initialized");
-
-        return service;
     }
 }

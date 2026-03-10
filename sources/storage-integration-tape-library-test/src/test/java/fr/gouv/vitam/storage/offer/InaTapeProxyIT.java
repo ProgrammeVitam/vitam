@@ -47,6 +47,8 @@ import fr.gouv.vitam.storage.cold.client.InaTapeProxyApi;
 import fr.gouv.vitam.storage.cold.client.InaTapeProxyClientFactory;
 import fr.gouv.vitam.storage.cold.server.InaTapeProxyApplication;
 import fr.gouv.vitam.storage.cold.server.InaTapeProxyServer;
+import fr.gouv.vitam.storage.cold.server.simulator.repository.TapeCatalogRepository;
+import fr.gouv.vitam.storage.cold.server.simulator.repository.TapeDriveRepository;
 import fr.gouv.vitam.storage.cold.server.simulator.service.filesystem.MarkerType;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -108,8 +110,8 @@ public class InaTapeProxyIT {
     public static MongoRule mongoRule = new MongoRule(
         "admin",
         MongoDbAccess.getMongoClientSettingsBuilder(),
-        "tape_catalog",
-        "tape_drive"
+        TapeCatalogRepository.COLLECTION_NAME,
+        TapeDriveRepository.COLLECTION_NAME
     );
 
     @ClassRule
