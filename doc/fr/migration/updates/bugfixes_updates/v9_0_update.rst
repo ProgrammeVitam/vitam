@@ -4,7 +4,7 @@ Notes et procédures spécifiques V9.0
 Procédures à exécuter AVANT la montée de version
 ================================================
 
-Mise à jour de MongoDB vers la version 8.0.17
+Mise à jour de MongoDB vers la version 8.0.20
 ---------------------------------------------
 
 .. caution:: **Attention**
