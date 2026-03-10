@@ -84,6 +84,7 @@
       name: grafana-server
       image: "{{ container_repository.registry_url }}/vitam-external/grafana/grafana:{{ grafana_version }}"
       state: started
+      recreate: true
       restart_policy: always
       volumes:
         - "{{ grafana_conf_dir }}:{{ grafana_conf_dir }}:rw"
