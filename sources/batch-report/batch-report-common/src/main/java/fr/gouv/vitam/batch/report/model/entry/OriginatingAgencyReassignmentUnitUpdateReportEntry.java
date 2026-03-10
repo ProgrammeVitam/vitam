@@ -24,28 +24,24 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.batch.report.model;
+package fr.gouv.vitam.batch.report.model.entry;
 
-/**
- * ReportType
- */
-public enum ReportType {
-    ELIMINATION_ACTION_UNIT,
-    ELIMINATION_ACTION,
-    TRANSFER_REPLY_UNIT,
-    TRANSFER_REPLY,
-    PURGE_UNIT,
-    PURGE_OBJECTGROUP,
-    UPDATE_UNIT,
-    BULK_UPDATE_UNIT,
-    PRESERVATION,
-    PROBATIVE_VALUE,
-    AUDIT,
-    EVIDENCE_AUDIT,
-    TRACEABILITY,
-    UNIT_COMPUTED_INHERITED_RULES_INVALIDATION,
-    REASSIGNMENT_UNITS_ORIGINATING_AGENCIES_COMPUTE,
-    REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCY_UPDATE,
-    REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCIES_COMPUTE,
-    DELETE_GOT_VERSIONS,
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class OriginatingAgencyReassignmentUnitUpdateReportEntry {
+
+    public static final String UNIT_ID = "id";
+
+    private final String unitId;
+
+    @JsonCreator
+    public OriginatingAgencyReassignmentUnitUpdateReportEntry(@JsonProperty(UNIT_ID) String unitId) {
+        this.unitId = unitId;
+    }
+
+    @JsonProperty(UNIT_ID)
+    public String getUnitId() {
+        return unitId;
+    }
 }

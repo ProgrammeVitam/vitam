@@ -555,7 +555,7 @@ documentation:
 
 /originatingAgencyReassignment:
   displayName: Réattribution de service producteur
-  description: API qui permet de réaliser une réattribution de service producteur sur des unités archivistiques répondant aux critères de la requête DSL et objets associés.
+  description: API qui permet de réaliser une réattribution de service producteur sur des unités archivistiques et groupes d'objets répondants aux critères de la requête DSL et objets associés.
   is: [ StandardTraits.StandardOptionalHeader ]
   post:
     headers:
@@ -565,15 +565,12 @@ documentation:
       Content-Type:
         required: true
         enum: [ "application/json" ]
-    description: Lancement d'opération de réattribution de service producteur sur des unités archivistiques et objets associés
-    body:
-      application/json:
-      description: |
-          Exécute une opération de réattribution de service producteur sur des unités archivistiques et objets associés
+    description:  |
+      Lancement d'opération de réattribution de service producteur sur des unités archivistiques et groupes d'objets associés
+      Permissions requises:
+        - originatingAgencyReassignment:action
+    is: [AccessTraits.OriginatingAgecyReassignmentResponseAsync]
 
-          Permissions requises:
-            - originatingAgencyReassignment:action
-      is: [AccessTraits.OriginatingAgecyReassignmentResponseAsync]
     responses:
       200:
         description: Success

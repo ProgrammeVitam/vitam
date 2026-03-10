@@ -58,7 +58,9 @@ import fr.gouv.vitam.batch.report.rest.repository.DeleteGotVersionsReportReposit
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.ExtractedMetadataRepository;
-import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentUnitsUpdateRepository;
+import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentObjectGroupAgenciesComputeRepository;
+import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository;
+import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentUnitAgenciesUpdateRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
@@ -198,7 +200,13 @@ public class BatchReportServiceImplTest {
     private DeleteGotVersionsReportRepository deleteGotVersionsReportRepository;
 
     @Mock
-    private OriginatingAgencyReassignmentUnitsUpdateRepository originatingAgencyReassignmentUnitsUpdateRepository;
+    private OriginatingAgencyReassignmentUnitAgenciesUpdateRepository originatingAgencyReassignmentUnitAgenciesUpdateRepository;
+
+    @Mock
+    private OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository originatingAgencyReassignmentObjectGroupAgenciesUpdateRepository;
+
+    @Mock
+    private OriginatingAgencyReassignmentObjectGroupAgenciesComputeRepository objectGroupReassignmentOriginatingAgenciesComputeRepository;
 
     private BatchReportServiceImpl batchReportServiceImpl;
 
@@ -224,7 +232,9 @@ public class BatchReportServiceImplTest {
             extractedMetadataRepository,
             deleteGotVersionsReportRepository,
             workspaceClientFactory,
-            originatingAgencyReassignmentUnitsUpdateRepository
+            originatingAgencyReassignmentUnitAgenciesUpdateRepository,
+            originatingAgencyReassignmentObjectGroupAgenciesUpdateRepository,
+            objectGroupReassignmentOriginatingAgenciesComputeRepository
         );
     }
 

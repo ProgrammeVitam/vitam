@@ -50,7 +50,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.batch.report.model.ReportType.BULK_UPDATE_UNIT;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class BulkUpdateUnitMetadataReportRepositoryTest {
+public class BulkMetadataUpdateResultMetadataReportRepositoryTest {
 
     private static final int TENANT_ID = 0;
     public static final String COLLECTION_NAME = "BulkUpdateUnitMetadataReport" + GUIDFactory.newGUID().getId();

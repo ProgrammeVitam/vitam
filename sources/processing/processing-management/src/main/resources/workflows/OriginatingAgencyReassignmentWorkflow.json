@@ -43,27 +43,56 @@
         },
         {
           "action": {
-            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_PREPARATION",
-            "behavior": "BLOCKING"
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_UNITS_PREPARATION",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "units_to_update.jsonl",
+                "uri": "WORKSPACE:units_to_update.jsonl"
+              },
+              {
+                "name": "intermediate_gots_children_ids.jsonl",
+                "uri": "MEMORY:intermediate_gots_children_ids.jsonl"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_OBJECT_GROUP_PREPARATION",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "intermediate_gots_children_ids.jsonl",
+                "uri": "MEMORY:intermediate_gots_children_ids.jsonl"
+              }
+            ],
+            "out": [
+              {
+                "name": "object_groups_to_update_sp.jsonl",
+                "uri": "WORKSPACE:object_groups_to_update_sp.jsonl"
+              }
+            ]
           }
         }
       ]
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_UNITS_UPDATE",
+      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_UNITS",
       "behavior": "BLOCKING",
       "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "units_to_update.jsonl",
         "type": "Units",
-        "statusOnEmptyDistribution": "KO"
+        "statusOnEmptyDistribution": "WARNING",
+        "bulkSize": 1000
       },
       "actions": [
         {
           "action": {
-            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_UNITS_UPDATE",
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_UNITS",
             "behavior": "BLOCKING",
             "lifecycleLog": "FLUSH_LFC"
           }
@@ -75,11 +104,40 @@
             "lifecycleLog": "DISABLED"
           }
         }
-       ]
+      ]
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_CHILDREN_UNITS_UPDATE_PREPARATION",
+      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_OBJECT_GROUPS",
+      "behavior": "BLOCKING",
+      "cancellable": false,
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "object_groups_to_update_sp.jsonl",
+        "type": "ObjectGroup",
+        "statusOnEmptyDistribution": "WARNING",
+        "bulkSize": 1000
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_OBJECT_GROUPS",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "FLUSH_LFC"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_METADATA_STORAGE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_UNITS_CHILDREN_PREPARATION",
       "behavior": "BLOCKING",
       "cancellable": false,
       "distribution": {
@@ -88,7 +146,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_CHILDREN_UNITS_UPDATE_PREPARATION",
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_UNITS_CHILDREN_PREPARATION",
             "behavior": "BLOCKING",
             "lifecycleLog": "DISABLED",
             "in": [
@@ -101,6 +159,10 @@
               {
                 "name": "unitsChildrenToUpdateSps.jsonl",
                 "uri": "WORKSPACE:unitsChildrenToUpdateSps.jsonl"
+              },
+              {
+                "name": "object_groups_to_update_sps.jsonl",
+                "uri": "WORKSPACE:object_groups_to_update_sps.jsonl"
               }
             ]
           }
@@ -109,19 +171,20 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_ORIGINATING_AGENCIES_REASSIGNMENT_UNITS_UPDATE",
+      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILDREN_UNITS",
       "behavior": "BLOCKING",
       "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "unitsChildrenToUpdateSps.jsonl",
         "type": "Units",
-        "statusOnEmptyDistribution": "OK"
+        "statusOnEmptyDistribution": "OK",
+        "bulkSize": 1000
       },
       "actions": [
         {
           "action": {
-            "actionKey": "ORIGINATION_AGENCY_REASSIGNMENT_AGENCIES_UPDATE",
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILDREN_UNITS",
             "behavior": "BLOCKING",
             "lifecycleLog": "DISABLED"
           }
@@ -130,7 +193,29 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_ORIGINATION_AGENCY_REASSIGNMENT_FINALIZATION",
+      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILDREN_OBJECT_GROUPS",
+      "behavior": "BLOCKING",
+      "cancellable": false,
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "object_groups_to_update_sps.jsonl",
+        "type": "ObjectGroup",
+        "statusOnEmptyDistribution": "OK",
+        "bulkSize": 1000
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILDREN_OBJECT_GROUPS",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_FINALIZATION",
       "cancellable": false,
       "behavior": "FINALLY",
       "distribution": {
@@ -139,7 +224,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "ORIGINATION_AGENCY_REASSIGNMENT_FINALIZATION",
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_FINALIZATION",
             "behavior": "BLOCKING"
           }
         }

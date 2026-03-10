@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.List;
+import java.util.Collection;
 
 public class JsonLineWriter<T> implements AutoCloseable {
 
@@ -67,7 +67,7 @@ public class JsonLineWriter<T> implements AutoCloseable {
         writer.append(JsonHandler.unprettyPrint(line));
     }
 
-    public void addEntries(List<? extends T> lines) throws IOException {
+    public void addEntries(Collection<? extends T> lines) throws IOException {
         for (T line : lines) {
             addEntry(line);
         }

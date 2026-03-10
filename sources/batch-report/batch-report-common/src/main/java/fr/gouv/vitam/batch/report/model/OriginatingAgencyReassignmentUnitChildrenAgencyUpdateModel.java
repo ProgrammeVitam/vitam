@@ -27,12 +27,12 @@
 package fr.gouv.vitam.batch.report.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentUpdateReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentUnitUpdateReportEntry;
 
 /**
  * OriginatingAgencyReassignmentUpdate Report model
  */
-public class OriginatingAgencyReassignmentUpdateModel {
+public class OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel {
 
     public static final String PROCESS_ID = "processId";
     public static final String TENANT = "_tenant";
@@ -46,20 +46,20 @@ public class OriginatingAgencyReassignmentUpdateModel {
     private String creationDateTime;
 
     @JsonProperty(METADATA)
-    private OriginatingAgencyReassignmentUpdateReportEntry metadata;
+    private OriginatingAgencyReassignmentUnitUpdateReportEntry metadata;
 
     @JsonProperty(TENANT)
     private int tenant;
 
-    public OriginatingAgencyReassignmentUpdateModel() {
+    public OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel() {
         // Empty constructor for deserialization
     }
 
-    public OriginatingAgencyReassignmentUpdateModel(
+    public OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel(
         String processId,
         int tenant,
         String creationDateTime,
-        OriginatingAgencyReassignmentUpdateReportEntry metadata
+        OriginatingAgencyReassignmentUnitUpdateReportEntry metadata
     ) {
         this.processId = processId;
         this.creationDateTime = creationDateTime;
@@ -83,11 +83,11 @@ public class OriginatingAgencyReassignmentUpdateModel {
         this.creationDateTime = creationDateTime;
     }
 
-    public OriginatingAgencyReassignmentUpdateReportEntry getMetadata() {
+    public OriginatingAgencyReassignmentUnitUpdateReportEntry getMetadata() {
         return metadata;
     }
 
-    public void setMetadata(OriginatingAgencyReassignmentUpdateReportEntry metadata) {
+    public void setMetadata(OriginatingAgencyReassignmentUnitUpdateReportEntry metadata) {
         this.metadata = metadata;
     }
 

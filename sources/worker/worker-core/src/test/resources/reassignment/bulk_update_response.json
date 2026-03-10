@@ -19,7 +19,7 @@
         {
           "#id": "id_unit_1",
           "#status": "OK",
-          "#key": "UNIT_METADATA_UPDATE",
+          "#key": "METADATA_UPDATE",
           "#message": "Update unit OK.",
           "#diff": "-  \"_ops\" : [ \"aedaaaaaaceaaaabbwrfuam4bzesbxiaaaba\" ]\n+  \"_ops\" : [ \"aedaaaaaaceaaaabbwrfuam4bzesbxiaaaba\", \"aeeaaaaaaceaaaabbwrfuam4bzetk3iaaaaq\" ]\n-  \"_sps\" : [ \"RATP\" ]\n-  \"_sp\" : \"RATP\"\n+  \"_sps\" : [ \"FRAN_NP_050239\" ]\n+  \"_sp\" : \"FRAN_NP_050239\"\n-  \"_glpd\" : \"2026-01-30T09:43:22.074\"\n+  \"_glpd\" : \"2026-01-30T09:54:39.944\"\n-  \"_aud\" : \"2026-01-30T09:43:22.074\"\n-  \"_v\" : 0\n-  \"_av\" : 1\n+  \"_aud\" : \"2026-01-30T09:54:42.129\"\n+  \"_v\" : 1\n+  \"_av\" : 2\n-  \"_computedInheritedRules.StorageRule.FinalAction\" : [ ]\n-  \"_computedInheritedRules.AppraisalRule.FinalAction\" : [ \"Keep\" ]\n-  \"_computedInheritedRules.DisseminationRule.MaxEndDate\" : \"2025-01-01\"\n-  \"_computedInheritedRules.DisseminationRule.InheritanceOrigin\" : \"Local\"\n-  \"_computedInheritedRules.AccessRule.MaxEndDate\" : \"2025-01-01\"\n-  \"_computedInheritedRules.AccessRule.InheritanceOrigin\" : \"Local\"\n-  \"_computedInheritedRules.ReuseRule\" : { }\n-  \"_computedInheritedRules.ClassificationRule.ClassificationAudience\" : [ ]\n-  \"_computedInheritedRules.ClassificationRule.ClassificationLevel\" : [ ]\n-  \"_computedInheritedRules.ClassificationRule.ClassificationOwner\" : [ ]\n-  \"_computedInheritedRules.ClassificationRule.ClassificationReassessingDate\" : [ ]\n-  \"_computedInheritedRules.ClassificationRule.NeedReassessingAuthorization\" : [ ]\n-  \"_computedInheritedRules.HoldRule\" : { }\n-  \"_computedInheritedRules.indexationDate\" : \"2026-01-30\"\n-  \"_validComputedInheritedRules\" : true\n+  \"_validComputedInheritedRules\" : false"
         }
@@ -38,7 +38,7 @@
         {
           "#id": "id_unit_2",
           "#status": "OK",
-          "#key": "UNIT_METADATA_UPDATE",
+          "#key": "METADATA_UPDATE",
           "#message": "Update unit OK.",
           "#diff": "-  \"_ops\" : [ \"aedaaaaaaceaaaabbwrfuam4bzesbxiaaaba\" ]\n+  \"_ops\" : [ \"aedaaaaaaceaaaabbwrfuam4bzesbxiaaaba\", \"aeeaaaaaaceaaaabbwrfuam4bzetk3iaaaaq\" ]\n-  \"_sps\" : [ \"RATP\" ]\n-  \"_sp\" : \"RATP\"\n+  \"_sps\" : [ \"FRAN_NP_050239\" ]\n+  \"_sp\" : \"FRAN_NP_050239\"\n-  \"_glpd\" : \"2026-01-30T09:43:22.074\"\n+  \"_glpd\" : \"2026-01-30T09:54:39.945\"\n-  \"_aud\" : \"2026-01-30T09:43:22.074\"\n-  \"_v\" : 0\n-  \"_av\" : 1\n+  \"_aud\" : \"2026-01-30T09:54:42.127\"\n+  \"_v\" : 1\n+  \"_av\" : 2\n-  \"_computedInheritedRules.StorageRule.FinalAction\" : [ ]\n-  \"_computedInheritedRules.AppraisalRule.FinalAction\" : [ \"Keep\" ]\n-  \"_computedInheritedRules.DisseminationRule\" : { }\n-  \"_computedInheritedRules.AccessRule.MaxEndDate\" : \"2027-01-01\"\n-  \"_computedInheritedRules.AccessRule.InheritanceOrigin\" : \"Local\"\n-  \"_computedInheritedRules.ReuseRule\" : { }\n-  \"_computedInheritedRules.ClassificationRule.ClassificationAudience\" : [ ]\n-  \"_computedInheritedRules.ClassificationRule.ClassificationLevel\" : [ ]\n-  \"_computedInheritedRules.ClassificationRule.ClassificationOwner\" : [ ]\n-  \"_computedInheritedRules.ClassificationRule.ClassificationReassessingDate\" : [ ]\n-  \"_computedInheritedRules.ClassificationRule.NeedReassessingAuthorization\" : [ ]\n-  \"_computedInheritedRules.HoldRule\" : { }\n-  \"_computedInheritedRules.indexationDate\" : \"2026-01-30\"\n-  \"_validComputedInheritedRules\" : true\n+  \"_validComputedInheritedRules\" : false"
         }
@@ -57,7 +57,7 @@
         {
           "#id": "id_unit_3",
           "#status": "OK",
-          "#key": "UNIT_METADATA_UPDATE",
+          "#key": "METADATA_UPDATE",
           "#message": "Update unit OK.",
           "#diff": "-  \"_ops\" : [ \"aedaaaaaaceaaaabbwrfuam4bzesbxiaaaba\" ]\n+  \"_ops\" : [ \"aedaaaaaaceaaaabbwrfuam4bzesbxiaaaba\", \"aeeaaaaaaceaaaabbwrfuam4bzetk3iaaaaq\" ]\n-  \"_sps\" : [ \"RATP\" ]\n-  \"_sp\" : \"RATP\"\n+  \"_sps\" : [ \"FRAN_NP_050239\" ]\n+  \"_sp\" : \"FRAN_NP_050239\"\n-  \"_glpd\" : \"2026-01-30T09:43:22.074\"\n+  \"_glpd\" : \"2026-01-30T09:54:39.945\"\n-  \"_aud\" : \"2026-01-30T09:43:22.074\"\n-  \"_v\" : 0\n-  \"_av\" : 1\n+  \"_aud\" : \"2026-01-30T09:54:42.127\"\n+  \"_v\" : 1\n+  \"_av\" : 2\n-  \"_computedInheritedRules.StorageRule.FinalAction\" : [ ]\n-  \"_computedInheritedRules.AppraisalRule.FinalAction\" : [ \"Keep\" ]\n-  \"_computedInheritedRules.DisseminationRule\" : { }\n-  \"_computedInheritedRules.AccessRule.MaxEndDate\" : \"2027-01-01\"\n-  \"_computedInheritedRules.AccessRule.InheritanceOrigin\" : \"Local\"\n-  \"_computedInheritedRules.ReuseRule\" : { }\n-  \"_computedInheritedRules.ClassificationRule.ClassificationAudience\" : [ ]\n-  \"_computedInheritedRules.ClassificationRule.ClassificationLevel\" : [ ]\n-  \"_computedInheritedRules.ClassificationRule.ClassificationOwner\" : [ ]\n-  \"_computedInheritedRules.ClassificationRule.ClassificationReassessingDate\" : [ ]\n-  \"_computedInheritedRules.ClassificationRule.NeedReassessingAuthorization\" : [ ]\n-  \"_computedInheritedRules.HoldRule\" : { }\n-  \"_computedInheritedRules.indexationDate\" : \"2026-01-30\"\n-  \"_validComputedInheritedRules\" : true\n+  \"_validComputedInheritedRules\" : false"
         }
@@ -76,7 +76,7 @@
         {
           "#id": "id_unit_4",
           "#status": "OK",
-          "#key": "UNIT_METADATA_UPDATE",
+          "#key": "METADATA_UPDATE",
           "#message": "Update unit OK.",
           "#diff": "-  \"_ops\" : [ \"aedaaaaaaceaaaabbwrfuam4bzesbxiaaaba\" ]\n+  \"_ops\" : [ \"aedaaaaaaceaaaabbwrfuam4bzesbxiaaaba\", \"aeeaaaaaaceaaaabbwrfuam4bzetk3iaaaaq\" ]\n-  \"_sps\" : [ \"RATP\" ]\n-  \"_sp\" : \"RATP\"\n+  \"_sps\" : [ \"FRAN_NP_050239\" ]\n+  \"_sp\" : \"FRAN_NP_050239\"\n-  \"_glpd\" : \"2026-01-30T09:43:22.074\"\n+  \"_glpd\" : \"2026-01-30T09:54:39.945\"\n-  \"_aud\" : \"2026-01-30T09:43:22.074\"\n-  \"_v\" : 0\n-  \"_av\" : 1\n+  \"_aud\" : \"2026-01-30T09:54:42.127\"\n+  \"_v\" : 1\n+  \"_av\" : 2\n-  \"_computedInheritedRules.StorageRule.FinalAction\" : [ ]\n-  \"_computedInheritedRules.AppraisalRule.FinalAction\" : [ \"Keep\" ]\n-  \"_computedInheritedRules.DisseminationRule\" : { }\n-  \"_computedInheritedRules.AccessRule.MaxEndDate\" : \"2027-01-01\"\n-  \"_computedInheritedRules.AccessRule.InheritanceOrigin\" : \"Local\"\n-  \"_computedInheritedRules.ReuseRule\" : { }\n-  \"_computedInheritedRules.ClassificationRule.ClassificationAudience\" : [ ]\n-  \"_computedInheritedRules.ClassificationRule.ClassificationLevel\" : [ ]\n-  \"_computedInheritedRules.ClassificationRule.ClassificationOwner\" : [ ]\n-  \"_computedInheritedRules.ClassificationRule.ClassificationReassessingDate\" : [ ]\n-  \"_computedInheritedRules.ClassificationRule.NeedReassessingAuthorization\" : [ ]\n-  \"_computedInheritedRules.HoldRule\" : { }\n-  \"_computedInheritedRules.indexationDate\" : \"2026-01-30\"\n-  \"_validComputedInheritedRules\" : true\n+  \"_validComputedInheritedRules\" : false"
         }

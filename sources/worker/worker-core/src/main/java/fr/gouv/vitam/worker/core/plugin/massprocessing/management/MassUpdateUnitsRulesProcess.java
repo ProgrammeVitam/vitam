@@ -98,10 +98,10 @@ import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils.UNLIMITED_RULE_DURATION;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnit.DIFF;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnit.KEY;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnit.MESSAGE;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnit.STATUS;
+import static fr.gouv.vitam.metadata.api.model.MetadataUpdateResult.DIFF;
+import static fr.gouv.vitam.metadata.api.model.MetadataUpdateResult.KEY;
+import static fr.gouv.vitam.metadata.api.model.MetadataUpdateResult.MESSAGE;
+import static fr.gouv.vitam.metadata.api.model.MetadataUpdateResult.STATUS;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandler {

@@ -26,10 +26,14 @@
  */
 package fr.gouv.vitam.common.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class OriginatingAgencyReassignmentRequest {
+
+    @JsonProperty("dslRequest")
+    private JsonNode dslRequest;
 
     @JsonProperty("sourceOriginatingAgency")
     private String sourceOriginatingAgency;
@@ -37,19 +41,20 @@ public class OriginatingAgencyReassignmentRequest {
     @JsonProperty("targetOriginatingAgency")
     private String targetOriginatingAgency;
 
-    @JsonProperty("dslRequest")
-    private JsonNode dslRequest;
+    @JsonProperty("propagateToObjectGroups")
+    private Boolean propagateToObjectGroups;
 
-    public OriginatingAgencyReassignmentRequest() {}
-
+    @JsonCreator
     public OriginatingAgencyReassignmentRequest(
-        @JsonProperty(required = true) JsonNode dslRequest,
-        @JsonProperty(required = true) String sourceOriginatingAgency,
-        @JsonProperty(required = true) String targetOriginatingAgency
+        @JsonProperty("dslRequest") JsonNode dslRequest,
+        @JsonProperty("sourceOriginatingAgency") String sourceOriginatingAgency,
+        @JsonProperty("targetOriginatingAgency") String targetOriginatingAgency,
+        @JsonProperty("propagateToObjectGroups") boolean propagateToObjectGroups
     ) {
         this.dslRequest = dslRequest;
         this.targetOriginatingAgency = targetOriginatingAgency;
         this.sourceOriginatingAgency = sourceOriginatingAgency;
+        this.propagateToObjectGroups = propagateToObjectGroups;
     }
 
     public String getSourceOriginatingAgency() {
@@ -76,6 +81,15 @@ public class OriginatingAgencyReassignmentRequest {
 
     public OriginatingAgencyReassignmentRequest setDslRequest(JsonNode dslRequest) {
         this.dslRequest = dslRequest;
+        return this;
+    }
+
+    public boolean isPropagateToObjectGroups() {
+        return propagateToObjectGroups;
+    }
+
+    public OriginatingAgencyReassignmentRequest setPropagateToObjectGroups(boolean propagateToObjectGroups) {
+        this.propagateToObjectGroups = propagateToObjectGroups;
         return this;
     }
 }

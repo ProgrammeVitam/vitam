@@ -24,6 +24,7 @@ X-Access-Contract-Id: {{access-contract}}
 {
   "sourceOriginatingAgency": "SP1",
   "targetOriginatingAgency": "SP2",
+  "propagateToObjectGroups": true,
   "dslRequest": {
     "$query": [
       {

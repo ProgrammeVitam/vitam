@@ -88,6 +88,16 @@ public interface BatchReportClient extends BasicClient {
     ) throws VitamClientInternalException;
 
     /**
+     * Generate object group to compute and update SP by process Id.
+     * Report is stored in JSONL format without duplicates.
+     */
+    void exportObjectGroupsReassignmentToUpdateOriginatingAgency(
+        String processId,
+        ReportExportRequest reportExportRequest,
+        WorkFlowExecutionContext executionContext
+    ) throws VitamClientInternalException;
+
+    /**
      * Generate elimination action accession register for deleted units by status and process Id.
      * Report is stored in JSONL format in workspace ORDERED BY opi.
      *
@@ -116,4 +126,10 @@ public interface BatchReportClient extends BasicClient {
         throws Exception;
 
     JsonNode readComputedDetailsFromReport(ReportType deleteGotVersions, String processId);
+
+    void exportObjectGroupsReassignmentToComputeOriginatingAgencies(
+        String processId,
+        ReportExportRequest reportExportRequest,
+        WorkFlowExecutionContext executionContext
+    ) throws VitamClientInternalException;
 }

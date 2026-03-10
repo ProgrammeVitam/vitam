@@ -306,7 +306,9 @@ public interface MetaDataClient extends BasicClient {
      */
     GraphComputeResponse computeGraph(GraphComputeAction action, Set<String> ids) throws VitamClientException;
 
-    /** Reconstruct Persistent Identifiers
+    /**
+     * Reconstruct Persistent Identifiers
+     *
      * @param requestItem
      * @return
      * @throws MetaDataNotFoundException
@@ -344,6 +346,21 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataNotFoundException
      */
     RequestResponse<JsonNode> atomicUpdateBulk(List<JsonNode> updateQueries)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException;
+
+    /**
+     * Bulk Update object groups by a list of update query (DSL)
+     *
+     * @param updateQueries : update query {@link fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery}
+     * as String
+     * Null is not allowed
+     * List can be empty
+     * @return RequestResponse object {$hint:{},$result:[{},{}]} containing a list of RequestResponse (RequestResponseOK or VitamError) as JsonNode linked to each updateQuery
+     * @throws InvalidParseOperationException
+     * @throws MetaDataExecutionException
+     * @throws MetaDataNotFoundException
+     */
+    RequestResponse<JsonNode> objectGroupsAtomicUpdateBulk(List<JsonNode> updateQueries)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException;
 
     /**

@@ -585,11 +585,16 @@ types:
           description: Le service producteur cible
           required: true
           type: string
-
+        propagateToObjectGroups:
+          description: propager ou non la réattribution aux groupes d'objets
+          required: false
+          default false
+          type: boolean
       example:
         {
            "sourceOriginatingAgency": "source SP",
            "targetOriginatingAgency": "target SP",
+           "propagateToObjectGroups": true,
            "dslRequest": {
              "$roots": [ "id0" ],
              "$query": [

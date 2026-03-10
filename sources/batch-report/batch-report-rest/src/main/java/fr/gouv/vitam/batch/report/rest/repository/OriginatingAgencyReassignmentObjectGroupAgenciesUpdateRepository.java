@@ -31,36 +31,41 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Projections;
-import fr.gouv.vitam.batch.report.model.OriginatingAgencyReassignmentUpdateModel;
+import fr.gouv.vitam.batch.report.model.OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import org.bson.Document;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
-public class OriginatingAgencyReassignmentUnitsUpdateRepository extends ReportCommonRepository {
+public class OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository extends ReportCommonRepository {
 
-    static final String ORIGINATING_AGENCY_REASSIGNMENT_SPS_UPDATE_COLLECTION_NAME =
-        "OriginatingAgencyReassignmentUnitsReport";
+    static final String OBJECT_GROUP_REASSIGNMENT_ORIGINATING_AGENCIES_UPDATE_COLLECTION_NAME =
+        "OriginatingAgencyReassignmentObjectGroupAgencyUpdateReport";
 
     private final MongoCollection<Document> collection;
 
     @VisibleForTesting
-    OriginatingAgencyReassignmentUnitsUpdateRepository(MongoDbAccess mongoDbAccess, String collectionName) {
+    OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository(
+        MongoDbAccess mongoDbAccess,
+        String collectionName
+    ) {
         this.collection = mongoDbAccess.getMongoDatabase().getCollection(collectionName);
     }
 
-    public OriginatingAgencyReassignmentUnitsUpdateRepository(SimpleMongoDBAccess mongoDbAccess) {
-        this(mongoDbAccess, ORIGINATING_AGENCY_REASSIGNMENT_SPS_UPDATE_COLLECTION_NAME);
+    public OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository(SimpleMongoDBAccess mongoDbAccess) {
+        this(mongoDbAccess, OBJECT_GROUP_REASSIGNMENT_ORIGINATING_AGENCIES_UPDATE_COLLECTION_NAME);
     }
 
-    public void bulkAppendReport(List<OriginatingAgencyReassignmentUpdateModel> reports) {
-        //already de-duplicated in worker plugin
-        List<Document> entries = reports.stream().map(ReportCommonRepository::pojoToDocument).toList();
+    public void bulkAppendReport(List<OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel> reports) {
+        Set<OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel> reportsWithoutDuplicate = new HashSet<>(reports);
+        List<Document> entries = reportsWithoutDuplicate.stream().map(ReportCommonRepository::pojoToDocument).toList();
         super.bulkAppendReport(entries, collection);
     }
 
@@ -70,8 +75,8 @@ public class OriginatingAgencyReassignmentUnitsUpdateRepository extends ReportCo
                 Arrays.asList(
                     Aggregates.match(
                         and(
-                            eq(OriginatingAgencyReassignmentUpdateModel.PROCESS_ID, processId),
-                            eq(OriginatingAgencyReassignmentUpdateModel.TENANT, tenantId)
+                            eq(OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel.PROCESS_ID, processId),
+                            eq(OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel.TENANT, tenantId)
                         )
                     ),
                     Aggregates.project(Projections.fields(new Document("_id", 0), new Document("id", "$_metadata.id")))

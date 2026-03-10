@@ -74,7 +74,15 @@ public class OriginatingAgencyReassignmentFinalizationPluginTest {
         // Then
         verify(batchReportClient).cleanupReport(
             "container",
-            ReportType.ORIGINATING_AGENCY_REASSIGNMENT_UNIT_AGENCIES_COMPUTING
+            ReportType.REASSIGNMENT_UNITS_ORIGINATING_AGENCIES_COMPUTE
+        );
+        verify(batchReportClient).cleanupReport(
+            "container",
+            ReportType.REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCY_UPDATE
+        );
+        verify(batchReportClient).cleanupReport(
+            "container",
+            ReportType.REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCIES_COMPUTE
         );
     }
 }

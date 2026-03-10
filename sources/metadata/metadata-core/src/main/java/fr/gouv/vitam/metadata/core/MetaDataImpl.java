@@ -102,9 +102,9 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.MetadataUpdateResult;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
-import fr.gouv.vitam.metadata.api.model.UpdateUnit;
-import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
+import fr.gouv.vitam.metadata.api.model.UpdateMetadataKey;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
@@ -160,11 +160,11 @@ import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_
 import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.CHECK_UNIT_SCHEMA;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_UNKNOWN_OR_FORBIDDEN;
+import static fr.gouv.vitam.metadata.api.model.UpdateMetadataKey.CHECK_METADATA_SCHEMA;
+import static fr.gouv.vitam.metadata.api.model.UpdateMetadataKey.METADATA_NO_CHANGES;
+import static fr.gouv.vitam.metadata.api.model.UpdateMetadataKey.METADATA_NO_NEW_DATA;
+import static fr.gouv.vitam.metadata.api.model.UpdateMetadataKey.METADATA_UPDATE;
+import static fr.gouv.vitam.metadata.api.model.UpdateMetadataKey.UNKNOWN_OR_FORBIDDEN;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.NAME;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.ObjectsScrollDate;
@@ -868,8 +868,11 @@ public class MetaDataImpl {
         );
     }
 
-    public List<UpdateUnit> updateUnits(List<RequestById> bulkRequests, boolean forceUpdate, boolean withRefreshIndex)
-        throws InvalidParseOperationException {
+    public List<MetadataUpdateResult> updateUnits(
+        List<RequestById> bulkRequests,
+        boolean forceUpdate,
+        boolean withRefreshIndex
+    ) throws InvalidParseOperationException {
         List<String> unitIds = bulkRequests.stream().map(RequestById::getDocumentId).toList();
         LOGGER.debug("Start updating units with count " + unitIds.size());
 
@@ -886,21 +889,60 @@ public class MetaDataImpl {
                 forceUpdate,
                 withRefreshIndex
             );
-            return mapResponseWithDiffs(updatedDocuments);
+            return mapUpdateResultResponseWithDiffs(MetadataCollections.UNIT, updatedDocuments);
         } catch (InvalidParseOperationException e) {
             LOGGER.error("An error occurred during unit update " + String.join(",", List.of()), e);
-            return errors(unitIds, KO, CHECK_UNIT_SCHEMA, e.getMessage());
+            return errors(unitIds, KO, CHECK_METADATA_SCHEMA, e.getMessage());
         } catch (MetaDataNotFoundException e) {
             LOGGER.error("Unit not found during unit update " + String.join(",", List.of()), e);
-            return errors(unitIds, KO, UNIT_UNKNOWN_OR_FORBIDDEN, e.getMessage());
+            return errors(unitIds, KO, UNKNOWN_OR_FORBIDDEN, e.getMessage());
         } catch (Exception e) {
             LOGGER.error("An error occurred during unit update " + String.join(",", List.of()), e);
-            return errors(unitIds, FATAL, UNIT_METADATA_UPDATE, e.getMessage());
+            return errors(unitIds, FATAL, METADATA_UPDATE, e.getMessage());
         }
     }
 
-    private List<UpdateUnit> mapResponseWithDiffs(Collection<UpdatedDocument> updatedDocuments) {
-        List<UpdateUnit> updatedUnits = new ArrayList<>();
+    public List<MetadataUpdateResult> updateObjectGroups(
+        List<RequestById> bulkRequests,
+        boolean forceUpdate,
+        boolean withRefreshIndex
+    ) throws InvalidParseOperationException {
+        List<String> objectGroupIds = bulkRequests.stream().map(RequestById::getDocumentId).toList();
+        LOGGER.debug("Start updating object groups with count " + objectGroupIds.size());
+
+        try {
+            if (CollectionUtils.isEmpty(bulkRequests)) {
+                return new ArrayList<>();
+            }
+
+            // for object groups, we haven't yet a ObjectGroupValidator: It's indicated in the US comments that we keep process without validator at the moment
+            Collection<UpdatedDocument> updatedDocuments = dbRequest.execUpdateRequest(
+                bulkRequests,
+                OBJECTGROUP,
+                this.objectGroupOntologyValidator,
+                null,
+                this.objectGroupOntologyLoader.loadOntologies(),
+                forceUpdate,
+                withRefreshIndex
+            );
+            return mapUpdateResultResponseWithDiffs(MetadataCollections.OBJECTGROUP, updatedDocuments);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("An error occurred during object group update " + String.join(",", List.of()), e);
+            return errors(objectGroupIds, KO, UpdateMetadataKey.CHECK_METADATA_SCHEMA, e.getMessage());
+        } catch (MetaDataNotFoundException e) {
+            LOGGER.error("Unit not found during object group update " + String.join(",", List.of()), e);
+            return errors(objectGroupIds, KO, UpdateMetadataKey.UNKNOWN_OR_FORBIDDEN, e.getMessage());
+        } catch (Exception e) {
+            LOGGER.error("An error occurred during object group update " + String.join(",", List.of()), e);
+            return errors(objectGroupIds, FATAL, UpdateMetadataKey.METADATA_UPDATE, e.getMessage());
+        }
+    }
+
+    private List<MetadataUpdateResult> mapUpdateResultResponseWithDiffs(
+        MetadataCollections collection,
+        Collection<UpdatedDocument> updatedDocuments
+    ) {
+        List<MetadataUpdateResult> updateResults = new ArrayList<>();
         for (UpdatedDocument updatedDocument : updatedDocuments) {
             String diffs = String.join(
                 "\n",
@@ -917,40 +959,45 @@ public class MetaDataImpl {
                         if (!updatedDocument.isUpdated()) {
                             LOGGER.info(
                                 String.format(
-                                    "No new data updates for unit update %s.",
+                                    "No new data updates for %s update %s.",
+                                    collection.getName(),
                                     updatedDocument.getDocumentId()
                                 )
                             );
-                            updatedUnits.add(
-                                new UpdateUnit(
+                            updateResults.add(
+                                new MetadataUpdateResult(
                                     updatedDocument.getDocumentId(),
                                     StatusCode.OK,
-                                    UNIT_METADATA_NO_NEW_DATA,
-                                    "Unit not updated.",
+                                    METADATA_NO_NEW_DATA,
+                                    collection.getName() + " not updated.",
                                     "No diff, there are no new changes."
                                 )
                             );
                         } else {
                             LOGGER.warn(
-                                String.format("UNKNOWN updates for unit update %s.", updatedDocument.getDocumentId())
+                                String.format(
+                                    "UNKNOWN updates for %s update %s.",
+                                    collection.getCollection(),
+                                    updatedDocument.getDocumentId()
+                                )
                             );
-                            updatedUnits.add(
-                                new UpdateUnit(
+                            updateResults.add(
+                                new MetadataUpdateResult(
                                     updatedDocument.getDocumentId(),
                                     StatusCode.OK,
-                                    UNIT_METADATA_NO_CHANGES,
-                                    "Unit updated with UNKNOWN changes.",
+                                    METADATA_NO_CHANGES,
+                                    collection.getName() + " updated with UNKNOWN changes.",
                                     "UNKNOWN diff, there are some changes but they cannot be trace."
                                 )
                             );
                         }
                     } else {
-                        updatedUnits.add(
-                            new UpdateUnit(
+                        updateResults.add(
+                            new MetadataUpdateResult(
                                 updatedDocument.getDocumentId(),
                                 StatusCode.OK,
-                                UNIT_METADATA_UPDATE,
-                                "Update unit OK.",
+                                METADATA_UPDATE,
+                                "Update " + collection.getName() + " OK.",
                                 diffs
                             )
                         );
@@ -959,41 +1006,42 @@ public class MetaDataImpl {
                 case FAILED:
                     LOGGER.error(
                         String.format(
-                            "Failed to update for unit update %s. with message %s",
+                            "Failed to update for %s update %s. with message %s",
+                            collection.getName(),
                             updatedDocument.getDocumentId(),
                             updatedDocument.getFailureMessage()
                         )
                     );
-                    updatedUnits.add(
-                        new UpdateUnit(
+                    updateResults.add(
+                        new MetadataUpdateResult(
                             updatedDocument.getDocumentId(),
                             KO,
-                            CHECK_UNIT_SCHEMA,
+                            CHECK_METADATA_SCHEMA,
                             String.format(updatedDocument.getFailureMessage()),
                             "No diff due to failing status"
                         )
                     );
             }
         }
-        return updatedUnits;
+        return updateResults;
     }
 
-    public RequestResponse<UpdateUnit> updateUnitsRules(
+    public RequestResponse<MetadataUpdateResult> updateUnitsRules(
         List<String> unitIds,
         RuleActions ruleActions,
         Map<String, DurationData> bindRuleToDuration
     ) {
         List<OntologyModel> ontologies = this.unitOntologyLoader.loadOntologies();
 
-        List<UpdateUnit> unitRules = unitIds
+        List<MetadataUpdateResult> unitRules = unitIds
             .stream()
             .map(unitId -> updateAndTransformUnitRules(unitId, ruleActions, bindRuleToDuration, ontologies))
             .collect(Collectors.toList());
 
-        return new RequestResponseOK<UpdateUnit>().addAllResults(unitRules).setTotal(unitRules.size());
+        return new RequestResponseOK<MetadataUpdateResult>().addAllResults(unitRules).setTotal(unitRules.size());
     }
 
-    private UpdateUnit updateAndTransformUnitRules(
+    private MetadataUpdateResult updateAndTransformUnitRules(
         String unitId,
         RuleActions ruleActions,
         Map<String, DurationData> bindRuleToDuration,
@@ -1021,40 +1069,51 @@ public class MetaDataImpl {
 
             if (diffs.isEmpty()) {
                 LOGGER.warn(String.format("UNKNOWN updates for unit update %s.", unitId));
-                return new UpdateUnit(
+                return new MetadataUpdateResult(
                     unitId,
                     StatusCode.OK,
-                    UNIT_METADATA_NO_CHANGES,
+                    METADATA_NO_CHANGES,
                     "Unit updated with UNKNOWN changes.",
                     "UNKNOWN diff, there are some changes but they cannot be trace."
                 );
             }
 
-            return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_UPDATE, "Update unit rules OK.", diffs);
+            return new MetadataUpdateResult(unitId, StatusCode.OK, METADATA_UPDATE, "Update unit rules OK.", diffs);
         } catch (MetadataValidationException e) {
             LOGGER.error("An error occurred during unit update " + unitId, e);
-            return error(unitId, KO, CHECK_UNIT_SCHEMA, e.getMessage());
+            return error(unitId, KO, CHECK_METADATA_SCHEMA, e.getMessage());
         } catch (MetaDataNotFoundException e) {
             LOGGER.error("Unit not found during unit update " + unitId, e);
-            return error(unitId, KO, UNIT_UNKNOWN_OR_FORBIDDEN, e.getMessage());
+            return error(unitId, KO, UNKNOWN_OR_FORBIDDEN, e.getMessage());
         } catch (Exception e) {
             LOGGER.error("An error occurred during unit update " + unitId, e);
-            return error(unitId, FATAL, UNIT_METADATA_UPDATE, e.getMessage());
+            return error(unitId, FATAL, METADATA_UPDATE, e.getMessage());
         }
     }
 
-    private List<UpdateUnit> errors(Collection<String> unitIds, StatusCode status, UpdateUnitKey key, String message) {
-        return unitIds
+    private List<MetadataUpdateResult> errors(
+        Collection<String> metadataIds,
+        StatusCode status,
+        UpdateMetadataKey key,
+        String message
+    ) {
+        return metadataIds
             .stream()
-            .map(unitId -> error(unitId, status, key, StringUtils.defaultIfBlank(message, "Unknown error")))
+            .map(metadataId -> error(metadataId, status, key, StringUtils.defaultIfBlank(message, "Unknown error")))
             .toList();
     }
 
-    private UpdateUnit error(String unitId, StatusCode status, UpdateUnitKey key, String message) {
-        return new UpdateUnit(unitId, status, key, StringUtils.defaultIfBlank(message, "Unknown error"), "no diff");
+    private MetadataUpdateResult error(String metadataId, StatusCode status, UpdateMetadataKey key, String message) {
+        return new MetadataUpdateResult(
+            metadataId,
+            status,
+            key,
+            StringUtils.defaultIfBlank(message, "Unknown error"),
+            "no diff"
+        );
     }
 
-    public UpdateUnit updateUnitById(
+    public MetadataUpdateResult updateUnitById(
         JsonNode updateQuery,
         String unitId,
         boolean forceUpdate,
@@ -1078,7 +1137,7 @@ public class MetaDataImpl {
         );
 
         Optional<UpdatedDocument> updatedDocumentOpt = updatedDocuments.stream().findFirst();
-        if (!updatedDocumentOpt.isPresent()) {
+        if (updatedDocumentOpt.isEmpty()) {
             throw new IllegalStateException("No response found");
         }
 
@@ -1093,7 +1152,7 @@ public class MetaDataImpl {
             )
         );
         if (UpdatedDocument.UpdatedDocumentStatus.SUCCESS.equals(updatedDocument.getStatus())) {
-            return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_UPDATE, "Update unit OK.", diffs);
+            return new MetadataUpdateResult(unitId, StatusCode.OK, METADATA_UPDATE, "Update unit OK.", diffs);
         } else {
             throw new MetadataValidationException(
                 updatedDocument.getValidationErrorCode(),

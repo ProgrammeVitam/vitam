@@ -2416,7 +2416,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                         contract
                     ),
                     reassignmentRequest.getSourceOriginatingAgency(),
-                    reassignmentRequest.getTargetOriginatingAgency()
+                    reassignmentRequest.getTargetOriginatingAgency(),
+                    reassignmentRequest.isPropagateToObjectGroups()
                 );
 
             String operationId = VitamThreadUtils.getVitamSession().getRequestId();
@@ -2434,6 +2435,15 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 GUIDReader.getGUID(operationId)
             );
 
+            JsonNode eventDetailDataNode = JsonHandler.createObjectNode()
+                .put("targetOriginatingAgency", reassignmentRequestWithRestriction.getTargetOriginatingAgency())
+                .put("sourceOriginatingAgency", reassignmentRequestWithRestriction.getSourceOriginatingAgency())
+                .put("propagateToObjectGroups", reassignmentRequestWithRestriction.isPropagateToObjectGroups());
+
+            initParameters.putParameterValue(
+                LogbookParameterName.eventDetailData,
+                JsonHandler.unprettyPrint(eventDetailDataNode)
+            );
             addRightsStatementIdentifier(initParameters);
             logbookOperationsClient.create(initParameters);
 

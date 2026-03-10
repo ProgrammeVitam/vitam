@@ -28,7 +28,9 @@ package fr.gouv.vitam.worker.core.plugin.reassignment;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.io.TempWorkspace;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.DatabaseCursor;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -36,6 +38,7 @@ import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -49,17 +52,21 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class OriginatingAgencyReassignmentAgenciesUpdatePluginTest {
+public class OriginatingAgencyReassignmentUnitsChildrenAgenciesComputePluginTest {
+
+    private static final String INTERMEDIATE_GOTS_CHILDREN_IDS_FILE_NAME = "intermediate_gots_children_ids.jsonl";
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -73,17 +80,24 @@ public class OriginatingAgencyReassignmentAgenciesUpdatePluginTest {
     @Mock
     private WorkspaceClient workspaceClient;
 
+    @Mock
+    private BatchReportClient batchReportClient;
+
     HandlerIO handlerIO = mock(HandlerIO.class);
 
-    private OriginatingAgencyReassignmentAgenciesUpdatePlugin originatingAgencyReassignmentAgenciesUpdatePlugin;
+    private TempWorkspace tempWorkspace;
+
+    private OriginatingAgencyReassignmentUnitsChildrenAgenciesComputePlugin originatingAgencyReassignmentUnitsChildrenAgenciesComputePlugin;
 
     @Before
     public void setUp() throws Exception {
         when(handlerIO.getMetaDataClient()).thenReturn(metaDataClient);
         when(handlerIO.getWorkspaceClient(any())).thenReturn(workspaceClient);
         when(handlerIO.getAdminManagementClient()).thenReturn(adminManagementClient);
-
-        originatingAgencyReassignmentAgenciesUpdatePlugin = new OriginatingAgencyReassignmentAgenciesUpdatePlugin();
+        when(handlerIO.getBatchReportClient()).thenReturn(batchReportClient);
+        tempWorkspace = new TempWorkspace();
+        originatingAgencyReassignmentUnitsChildrenAgenciesComputePlugin =
+            new OriginatingAgencyReassignmentUnitsChildrenAgenciesComputePlugin();
     }
 
     @Test
@@ -96,11 +110,12 @@ public class OriginatingAgencyReassignmentAgenciesUpdatePluginTest {
         );
 
         OriginatingAgencyReassignmentRequest originatingAgencyReassignmentRequest =
-            new OriginatingAgencyReassignmentRequest();
-
-        originatingAgencyReassignmentRequest.setDslRequest(queryNode);
-        originatingAgencyReassignmentRequest.setSourceOriginatingAgency("sourceOriginatingAgency");
-        originatingAgencyReassignmentRequest.setTargetOriginatingAgency("targetOriginatingAgency");
+            new OriginatingAgencyReassignmentRequest(
+                queryNode,
+                "sourceOriginatingAgency",
+                "targetOriginatingAgency",
+                true
+            );
 
         JsonNode unitResponse = JsonHandler.getFromInputStream(
             PropertiesUtils.getResourceAsStream("reassignment/units.json")
@@ -143,8 +158,15 @@ public class OriginatingAgencyReassignmentAgenciesUpdatePluginTest {
             .when(handlerIO)
             .getInputStreamFromWorkspace(any(), eq("request.json"));
 
+        final File tempFile = tempWorkspace.tempFile();
+        doNothing().when(batchReportClient).appendReportEntries(any());
+
+        when(
+            handlerIO.getNewLocalFile(WorkFlowExecutionContext.VITAM, INTERMEDIATE_GOTS_CHILDREN_IDS_FILE_NAME)
+        ).thenReturn(tempFile);
+
         // When
-        List<ItemStatus> itemStatuses = originatingAgencyReassignmentAgenciesUpdatePlugin.executeList(
+        List<ItemStatus> itemStatuses = originatingAgencyReassignmentUnitsChildrenAgenciesComputePlugin.executeList(
             workerParameters,
             handlerIO
         );

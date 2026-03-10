@@ -1,0 +1,100 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 2,
+    "offset": 0,
+    "limit": 0,
+    "size": 2
+  },
+  "$results": [
+    {
+      "#qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "#nbobjects": "1",
+          "versions": [
+            {
+              "#id": "aeaaaaaaaaeaaaabab44mamlsx7dj7iaaaba",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {},
+              "FileInfo": {
+                "Filename": "Child D",
+                "LastModified": "2023-11-03T17:22:26.814"
+              },
+              "Size": 0,
+              "Uri": "Content/aeaaaaaaaaeaaaabab44mamlsx7dj7iaaaba",
+              "Algorithm": "SHA-512",
+              "#opi": "aeeaaaaaagecf4ubabqu6amlswzeekiaaaaq"
+            }
+          ]
+        }
+      ],
+      "#id": "aebaaaaaaaeaaaabab44mamlsx7dj7qaaaaq",
+      "#tenant": 0,
+      "#allunitups": ["id_unit_1"],
+      "#unitups": ["id_unit_1"],
+      "FileInfo": {
+        "Filename": "Child D",
+        "LastModified": "2023-11-03T17:22:26.814"
+      },
+      "#nbobjects": 1,
+      "#opi": "aeeaaaaaagecf4ubabqu6amlswzeekiaaaaq",
+      "#originating_agency": "sdfghj"
+    },{
+      "#qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "#nbobjects": "1",
+          "versions": [
+            {
+              "#id": "aeaaaaaaaaeaaaabab44mamlsx2dj7iaaaca",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {},
+              "FileInfo": {
+                "Filename": "Child Z",
+                "LastModified": "2023-11-03T17:22:26.814"
+              },
+              "Size": 0,
+              "Uri": "Content/aeaaaaaaaaeaaaabab44mamlsx2dj7iaaaca",
+              "Algorithm": "SHA-512",
+              "#opi": "aeeaaaaaagecf4ubabqu6amlswzeekiaaaaq"
+            }
+          ]
+        }
+      ],
+      "#id": "aeaaaaaaaaeaaaabab44mamlsx2dj7iaaaba",
+      "#tenant": 0,
+      "#allunitups": ["id_unit_2"],
+      "#unitups": ["id_unit_2"],
+      "FileInfo": {
+        "Filename": "Child Z",
+        "LastModified": "2023-11-03T17:22:26.814"
+      },
+      "#nbobjects": 1,
+      "#opi": "aeeaaaaaagecf4ubabqu6amlswzeekiaaaaq",
+      "#originating_agency": "sdfghj"
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$roots": [
+      "aebaaaaaaabgthlqabqgsalltyqvytqaaaaq"
+    ],
+    "$query": [],
+    "$filter": {},
+    "$projection": {
+      "$fields": {
+        "#qualifiers.versions": 1,
+        "#id": 0,
+        "#qualifiers.versions._id": 1,
+        "#qualifiers.qualifier": 1,
+        "#qualifiers.versions.DataObjectVersion": 1,
+        "#qualifiers.versions.FormatIdentification": 1,
+        "#qualifiers.versions.FileInfo": 1,
+        "#qualifiers.versions.Size": 1,
+        "#qualifiers.versions._storage": 1
+      }
+    },
+    "$facets": []
+  }
+}

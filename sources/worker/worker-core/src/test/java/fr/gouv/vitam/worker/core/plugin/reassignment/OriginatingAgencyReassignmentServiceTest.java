@@ -54,26 +54,26 @@ import static org.mockito.Mockito.when;
 
 public class OriginatingAgencyReassignmentServiceTest {
 
-    private Integer tenantId = 0;
-
     @Mock
     private HandlerIO handlerIO;
 
     @Mock
     private MetaDataClient metaDataClient;
 
-    private OriginatingAgencyReassignmentService reassignmentService;
+    private OriginatingAgencyReassignmentService originatingAgencyReassignmentService;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         Mockito.when(handlerIO.getMetaDataClient()).thenReturn(metaDataClient);
-        reassignmentService = new OriginatingAgencyReassignmentService();
+        originatingAgencyReassignmentService = new OriginatingAgencyReassignmentService();
     }
 
     @Test
-    public void testGetUnitsParentsIdById_emptyList() {
-        Map<String, List<String>> result = reassignmentService.getUnitsParentsIdById(Collections.emptyList());
+    public void testGetParentIdsById_emptyList() {
+        Map<String, List<String>> result = originatingAgencyReassignmentService.getParentIdsById(
+            Collections.emptyList()
+        );
         assertThat(result).isEmpty();
     }
 
@@ -86,7 +86,7 @@ public class OriginatingAgencyReassignmentServiceTest {
         unitNode.set(VitamFieldsHelper.allunitups(), parents);
         unitNode.put(VitamFieldsHelper.id(), "someId");
 
-        List<String> result = reassignmentService.getAllUnitParents(unitNode);
+        List<String> result = originatingAgencyReassignmentService.getAllUnitParents(unitNode);
         assertThat(result).containsExactly("parent1", "parent2");
     }
 
@@ -101,13 +101,13 @@ public class OriginatingAgencyReassignmentServiceTest {
         unit2.put(VitamFieldsHelper.validComputedInheritedRules(), false);
 
         List<JsonNode> units = Arrays.asList(unit1, unit2);
-        Set<String> result = reassignmentService.getUnitsIdsToInvalidateComputedInheritedRules(units);
+        Set<String> result = originatingAgencyReassignmentService.getUnitsIdsToInvalidateComputedInheritedRules(units);
 
         assertThat(result).containsExactly("unit1");
     }
 
     @Test
-    public void testComputeUnitsIdsWithAtLeastOneParentHasOriginatingAgenciesEqualTo() throws Exception {
+    public void testComputeNodesIdsWithAtLeastOneParentHavingOriginatingAgencyEqualTo() throws Exception {
         // Setup units with parents
         JsonNode unitResponse = JsonHandler.getFromInputStream(
             PropertiesUtils.getResourceAsStream("reassignment/units.json")
@@ -125,17 +125,19 @@ public class OriginatingAgencyReassignmentServiceTest {
 
         when(metaDataClient.selectUnits(any())).thenReturn(unitResponse1);
 
-        Set<String> result = reassignmentService.computeUnitsIdsWithAtLeastOneParentHasOriginatingAgenciesEqualTo(
-            handlerIO,
-            unitsNodes,
-            "oldOriginatingAgency"
-        );
+        Set<String> result =
+            originatingAgencyReassignmentService.computeNodesIdsWithAtLeastOneParentHavingOriginatingAgencyEqualTo(
+                handlerIO,
+                unitsNodes,
+                "oldOriginatingAgency"
+            );
 
-        assertThat(result).contains("id_unit_3");
+        assertThat(result).contains("id_unit_3", "id_unit_5");
     }
 
     @Test
     public void testBuildUnitsOriginatingAgencyReassignmentUpdateQueries() throws Exception {
+        int tenantId = 0;
         String operationId = GUIDFactory.newRequestIdGUID(tenantId).toString();
 
         JsonNode unitResponse = JsonHandler.getFromInputStream(
@@ -151,13 +153,14 @@ public class OriginatingAgencyReassignmentServiceTest {
 
         when(metaDataClient.selectUnits(any())).thenReturn(unitResponse);
 
-        List<JsonNode> queries = reassignmentService.buildUnitsOriginatingAgencyReassignmentUpdateQueries(
-            handlerIO,
-            unitsNodes,
-            "SRC",
-            "TARGET",
-            operationId
-        );
+        List<JsonNode> queries =
+            originatingAgencyReassignmentService.buildUnitsOriginatingAgencyReassignmentUpdateQueries(
+                handlerIO,
+                unitsNodes,
+                "SRC",
+                "TARGET",
+                operationId
+            );
 
         assertThat(queries).hasSize(4);
         for (JsonNode query : queries) {

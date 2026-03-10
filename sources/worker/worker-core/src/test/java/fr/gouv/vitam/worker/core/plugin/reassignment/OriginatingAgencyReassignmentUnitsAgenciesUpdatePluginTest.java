@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.core.plugin.reassignment;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.DatabaseCursor;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -43,7 +42,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,7 +59,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class OriginatingAgencyReassignmentUnitUpdatePluginTest {
+public class OriginatingAgencyReassignmentUnitsAgenciesUpdatePluginTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -74,21 +72,16 @@ public class OriginatingAgencyReassignmentUnitUpdatePluginTest {
     @Mock
     private MetaDataClient metaDataClient;
 
-    private OriginatingAgencyReassignmentUnitUpdatePlugin originatingAgencyReassignmentUnitUpdatePlugin;
+    private OriginatingAgencyReassignmentUnitsAgenciesUpdatePlugin originatingAgencyReassignmentUnitsAgenciesUpdatePlugin;
 
     private HandlerIO handlerIO;
 
     @Before
     public void setUp() throws Exception {
-        originatingAgencyReassignmentUnitUpdatePlugin = new OriginatingAgencyReassignmentUnitUpdatePlugin();
+        originatingAgencyReassignmentUnitsAgenciesUpdatePlugin =
+            new OriginatingAgencyReassignmentUnitsAgenciesUpdatePlugin();
         handlerIO = mock(HandlerIO.class);
         when(handlerIO.getMetaDataClient()).thenReturn(metaDataClient);
-    }
-
-    @After
-    public void cleanup() {
-        // Restore default batch size
-        VitamConfiguration.setBatchSize(1000);
     }
 
     @Test
@@ -101,11 +94,12 @@ public class OriginatingAgencyReassignmentUnitUpdatePluginTest {
         );
 
         OriginatingAgencyReassignmentRequest originatingAgencyReassignmentRequest =
-            new OriginatingAgencyReassignmentRequest();
-
-        originatingAgencyReassignmentRequest.setDslRequest(queryNode);
-        originatingAgencyReassignmentRequest.setSourceOriginatingAgency("sourceOriginatingAgency");
-        originatingAgencyReassignmentRequest.setTargetOriginatingAgency("targetOriginatingAgency");
+            new OriginatingAgencyReassignmentRequest(
+                queryNode,
+                "sourceOriginatingAgency",
+                "targetOriginatingAgency",
+                true
+            );
 
         JsonNode unitResponse = JsonHandler.getFromInputStream(
             PropertiesUtils.getResourceAsStream("reassignment/units.json")
@@ -149,7 +143,7 @@ public class OriginatingAgencyReassignmentUnitUpdatePluginTest {
             .getInputStreamFromWorkspace(any(), eq("request.json"));
 
         // When
-        List<ItemStatus> itemStatuses = originatingAgencyReassignmentUnitUpdatePlugin.executeList(
+        List<ItemStatus> itemStatuses = originatingAgencyReassignmentUnitsAgenciesUpdatePlugin.executeList(
             workerParameters,
             handlerIO
         );

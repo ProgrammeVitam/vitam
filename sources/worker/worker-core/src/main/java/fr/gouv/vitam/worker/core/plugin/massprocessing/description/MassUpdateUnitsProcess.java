@@ -87,12 +87,12 @@ import static fr.gouv.vitam.common.model.IngestWorkflowConstants.ARCHIVE_UNIT_FO
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnit.DIFF;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnit.ID;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnit.KEY;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnit.MESSAGE;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnit.STATUS;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
+import static fr.gouv.vitam.metadata.api.model.MetadataUpdateResult.DIFF;
+import static fr.gouv.vitam.metadata.api.model.MetadataUpdateResult.ID;
+import static fr.gouv.vitam.metadata.api.model.MetadataUpdateResult.KEY;
+import static fr.gouv.vitam.metadata.api.model.MetadataUpdateResult.MESSAGE;
+import static fr.gouv.vitam.metadata.api.model.MetadataUpdateResult.STATUS;
+import static fr.gouv.vitam.metadata.api.model.UpdateMetadataKey.METADATA_NO_CHANGES;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
@@ -220,7 +220,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
             return buildItemStatus(MASS_UPDATE_UNITS, status, EventDetails.of(message));
         }
 
-        if (UNIT_METADATA_NO_CHANGES.name().equals(key)) {
+        if (METADATA_NO_CHANGES.name().equals(key)) {
             try {
                 if (lfcAlreadyWrittenInMongo(lfcClient, unitId, workerParameters.getContainerName())) {
                     LOGGER.warn(
