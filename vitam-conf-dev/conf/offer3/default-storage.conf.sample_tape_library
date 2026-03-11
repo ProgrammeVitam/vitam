@@ -1,6 +1,7 @@
 provider: tape-library
 
 tapeLibraryConfiguration:
+  mode: local
   inputFileStorageFolder: "/vitam/data/offer3/inputFiles"
   inputTarStorageFolder: "/vitam/data/offer3/inputTars"
   tmpTarOutputStorageFolder: "/vitam/data/offer3/tmpTarOutput"
