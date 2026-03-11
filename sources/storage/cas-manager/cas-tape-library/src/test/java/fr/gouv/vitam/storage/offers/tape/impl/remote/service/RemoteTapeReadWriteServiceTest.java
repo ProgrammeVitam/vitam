@@ -30,7 +30,7 @@ import fr.gouv.vitam.storage.cold.client.InaTapeProxyApi;
 import fr.gouv.vitam.storage.cold.client.invoker.ApiException;
 import fr.gouv.vitam.storage.engine.common.api.exception.TapeCommandException;
 import org.junit.Before;
-import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -45,8 +45,8 @@ import static org.mockito.Mockito.verify;
 
 public class RemoteTapeReadWriteServiceTest {
 
-    @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     private static final Integer DRIVE_INDEX = 0;
     private InaTapeProxyApi inaTapeProxyApi;

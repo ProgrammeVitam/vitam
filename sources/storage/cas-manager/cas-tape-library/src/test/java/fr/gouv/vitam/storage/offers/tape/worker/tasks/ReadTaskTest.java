@@ -263,7 +263,7 @@ public class ReadTaskTest {
             archiveCacheStorage
         );
 
-        fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
+        fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName));
 
         doAnswer(args -> {
             String filePath = args.getArgument(0);
@@ -357,7 +357,7 @@ public class ReadTaskTest {
             archiveCacheStorage
         );
 
-        fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
+        fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName));
         doAnswer(args -> {
             String labelPath = args.getArgument(0);
             JsonHandler.writeAsFile(tapeCatalogLabel, tmpTarOutputDir.toPath().resolve(labelPath).toFile());
@@ -474,7 +474,7 @@ public class ReadTaskTest {
             archiveCacheStorage
         );
 
-        fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
+        fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName));
         doAnswer(args -> {
             String labelPath = args.getArgument(0);
             JsonHandler.writeAsFile(tapeCatalogLabel, tmpTarOutputDir.toPath().resolve(labelPath).toFile());
@@ -592,7 +592,7 @@ public class ReadTaskTest {
             archiveCacheStorage
         );
 
-        fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
+        fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName));
         doAnswer(args -> {
             String labelPath = args.getArgument(0);
             TapeCatalogLabel wrongLabel = new TapeCatalogLabel().setCode("AnotherTape").setBucket(FAKE_BUCKET);
@@ -696,7 +696,7 @@ public class ReadTaskTest {
             archiveCacheStorage
         );
 
-        fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
+        fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName));
         doThrow(new TapeCommandException("label error")).when(tapeReadWriteService).readFromTape(any());
 
         when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
@@ -1183,7 +1183,7 @@ public class ReadTaskTest {
             archiveCacheStorage
         );
 
-        fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
+        fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName));
         doAnswer(args -> {
             String labelPath = args.getArgument(0);
             JsonHandler.writeAsFile(tapeCatalogLabel, tmpTarOutputDir.toPath().resolve(labelPath).toFile());
@@ -1271,7 +1271,7 @@ public class ReadTaskTest {
             archiveCacheStorage
         );
 
-        fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
+        fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName));
         doAnswer(args -> {
             String labelPath = args.getArgument(0);
             JsonHandler.writeAsFile(tapeCatalogLabel, tmpTarOutputDir.toPath().resolve(labelPath).toFile());
@@ -1380,7 +1380,7 @@ public class ReadTaskTest {
             .when(archiveCacheStorage)
             .reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
 
-        fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
+        fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName));
 
         doAnswer(args -> {
             String filePath = args.getArgument(0);
@@ -1472,7 +1472,7 @@ public class ReadTaskTest {
             .updateAccessRequestWhenArchiveReady(fileName);
 
         doAnswer(invocationOnMock -> {
-            fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
+            fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName));
             return null;
         })
             .when(tapeReadWriteService)

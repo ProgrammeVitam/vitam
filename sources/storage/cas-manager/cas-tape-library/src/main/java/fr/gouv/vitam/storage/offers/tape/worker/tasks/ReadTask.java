@@ -83,7 +83,6 @@ public class ReadTask implements Future<ReadWriteResult> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReadTask.class);
     public static final String TAPE_MSG = " [Tape] : ";
-    public static final String TEMP_EXT = ".TMP";
 
     private final TapeLibraryService tapeLibraryService;
     private final TapeCatalogService tapeCatalogService;

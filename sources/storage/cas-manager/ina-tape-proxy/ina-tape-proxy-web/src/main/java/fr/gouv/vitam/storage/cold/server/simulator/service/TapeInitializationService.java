@@ -138,7 +138,7 @@ public class TapeInitializationService {
         }
 
         for (String tapeCode : configuration.getTapeCodes()) {
-            if (tapeCode.matches(TAPE_CODE_PATTERN)) {
+            if (!tapeCode.matches(TAPE_CODE_PATTERN)) {
                 throw new IllegalArgumentException("Invalid tape code '" + tapeCode + "'.");
             }
         }
