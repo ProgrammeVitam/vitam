@@ -12,12 +12,5 @@
     "EOT",
     "ONLINE",
     "IM_REP_EN"
-  ],
-  "BeginOfTape": false,
-  "EndOfData": false,
-  "EndOfFile": false,
-  "SetMark": false,
-  "WormTape": false,
-  "EmptyDrive": false,
-  "CacheEnabled": true
+  ]
 }
