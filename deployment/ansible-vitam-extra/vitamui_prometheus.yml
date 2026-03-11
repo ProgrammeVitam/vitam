@@ -10,7 +10,7 @@
 
 ### PROMETHEUS MONGODB EXPORTER INSTALLATION OR UNINSTALL ###
 - hosts: hosts_vitamui_mongod
-  gather_facts: no
+  gather_facts: false
   any_errors_fatal: true
   roles:
     - prometheus-mongodb-exporter

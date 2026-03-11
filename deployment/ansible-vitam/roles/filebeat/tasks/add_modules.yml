@@ -73,6 +73,6 @@
     path: "{{ filebeat_modules_dir }}/system.yml"
     state: absent
   when:
-    - filebeat.system.enable_log | bool == false
-    - filebeat.system.enable_auth | bool == false
+    - not filebeat.system.enable_log | bool
+    - not filebeat.system.enable_auth | bool
   notify: "filebeat - restart service"

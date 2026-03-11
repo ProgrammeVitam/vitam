@@ -1,11 +1,11 @@
 ---
 
 - hosts: hosts_ihm_recette
-  gather_facts: no
+  gather_facts: false
   roles:
     - test-perf-ingest
   vars:
     ingest_number: 5
     sip_name: SIP_10000_100.zip
-    parallel: "false"
+    parallel: false
     delay: 5000

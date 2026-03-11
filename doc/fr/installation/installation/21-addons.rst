@@ -180,8 +180,6 @@ Il faut également modifier le fichier ``deployment/environments/group_vars/all/
 
 A l'issue, le déploiement n'installera pas l'agent Consul. Le composant ihm-demo appellera, alors, par l'adresse :term:`IP` de service les composants "access-external" et "ingest-external".
 
-Il est également fortement recommandé de positionner la valeur de la directive ``vitam.ihm_demo.metrics_enabled`` à ``false`` dans le fichier ``deployment/environments/group_vars/all/advanced/vitam_vars.yml``, afin que ce composant ne tente pas d'envoyer des données sur "elasticsearch-log".
-
 Paramétrer le ``secure_cookie`` pour ihm-demo
 =============================================
 
@@ -291,7 +289,7 @@ Exemple:
         - AppraisalRule: "1 year" # rule name : rule value
     - name: 3
       rules:
-        - AppraisaleRule: "5 year"
+        - AppraisalRule: "5 year"
         - StorageRule: "5 year"
         - ReuseRule: "2 year"
 

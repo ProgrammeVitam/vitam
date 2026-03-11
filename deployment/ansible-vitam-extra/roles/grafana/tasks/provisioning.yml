@@ -45,13 +45,13 @@
     owner: "{{ grafana_user }}"
     group: "{{ grafana_group }}"
     mode: "{{ '0444' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
-  when: primary_site | lower != "true"
+  when: not primary_site | bool
 
 - name: Remove reconstruction dashboard from primary site
   file:
     state: absent
     path: "{{ grafana_path_dashboards }}/vitam_secondary_site_reconstruction.json"
-  when: primary_site | lower == "true"
+  when: primary_site | bool
 
 - name: Get declared tape offers
   set_fact:

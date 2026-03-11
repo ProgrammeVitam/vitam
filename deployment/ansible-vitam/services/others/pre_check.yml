@@ -3,5 +3,7 @@
 - hosts: vitam
   any_errors_fatal: true
   roles:
-    - { role: checks_infra, when: checks_infra | default(false) | bool == true }
-    - { role: checks, when: checks | default(true) | bool == true }
+    - role: checks_infra
+      when: checks_infra | default(false) | bool
+    - role: checks
+      when: checks | default(true) | bool

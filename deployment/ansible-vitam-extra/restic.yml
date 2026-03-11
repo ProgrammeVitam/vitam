@@ -5,4 +5,5 @@
 - hosts: hosts_offer
   any_errors_fatal: true
   roles:
-    - { role: restic, when: restic_enabled | default(false) | bool }
+    - role: restic
+      when: restic_enabled | default(false) | bool

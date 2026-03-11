@@ -13,23 +13,21 @@
 #     http_proxy: "{{ http_proxy_environnement }}"
 
 - name: create temporary pem file to upload PRONOM
-  local_action: "shell openssl pkcs12 -in {{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.p12 -out {{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.pem  -passin pass:{{ keystores.client_external.vitam_admin_int }} -passout pass:{{ keystores.client_external.vitam_admin_int }} -nodes"
+  local_action: "shell openssl pkcs12 -in {{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.p12 -out {{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.pem -passin pass:{{ keystores.client_external.vitam_admin_int }} -passout pass:{{ keystores.client_external.vitam_admin_int }} -nodes"
   no_log: "{{ hide_passwords_during_deploy }}"
-  tags:
-    - init_pronom
+  tags: init_pronom
   vars:
-     ansible_become: no
+    ansible_become: false
 
 - name: copy temporary PEM certificate
   copy:
     src: "{{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.pem"
     dest: "{{ vitam_defaults.folder.root_path }}/tmp/access-external/keystore_vitam-admin-int.pem"
-    remote_src: no
+    remote_src: false
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  tags:
-    - init_pronom
+  tags: init_pronom
 
 - name: Ensure service is started
   service:
@@ -50,13 +48,13 @@
     client_cert: "{{ vitam_defaults.folder.root_path }}/tmp/access-external/keystore_vitam-admin-int.pem"
     #password: "{{ keystores.client_external.vitam_admin_int }}"
     headers:
-      Connection: "keep-alive"
+      Connection: keep-alive
       X-Tenant-Id: "{{ vitam_tenant_admin }}"
-      Content-Type: "application/octet-stream"
+      Content-Type: application/octet-stream
       Host: "{{ vitam_struct.host }}"
       X-Filename: "{{ droid_filename }}"
     body: "{{ lookup('file', '{{ inventory_dir }}/{{ droid_filename }}') }}"
-    body_format: "raw"
+    body_format: raw
     validate_certs: false
     timeout: "{{ vitam_defaults.services.api_call_timeout }}"
     status_code: 201
@@ -65,20 +63,17 @@
   retries: 5
   delay: 10
   run_once: true # Limit as this upload is not related to tenants
-  tags:
-    - init_pronom
+  tags: init_pronom
 
 - name: remove temporary PEM certificate
   file:
     path: "{{ vitam_defaults.folder.root_path }}/tmp/access-external/keystore_vitam-admin-int.pem"
     state: absent
-  tags:
-    - init_pronom
+  tags: init_pronom
 
 - name: remove temporary pem file in ansible
-  local_action:
-    module: file
-    path:  "{{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.pem"
+  file:
+    path: "{{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.pem"
     state: absent
-  tags:
-    - init_pronom
+  delegate_to: localhost
+  tags: init_pronom

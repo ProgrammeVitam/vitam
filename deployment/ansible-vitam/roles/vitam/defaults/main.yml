@@ -23,11 +23,6 @@ vitam_site_id: 1
 consul_business_check: "{{ vitam_defaults.consul_business_check | default(10) }}"
 consul_admin_check: "{{ vitam_defaults.consul_admin_check | default(10) }}"
 
-metrics_enabled: "{{ vitam_struct.metrics_enabled | default(true) }}"
-metricslevel: "{{ vitam_defaults.metricslevel | default('DEBUG') }}"
-metricsinterval: "{{ vitam_defaults.metricsinterval | default(3) }}"
-metricsunit: "{{ vitam_defaults.metricsunit | default('MINUTES') }}"
-
 access_retention_days: "{{ vitam_defaults.access_retention_days | default(365) }}"
 access_total_size_cap: "{{ vitam_defaults.access_total_size_cap | default('5GB') }}"
 

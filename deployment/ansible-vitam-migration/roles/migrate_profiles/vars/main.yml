@@ -3,7 +3,7 @@
 
 default_seda_version: "2.3"
 
-_base_url: "http{% if vitam.access_external.https_enabled | bool == true %}s{% endif %}://{{ vitam.access_external.host }}:{{ vitam.access_external.port_service }}/admin-external/v1"
+_base_url: "http{% if vitam.access_external.https_enabled | bool %}s{% endif %}://{{ vitam.access_external.host }}:{{ vitam.access_external.port_service }}/admin-external/v1"
 _archive_unit_profiles_base_url: "{{ _base_url }}/archiveunitprofiles"
 _archive_profiles_base_url: "{{ _base_url }}/profiles"
 _seda_version_pattern: "seda:v(\\d+\\.\\d+)"

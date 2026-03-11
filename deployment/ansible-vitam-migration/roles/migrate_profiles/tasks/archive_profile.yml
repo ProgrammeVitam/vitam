@@ -13,7 +13,7 @@
       method: GET
       headers:
         X-Tenant-Id: "{{ __profile._tenant }}"
-      return_content: yes
+      return_content: true
       client_cert: "{{ _tmp_pem }}"
       validate_certs: false
       status_code:
@@ -45,13 +45,13 @@
       $action:
         - $set:
             SedaVersion: "{{ __seda_version if __profile.Format == 'RNG' else '2.3' }}"
-    body_format: "json"
+    body_format: json
     headers:
       Content-Type: "application/json"
       X-Tenant-Id: "{{ __profile._tenant }}"
     client_cert: "{{ _tmp_pem }}"
     validate_certs: false
-    return_content: yes
+    return_content: true
     status_code:
       - 200
       - 400

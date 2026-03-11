@@ -18,7 +18,7 @@
 - name: Connection to ihm-recette before uploading
   uri:
     url: "https://{{ ip_service }}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }}/v1/api/login"
-    validate_certs: no
+    validate_certs: false
     method: POST
     body: '{"token":{"principal":"{{ vitam_users[0].login }}","credentials": "{{ vitam_users[0].password }}" }}' # First account is used
     body_format: json
@@ -35,8 +35,8 @@
 - name: launch perf test
   uri:
     url: "https://{{ ip_service }}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }}/v1/api/performances"
-    validate_certs: no
-    return_content: yes
+    validate_certs: false
+    return_content: true
     method: POST
     headers:
       Connection: "keep-alive"

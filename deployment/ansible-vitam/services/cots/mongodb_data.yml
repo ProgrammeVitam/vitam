@@ -8,7 +8,7 @@
 
 # Mongoc replicas configuration
 - hosts: hosts_mongoc_data
-  gather_facts: no
+  gather_facts: false
   any_errors_fatal: true
   roles:
     - mongoc
@@ -18,7 +18,7 @@
 
 # Mongod replicas configuration
 - hosts: hosts_mongod_data
-  gather_facts: no
+  gather_facts: false
   any_errors_fatal: true
   roles:
     - mongod
@@ -28,7 +28,7 @@
 
 # Mongos configuration
 - hosts: hosts_mongos_data
-  gather_facts: no
+  gather_facts: false
   any_errors_fatal: true
   roles:
     - mongos

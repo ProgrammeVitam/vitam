@@ -1,11 +1,11 @@
-
+#jinja2: lstrip_blocks: True
 // Add the shard to the configuration
 {% for host in groups[mongod] %}
-    {% if hostvars[host]['mongo_rs_bootstrap'] | default(false) | bool == true %}
+  {% if hostvars[host]['mongo_rs_bootstrap'] | default(false) | bool %}
     {% if mongo_cluster_name == hostvars[host]['mongo_cluster_name'] %}
-        sh.addShard("shard{{ hostvars[host]['mongo_shard_id'] }}/{{ hostvars[host]['ip_service'] }}:{{ mongodb.mongod_port }}")
+sh.addShard("shard{{ hostvars[host]['mongo_shard_id'] }}/{{ hostvars[host]['ip_service'] }}:{{ mongodb.mongod_port }}")
     {% endif %}
-    {% endif %}
+  {% endif %}
 {% endfor %}
 
 // Enable sharding on Vitam databases

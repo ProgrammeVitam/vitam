@@ -4,7 +4,7 @@
     - name: Ensure that current site is a secondary site.
       fail:
         msg: "Cannot run this migration playbook on a primary site"
-      when: primary_site | lower != 'false'
+      when: primary_site | bool
 
     - name: Update metadata graph per tenant
       uri:
@@ -16,7 +16,7 @@
         # WARNING: For historical reasons, we need to explicitly set the $depth to 0,
         #          otherwise graph fields might be queried internally
         body: '{"$roots": [],"$query": [{"$exists": "#id" ,"$depth" : 0}],"$filter": {},"$projection": {}}'
-        body_format: "json"
+        body_format: json
         headers:
           Content-Type: application/json
           Accept: application/json

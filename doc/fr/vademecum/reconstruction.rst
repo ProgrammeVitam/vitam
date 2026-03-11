@@ -149,7 +149,7 @@ Dans le playbook ansible-vitam/vitam.yml, commentez les lignes suivantes :
 ::
     ### CHECK VITAM ONTOLOGY WHEN UPGRADE ###
     #- hosts: hosts_functional_administration
-    #  gather_facts: no
+    #  gather_facts: false
     #  any_errors_fatal: true
     #  roles:
     #    - check_ontologies

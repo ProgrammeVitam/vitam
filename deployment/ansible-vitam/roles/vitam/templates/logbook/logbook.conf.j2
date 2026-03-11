@@ -6,7 +6,7 @@ mongoDbNodes:
     dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: logbook
-dbAuthentication: {{ mongodb.mongo_authentication }}
+dbAuthentication: {{ mongodb.mongo_authentication | bool | lower }}
 dbUserName: {{ mongodb['mongo-data'].logbook.user }}
 dbPassword: {{ mongodb['mongo-data'].logbook.password }}
 jettyConfig: jetty-config.xml
@@ -28,8 +28,8 @@ elasticsearchNodes:
 elasticsearchTenantIndexation:
   default_config:
     logbookoperation:
-      number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.logbookoperation.number_of_shards | default('1') }}
-      number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.logbookoperation.number_of_replicas | default('2') }}
+      number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.logbookoperation.number_of_shards | default(1) }}
+      number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.logbookoperation.number_of_replicas | default(2) }}
 
 {% if vitam_elasticsearch_tenant_indexation.dedicated_tenants is defined and vitam_elasticsearch_tenant_indexation.dedicated_tenants is not none %}
   dedicated_tenants:
@@ -45,8 +45,8 @@ elasticsearchTenantIndexation:
       {% endif %}
     {% endif %}
   {% endfor %}
-{% endif %}
 
+{% endif %}
 {% if vitam_elasticsearch_tenant_indexation.grouped_tenants is defined and vitam_elasticsearch_tenant_indexation.grouped_tenants is not none %}
   grouped_tenants:
   {% for entry in vitam_elasticsearch_tenant_indexation.grouped_tenants %}
@@ -62,8 +62,8 @@ elasticsearchTenantIndexation:
       {% endif %}
     {% endif %}
   {% endfor %}
-{% endif %}
 
+{% endif %}
 #Basic Authentication
 adminBasicAuth:
   - userName: {{ admin_basic_auth_user }}
@@ -115,7 +115,7 @@ lifecycleTraceabilityMaxRenewalDelay: {{ vitam.logbook.lifecycleTraceabilityMaxR
 lifecycleTraceabilityMaxRenewalDelayUnit: {{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelayUnit | default('MINUTES') }}
 lifecycleTraceabilityMaxEntries: {{ vitam.logbook.lifecycleTraceabilityMaxEntries | default(100000) }}
 
-{% if primary_site | lower != "true" %}
+{% if not primary_site | bool %}
 # Reconstruction cache duration (in minutes)
 reconstructionMetricsCacheDurationInMinutes: {{ vitam.logbook.reconstructionMetricsCacheDurationInMinutes | default(15) }}
 {% endif %}

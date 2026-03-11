@@ -1,7 +1,9 @@
 ---
 
 - hosts: hosts_grafana
-  gather_facts: no
+  gather_facts: false
   roles:
-    - role: grafana
-      tags: [grafana, update_prometheus_configuration]
+    - grafana
+  tags:
+    - grafana
+    - update_prometheus_configuration

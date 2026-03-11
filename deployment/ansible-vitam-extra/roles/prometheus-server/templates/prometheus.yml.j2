@@ -13,7 +13,7 @@ alerting:
       {% for item in groups['hosts_alertmanager'] %}
       - targets: ["{{ hostvars[item]['ip_admin'] }}:{{ prometheus.alertmanager.api_port | default(9093) }}"]
         labels:
-          hostname: "{{ item.split(".")[0] }}"
+          hostname: {{ item.split(".")[0] }}
       {% endfor %}
 {% endif %}
 
@@ -34,5 +34,5 @@ scrape_configs:
 {% for item in groups['hosts_prometheus'] %}
       - targets: ["{{ hostvars[item]['ip_admin'] }}:{{ prometheus.server.port | default(9090) }}"]
         labels:
-          hostname: "{{ item.split(".")[0] }}"
+          hostname: {{ item.split(".")[0] }}
 {% endfor %}

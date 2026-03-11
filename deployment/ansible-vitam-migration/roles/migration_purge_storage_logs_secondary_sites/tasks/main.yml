@@ -1,6 +1,9 @@
+---
+
 - name: Ensure playbook launched on secondary site
-  fail: msg="Playbook must be run on secondary sites only"
-  when: primary_site|lower != 'false'
+  fail:
+    msg: Playbook must be run on secondary sites only
+  when: primary_site | bool
 
 - name: Populate service facts
   service_facts:

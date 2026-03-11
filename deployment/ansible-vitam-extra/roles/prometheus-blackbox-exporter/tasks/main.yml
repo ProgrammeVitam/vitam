@@ -1,7 +1,7 @@
 ---
 
 - include_tasks: prometheus_blackbox_exporter_enabled.yml
-  when: prometheus.blackbox_exporter.enabled | default(true) | bool == true
+  when: prometheus.blackbox_exporter.enabled | default(true) | bool
 
 - include_tasks: prometheus_blackbox_exporter_disabled.yml
-  when: prometheus.blackbox_exporter.enabled | default(true) | bool == false
+  when: not prometheus.blackbox_exporter.enabled | default(true) | bool

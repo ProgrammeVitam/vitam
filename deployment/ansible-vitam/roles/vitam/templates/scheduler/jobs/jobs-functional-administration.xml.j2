@@ -14,10 +14,10 @@
             <ignore-duplicates>true</ignore-duplicates>
         </processing-directives>
 
-        
 
 
-{% if primary_site | lower == "true" %}
+
+{% if primary_site | bool %}
     <schedule>
         <job>
             <name>RuleManagementAuditJob</name>
@@ -55,7 +55,7 @@
         </trigger>
     </schedule>
 
-{% else %}    
+{% else %}
     <schedule>
         <job>
             <name>ReconstructionAccessionRegisterJob</name>
@@ -74,7 +74,7 @@
             </cron>
         </trigger>
     </schedule>
-    
+
     <schedule>
         <job>
             <name>ReconstructionReferentialJob</name>
@@ -93,6 +93,6 @@
             </cron>
         </trigger>
     </schedule>
-{% endif %} 
+{% endif %}
 
 </job-scheduling-data>

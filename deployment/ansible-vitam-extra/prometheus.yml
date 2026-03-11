@@ -3,14 +3,18 @@
 - hosts: hosts_prometheus
   gather_facts: false
   roles:
-    - role: prometheus-server
-      tags: [prometheus, prometheus_server, update_prometheus_configuration]
+    - prometheus-server
+  tags:
+    - prometheus_server
+    - update_prometheus_configuration
 
 - hosts: hosts_alertmanager
   gather_facts: false
   roles:
-    - role: prometheus-alertmanager
-      tags: [prometheus, alertmanager, update_prometheus_configuration]
+    - prometheus-alertmanager
+  tags:
+    - alertmanager
+    - update_prometheus_configuration
 
 ### PROMETHEUS NODE EXPORTER / CONSUL EXPORTER INSTALLATION OR UNINSTALL ###
 - hosts: vitam
@@ -18,8 +22,10 @@
   any_errors_fatal: true
   roles:
     - prometheus-node-exporter
-    - { role: prometheus-consul-exporter, when: "consul_disabled | default(false) | bool != true" }
-  tags: [prometheus, prometheus-exporter]
+    - role: prometheus-consul-exporter
+      when: not consul_disabled | default(false) | bool
+  tags:
+    - prometheus-exporter
 
 ### PROMETHEUS ELASTICSEARCH EXPORTER INSTALLATION OR UNINSTALL ###
 - hosts: elasticsearch
@@ -27,7 +33,8 @@
   any_errors_fatal: true
   roles:
     - prometheus-elasticsearch-exporter
-  tags: [prometheus, prometheus-exporter]
+  tags:
+    - prometheus-exporter
 
 ### PROMETHEUS BLACKBOX EXPORTER INSTALLATION OR UNINSTALL ###
 - hosts: hosts_prometheus
@@ -35,7 +42,8 @@
   any_errors_fatal: true
   roles:
     - prometheus-blackbox-exporter
-  tags: [prometheus, prometheus-exporter]
+  tags:
+    - prometheus-exporter
 
 ### PROMETHEUS MONGODB EXPORTER INSTALLATION OR UNINSTALL ###
 - hosts: hosts_mongoc_offer,hosts_mongod_offer,hosts_mongoc_data,hosts_mongod_data
@@ -43,4 +51,5 @@
   any_errors_fatal: true
   roles:
     - prometheus-mongodb-exporter
-  tags: [prometheus, prometheus-exporter]
+  tags:
+    - prometheus-exporter

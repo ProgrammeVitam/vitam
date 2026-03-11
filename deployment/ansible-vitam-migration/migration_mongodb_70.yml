@@ -4,17 +4,18 @@
 
 # Confirm launching this playbook
 - hosts: localhost
-  any_errors_fatal: yes
-  gather_facts: no
+  any_errors_fatal: true
+  gather_facts: false
   vars_prompt:
-    name: "confirmation"
-    prompt: "This playbook will migrate your mongo clusters from 6.0 to 7.0.\n\nAre you sure you want to run this playbook ?\nAnswer with 'YES'"
-    default: "NO"
-    private: no
+    name: confirmation
+    prompt: "This playbook will migrate your mongo clusters from 6.0 to 7.0.\n\nAre you sure you want to run this playbook?\nAnswer with 'YES'"
+    default: 'NO'
+    private: false
   tasks:
     - name: Check Confirmation
-      fail: msg="Playbook run confirmation failed"
-      when: confirmation|upper != "YES"
+      fail:
+        msg: Playbook run confirmation failed
+      when: not confirmation | bool
       tags: always
 
 ################################################################################
@@ -23,7 +24,7 @@
 
 # Checks feature compatibility version & state
 - hosts: hosts_mongoc_data
-  gather_facts: no
+  gather_facts: false
   roles:
     - mongodb_check_feature_compatibility
     - mongodb_check_replica_state
@@ -33,7 +34,7 @@
     mongo_port: "{{ mongodb.mongoc_port }}"
 
 - hosts: hosts_mongod_data
-  gather_facts: no
+  gather_facts: false
   roles:
     - mongodb_check_feature_compatibility
     - mongodb_check_replica_state
@@ -46,7 +47,7 @@
 
 # Stop balancer
 - hosts: hosts_mongos_data
-  gather_facts: no
+  gather_facts: false
   roles:
     - mongodb_balancer
   vars:
@@ -58,7 +59,7 @@
 
 # set_members_groups for mongoc
 - hosts: hosts_mongoc_data
-  gather_facts: no
+  gather_facts: false
   roles:
     - mongodb_set_members_groups
   vars:
@@ -93,7 +94,7 @@
 
 # set_members_groups for mongod
 - hosts: hosts_mongod_data
-  gather_facts: no
+  gather_facts: false
   roles:
     - mongodb_set_members_groups
   vars:
@@ -138,7 +139,7 @@
 
 # Restart balancer
 - hosts: hosts_mongos_data
-  gather_facts: no
+  gather_facts: false
   roles:
     - mongodb_balancer
   vars:
@@ -147,7 +148,7 @@
 
 # set_featurecompatibility
 - hosts: hosts_mongos_data
-  gather_facts: no
+  gather_facts: false
   roles:
     - mongodb_set_feature_compatibility
   vars:
@@ -164,7 +165,7 @@
 
 # Checks feature compatibility version & state
 - hosts: hosts_mongoc_offer
-  gather_facts: no
+  gather_facts: false
   roles:
     - mongodb_check_feature_compatibility
     - mongodb_check_replica_state
@@ -174,7 +175,7 @@
     mongo_port: "{{ mongodb.mongoc_port }}"
 
 - hosts: hosts_mongod_offer
-  gather_facts: no
+  gather_facts: false
   roles:
     - mongodb_check_feature_compatibility
     - mongodb_check_replica_state
@@ -187,7 +188,7 @@
 
 # Stop balancer
 - hosts: hosts_mongos_offer
-  gather_facts: no
+  gather_facts: false
   roles:
     - mongodb_balancer
   vars:
@@ -199,7 +200,7 @@
 
 # set_members_groups for mongoc
 - hosts: hosts_mongoc_offer
-  gather_facts: no
+  gather_facts: false
   roles:
     - mongodb_set_members_groups
   vars:
@@ -234,7 +235,7 @@
 
 # set_members_groups for mongod
 - hosts: hosts_mongod_offer
-  gather_facts: no
+  gather_facts: false
   roles:
     - mongodb_set_members_groups
   vars:
@@ -279,7 +280,7 @@
 
 # Restart balancer
 - hosts: hosts_mongos_offer
-  gather_facts: no
+  gather_facts: false
   roles:
     - mongodb_balancer
   vars:
@@ -288,7 +289,7 @@
 
 # set_featurecompatibility
 - hosts: hosts_mongos_offer
-  gather_facts: no
+  gather_facts: false
   roles:
     - mongodb_set_feature_compatibility
   vars:

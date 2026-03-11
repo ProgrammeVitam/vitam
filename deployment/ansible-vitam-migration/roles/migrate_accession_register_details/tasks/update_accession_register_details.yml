@@ -16,10 +16,10 @@
       collection: "AccessionRegisterDetail"
       fields: ["obIdIn", "Comment"]
       model: "{{ item }}"
-    body_format: "json"
+    body_format: json
     headers:
       Content-Type: "application/json"
-    return_content: yes
+    return_content: true
     status_code: 201, 202
     timeout: "36000"
   with_items: "{{ ( results.stdout|from_json ).touchedAccessionRegisterDetails }}"

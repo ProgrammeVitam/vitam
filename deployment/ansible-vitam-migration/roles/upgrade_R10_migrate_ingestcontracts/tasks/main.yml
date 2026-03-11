@@ -3,18 +3,17 @@
   local_action: "shell openssl pkcs12 -in {{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.p12 -out {{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.pem -passin pass:{{ keystores.client_external.vitam_admin_int }} -passout pass:{{ keystores.client_external.vitam_admin_int }} -nodes"
   no_log: "{{ hide_passwords_during_deploy }}"
   vars:
-     ansible_become: no
+    ansible_become: false
 
 - name: Set URL definition
   set_fact:
-    vitamurl: "http{% if vitam_struct.https_enabled | bool == true %}s{% endif %}://{{ hostvars[groups['hosts_access_external'][0]]['ip_service'] }}:{{ vitam.access_external.port_service }}/admin-external/v1/ingestcontracts"
-
+    vitamurl: "http{% if vitam_struct.https_enabled | bool %}s{% endif %}://{{ hostvars[groups['hosts_access_external'][0]]['ip_service'] }}:{{ vitam.access_external.port_service }}/admin-external/v1/ingestcontracts"
 
 - name: Copy temporary PEM certificate
   copy:
     src: "{{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.pem"
     dest: "{{ vitam_defaults.folder.root_path }}/tmp/{{ vitam_struct.vitam_component }}/keystore_vitam-admin-int.pem"
-    remote_src: no
+    remote_src: false
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
@@ -37,11 +36,11 @@
     method: GET
     client_cert: "{{ vitam_defaults.folder.root_path }}/tmp/{{ vitam_struct.vitam_component }}/keystore_vitam-admin-int.pem"
     headers:
-      Connection: "keep-alive"
+      Connection: keep-alive
       X-Tenant-Id: "{{ item }}"
     body: "{\"$query\": { }, \"$projection\": {}}"
-    body_format: "json"
-    return_content: yes
+    body_format: json
+    return_content: true
     validate_certs: false
   register: ingestcontracts_for_tenant
   loop: "{{ vitam_tenant_ids | expand_list }}"
@@ -71,7 +70,7 @@
       Content-Type: "application/json;charset=UTF-8"
     body: "{\"$action\":[{\"$set\":{\"CheckParentLink\":\"AUTHORIZED\"}}]}"
     body_format: json
-    return_content: yes
+    return_content: true
     validate_certs: false
   loop: "{{ contracts_per_tenant_result | subelements('contracts_list') }}"
   run_once: true
@@ -84,5 +83,5 @@
 - name: remove temporary pem file in ansible
   local_action:
     module: file
-    path:  "{{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.pem"
+    path: "{{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.pem"
     state: absent

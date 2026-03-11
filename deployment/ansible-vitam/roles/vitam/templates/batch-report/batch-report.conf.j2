@@ -5,7 +5,7 @@ mongoDbNodes:
     dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: report
-dbAuthentication: {{ mongodb.mongo_authentication }}
+dbAuthentication: {{ mongodb.mongo_authentication | bool | lower }}
 dbUserName: {{ mongodb['mongo-data'].report.user }}
 dbPassword: {{ mongodb['mongo-data'].report.password }}
 jettyConfig: jetty-config.xml

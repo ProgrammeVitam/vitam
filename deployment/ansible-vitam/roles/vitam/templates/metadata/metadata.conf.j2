@@ -19,7 +19,7 @@ criticalDipTimeToLiveInMinutes: {{ vitam.metadata.criticalDipTimeToLiveInMinutes
 # TRANSFER purge service (in minutes)
 transfersSIPTimeToLiveInMinutes: {{ vitam.metadata.transfersSIPTimeToLiveInMinutes }}
 
-{% if primary_site | lower != "true" %}
+{% if not primary_site | bool %}
 # Reconstruction cache duration (in minutes)
 reconstructionMetricsCacheDurationInMinutes: {{ vitam.metadata.reconstructionMetricsCacheDurationInMinutes | default(15) }}
 # Concurrent reconstruction threads
@@ -30,7 +30,7 @@ reconstructionBatchSize: {{ vitam.metadata.reconstructionBatchSize | default(100
 reconstructionBatchLoadingTimeoutInSeconds: {{ vitam.metadata.reconstructionBatchLoadingTimeoutInSeconds | default(600) }}
 {% endif %}
 
-refreshElasticIndexPostBulkIndexing: {{ vitam.metadata.refreshElasticIndexPostBulkIndexing | default(true) }}
+refreshElasticIndexPostBulkIndexing: {{ vitam.metadata.refreshElasticIndexPostBulkIndexing | default(true) | bool | lower }}
 
 # Units and Objects Stream Threshold
 unitsStreamThreshold: {{ vitam.metadata.unitsStreamThreshold | default(1000000) }}
@@ -50,7 +50,7 @@ mongoDbNodes:
     dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: metadata
-dbAuthentication: {{ mongodb.mongo_authentication }}
+dbAuthentication: {{ mongodb.mongo_authentication | bool | lower }}
 dbUserName: {{ mongodb['mongo-data'].metadata.user }}
 dbPassword: {{ mongodb['mongo-data'].metadata.password }}
 
@@ -148,7 +148,7 @@ adminBasicAuth:
 {% if vitam.metadata.isDataConsistencyAuditRunnable | default(false) | bool %}
 # Metadata Consistency Audit (Experimental / Not for Production)
 isDataConsistencyAuditRunnable: true
-enableDataConsistencyRectificationMode: {{ vitam.metadata.enableDataConsistencyRectificationMode | default(false) }}
+enableDataConsistencyRectificationMode: {{ vitam.metadata.enableDataConsistencyRectificationMode | default(false) | bool | lower }}
 dataConsistencyAuditOplogMaxSize: {{ vitam.metadata.dataConsistencyAuditOplogMaxSize | default(100) }}
 
 mongodShardsConf:

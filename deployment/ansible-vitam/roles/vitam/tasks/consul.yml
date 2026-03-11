@@ -12,20 +12,18 @@
 
     - name: "Deploy consul agent service declaration for {{ package_name }} service"
       template:
-        src: "service-componentid.json.j2"
+        src: service-componentid.json.j2
         dest: "{{ consul_folder_conf }}/service-{{ vitam_struct.vitam_component }}.json"
         owner: "{{ vitam_defaults.users.vitam }}"
         group: "{{ vitam_defaults.users.group }}"
         mode: "{{ '0644' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
-      tags:
-        - consul_conf
-      notify:
-       - "vitam - reload consul configuration"
+      tags: consul_conf
+      notify: "vitam - reload consul configuration"
 
     - name: "Set correct SELinux file context for {{ consul_folder_conf }}/service-{{ vitam_struct.vitam_component }}.json"
       shell: "restorecon {{ consul_folder_conf }}/service-{{ vitam_struct.vitam_component }}.json"
       when:
         - selinux_state | lower in ["enforcing", "permissive"]
-        - selinux_policy | lower == "targeted" # We don"t handle mls mode for now
+        - selinux_policy | lower == "targeted" # We don't handle mls mode for now
 
-  when: consul_disabled is not defined or consul_disabled |lower != "true"
+  when: not consul_disabled | default(false) | bool

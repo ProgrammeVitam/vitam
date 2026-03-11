@@ -9,5 +9,8 @@
 - hosts: vitam
   any_errors_fatal: true
   roles:
-    - { role: consul, when: "( inventory_hostname not in groups['hosts_consul_server'] ) and ( consul_disabled | default(false) | bool == false )" }
+    - role: consul
+      when:
+        - inventory_hostname not in groups['hosts_consul_server']
+        - not consul_disabled | default(false) | bool
   tags: consul_agent
