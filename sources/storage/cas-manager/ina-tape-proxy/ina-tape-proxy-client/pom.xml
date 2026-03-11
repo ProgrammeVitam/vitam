@@ -14,9 +14,13 @@
     <dependencies>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
+            <artifactId>storage-engine-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
             <artifactId>common-storage</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
@@ -26,9 +30,10 @@
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
-            <artifactId>ina-tape-proxy-api</artifactId>
+            <artifactId>ina-tape-proxy-web</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
+            <!--Only to ensure ina-tape-proxy-web is build before the client (required for swagger file generation) -->
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
@@ -76,7 +81,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.parent.basedir}/ina-tape-proxy-api/target/generated-documentation/openapi.yaml</inputSpec>
+                            <inputSpec>${project.parent.basedir}/ina-tape-proxy-web/target/generated-documentation/openapi.yaml</inputSpec>
                             <generatorName>java</generatorName>
                             <output>${project.build.directory}/generated-sources/openapi</output>
                             <apiPackage>fr.gouv.vitam.storage.cold.client</apiPackage>

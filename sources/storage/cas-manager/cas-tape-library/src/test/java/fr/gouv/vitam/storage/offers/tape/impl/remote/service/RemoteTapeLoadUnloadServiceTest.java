@@ -34,8 +34,12 @@ import fr.gouv.vitam.storage.engine.common.api.exception.TapeCommandException;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class RemoteTapeLoadUnloadServiceTest {
 
@@ -50,7 +54,7 @@ public class RemoteTapeLoadUnloadServiceTest {
 
     @Test
     public void shouldReturnTapeLibrarySpec_whenStatusIsCalled() throws Exception {
-        TapeLibrarySpec expectedSpec = new TapeLibraryState();
+        TapeLibraryState expectedSpec = new TapeLibraryState();
         when(inaTapeProxyApi.getLibraryStatus()).thenReturn(expectedSpec);
 
         TapeLibrarySpec result = service.status();

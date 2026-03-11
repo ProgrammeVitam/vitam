@@ -203,7 +203,7 @@ public final class FileUtil {
         throws IOException, IllegalPathException {
         String subPaths = Strings.isNullOrEmpty(fileExtension) ? filename : filename + fileExtension;
 
-        SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamTmpFolder(), subPaths);
+        SafeFileChecker.checkSafeFileSubPaths(VitamConfiguration.getVitamTmpFolder(), subPaths);
 
         return File.createTempFile(filename, fileExtension, new File(VitamConfiguration.getVitamTmpFolder()));
     }

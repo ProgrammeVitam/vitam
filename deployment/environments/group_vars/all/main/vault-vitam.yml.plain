@@ -45,6 +45,7 @@ mongodb:
     metadataCollect:
       user: metadata-collect
       password: change_it_37b97KVaDV8YbCwt
+
   offer-fs-1:
     passphrase: changeitmB5rnk1M5TY61PqZ
     admin:
@@ -59,6 +60,7 @@ mongodb:
     offer:
       user: offer
       password: change_it_pQi1T1yT9LAF8au8
+
   offer-fs-2:
     passphrase: changeiteSY1By57qZr4MX2s
     admin:
@@ -73,6 +75,7 @@ mongodb:
     offer:
       user: offer
       password: change_it_mLDYds957sNQ53mA
+
   offer-tape-1:
     passphrase: changeitmB5rnk1M5TY61PqZ
     admin:
@@ -87,6 +90,10 @@ mongodb:
     offer:
       user: offer
       password: change_it_pQi1T1yT9LAF8au8
+    ina-tape-proxy:
+      user: ina-tape-proxy
+      password: change_it_RoklFlziZr5grr90
+
   offer-swift-1:
     passphrase: changeitgYvt42M2pKL6Zx3T
     admin:
@@ -115,20 +122,6 @@ mongodb:
     offer:
       user: offer
       password: change_it_TuTB1i2k7iQW3zL2
-  offer-tape-1:
-    passphrase: changeituF1jghT9NqdTG625
-    admin:
-      user: vitamdb-admin
-      password: change_it_5b7cSWcab91NF4kv
-    localadmin:
-      user: vitamdb-localadmin
-      password: change_it_S9jE24rxHwUZP5a6
-    system:
-      user: vitamdb-system
-      password: change_it_HycFEVD74g397iRe
-    offer:
-      user: offer
-      password: change_it_TuTB1i2k7iQW3c2a
 
 vitam_users:
   - vitam_aadmin:

@@ -33,3 +33,13 @@ From the `dev-deployment/docker-cots` directory:
 docker compose down
 docker volume rm docker-cots_elastic_data docker-cots_mongo_data
 ```
+
+### Force rebuild images
+
+When mongo init scripts updated, we'll need a full rebuild.
+
+```shell
+docker compose down --volumes --remove-orphans
+docker compose build --no-cache
+docker compose up -d --force-recreate
+```

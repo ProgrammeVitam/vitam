@@ -339,7 +339,7 @@ public class PerformanceService {
      * @throws IOException
      */
     InputStream readReport(String reportName) throws IOException, IllegalPathException {
-        File file = SafeFileChecker.checkSafeFilePath(
+        File file = SafeFileChecker.checkSafeFileSubPaths(
             performanceReportDirectory.toAbsolutePath().toString(), reportName);
         return Files.newInputStream(file.toPath());
     }

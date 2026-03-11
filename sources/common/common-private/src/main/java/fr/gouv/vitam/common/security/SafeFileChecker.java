@@ -59,12 +59,37 @@ public class SafeFileChecker {
      * File path sanity checker.
      * Checks folder & filename authorized patterns, path traversal attacks & ESAPI sanity checks
      *
+     * @param safeRootPath Authorized base path
+     * @param filePath The full filename to check.
+     * @return the resolved {@link File}
+     * @throws IllegalPathException thrown when any check fails with UnChecked or Runtime exception
+     */
+    public static File checkSafeFilePath(String safeRootPath, String filePath) throws IllegalPathException {
+        String fullSafePath = safeRootPath;
+        if (!fullSafePath.endsWith(File.separator)) {
+            fullSafePath = fullSafePath + File.separator;
+        }
+        if (!filePath.startsWith(fullSafePath)) {
+            String error = "Invalid path '" + filePath + "'. Should start with '" + fullSafePath + "'.";
+            alertService.createAlert(error);
+            throw new IllegalPathException(error);
+        }
+        String relativeFilePath = filePath.substring(fullSafePath.length());
+        String[] subPaths = StringUtils.split(relativeFilePath, File.separatorChar);
+
+        return SafeFileChecker.checkSafeFileSubPaths(fullSafePath, subPaths);
+    }
+
+    /**
+     * File path sanity checker.
+     * Checks folder & filename authorized patterns, path traversal attacks & ESAPI sanity checks
+     *
      * @param safeRootPath first or initial part(s) of a path representing a FileSystem resource
      * @param subPaths sub path parts. Every part should be a single folder level, except last part which is the actual filename.
      * @return the resolved {@link File}
      * @throws IllegalPathException thrown when any check fails with UnChecked or Runtime exception
      */
-    public static File checkSafeFilePath(String safeRootPath, String... subPaths) throws IllegalPathException {
+    public static File checkSafeFileSubPaths(String safeRootPath, String... subPaths) throws IllegalPathException {
         return checkSafePath(safeRootPath, subPaths, false);
     }
 
@@ -77,7 +102,7 @@ public class SafeFileChecker {
      * @return the resolved directory {@link File}
      * @throws IllegalPathException thrown when any check fails with UnChecked or Runtime exception
      */
-    public static File checkSafeDirPath(String safeRootPath, String... subPaths) throws IllegalPathException {
+    public static File checkSafeDirSubPaths(String safeRootPath, String... subPaths) throws IllegalPathException {
         return checkSafePath(safeRootPath, subPaths, true);
     }
 

@@ -144,6 +144,7 @@
       with_items:
         - admin
         - offer
+        - ina-tape-proxy
       no_log: "{{ hide_passwords_during_deploy }}"
       when: mongo_cluster_name != 'mongo-data'
       tags: update_mongodb_configuration

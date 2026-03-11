@@ -1,0 +1,107 @@
+# Configuration
+# To test locally, set "filterActivation: false" in vitam-conf-dev/conf/ina-tape-proxy/vitam.conf
+@ina-url = http://localhost:8216
+@tenant = 0
+@slot = 1
+@drive = 0
+@file-to-write = /vitam/data/offer/data.tar
+@file-to-read = /vitam/data/offer/data.tar
+
+# ========================================
+# STATUS & TENANTS
+# ========================================
+
+### Health check - Vérifier le statut du service
+GET {{ina-url}}/ina-tape-proxy/v1/status
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+### Get server tenants - Récupérer la liste des tenants
+GET {{ina-url}}/ina-tape-proxy/v1/tenants
+Accept: application/json
+
+# ========================================
+# LIBRARY OPERATIONS - Opérations sur la bibliothèque
+# ========================================
+
+### Get Library Status - Obtenir le statut de la bibliothèque de bandes
+# @name libraryStatus
+GET {{ina-url}}/ina-tape-proxy/v1/library/status
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+### Load Tape - Charger une bande depuis un slot vers un lecteur
+# @name loadTape
+POST {{ina-url}}/ina-tape-proxy/v1/library/load?slotNumber={{slot}}&drive={{drive}}
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+### Unload Tape - Décharger une bande depuis un lecteur vers un slot
+# @name unloadTape
+POST {{ina-url}}/ina-tape-proxy/v1/library/unload?slotNumber={{slot}}&drive={{drive}}
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+# ========================================
+# DRIVE OPERATIONS - Opérations sur le lecteur de bande
+# ========================================
+
+### Get Drive Status - Obtenir le statut du lecteur de bande
+# @name driveStatus
+GET {{ina-url}}/ina-tape-proxy/v1/drive/{{drive}}/status
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+### Rewind Tape - Rembobiner la bande au début
+# @name rewind
+POST {{ina-url}}/ina-tape-proxy/v1/drive/{{drive}}/rewind
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+### Move Tape Forward - Avancer la position de la bande
+# @name moveForward
+POST {{ina-url}}/ina-tape-proxy/v1/drive/{{drive}}/move?position=10&backward=false
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+### Move Tape Backward - Reculer la position de la bande
+# @name moveBackward
+POST {{ina-url}}/ina-tape-proxy/v1/drive/{{drive}}/move?position=5&backward=true
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+### Go to End of Data (EOD) - Se positionner à la fin des données
+# @name goToEOD
+POST {{ina-url}}/ina-tape-proxy/v1/drive/{{drive}}/eod
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+### Eject Tape - Éjecter la bande du lecteur
+# @name eject
+POST {{ina-url}}/ina-tape-proxy/v1/drive/{{drive}}/eject
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+# ========================================
+# I/O OPERATIONS - Opérations d'entrée/sortie
+# ========================================
+
+### Write to Tape - Écrire des données sur la bande
+# @name writeToTape
+POST {{ina-url}}/ina-tape-proxy/v1/io/{{drive}}/write?inputPath={{file-to-write}}
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+### Read from Tape - Lire des données depuis la bande
+# @name readFromTape
+GET {{ina-url}}/ina-tape-proxy/v1/io/{{drive}}/read?outputPath={{file-to-read}}
+Accept: application/json
+X-Tenant-Id: {{tenant}}

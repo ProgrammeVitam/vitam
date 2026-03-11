@@ -26,10 +26,21 @@
  */
 package fr.gouv.vitam.storage.cold.server;
 
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.storage.cold.InaTapeProxyConfiguration;
-import fr.gouv.vitam.storage.cold.api.InaTapeProxyResource;
+import fr.gouv.vitam.storage.cold.server.rest.InaTapeProxyResource;
+import fr.gouv.vitam.storage.cold.server.simulator.exception.InaTapeProxyExceptionMapper;
+import fr.gouv.vitam.storage.cold.server.simulator.repository.TapeCatalogRepository;
+import fr.gouv.vitam.storage.cold.server.simulator.repository.TapeDriveRepository;
+import fr.gouv.vitam.storage.cold.server.simulator.service.InaService;
+import fr.gouv.vitam.storage.cold.server.simulator.service.TapeInitializationService;
 import jakarta.servlet.ServletConfig;
 import jakarta.ws.rs.core.Application;
 import jakarta.ws.rs.core.Context;
@@ -41,7 +52,12 @@ import java.util.Set;
 
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
+/**
+ * JAX-RS Application for INA Tape Proxy
+ */
 public class InaTapeProxyApplication extends Application {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(InaTapeProxyApplication.class);
 
     private final CommonBusinessApplication commonBusinessApplication;
     private final Set<Object> singletons;
@@ -56,16 +72,47 @@ public class InaTapeProxyApplication extends Application {
 
     private InaTapeProxyConfiguration loadConfiguration(String configurationFile) {
         try (InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            return PropertiesUtils.readYaml(yamlIS, InaTapeProxyConfiguration.class);
+            InaTapeProxyConfiguration config = PropertiesUtils.readYaml(yamlIS, InaTapeProxyConfiguration.class);
+            LOGGER.info("Configuration loaded from: {}", configurationFile);
+            return config;
         } catch (IOException e) {
+            LOGGER.error("Unable to load configuration from: {}", configurationFile, e);
             throw new RuntimeException("Unable to load configuration", e);
         }
     }
 
     private Set<Object> initResources(InaTapeProxyConfiguration configuration) {
-        Set<Object> set = new HashSet<>(commonBusinessApplication.getResources());
-        set.add(new InaTapeProxyResource(configuration));
-        return set;
+        try {
+            Set<Object> set = new HashSet<>(commonBusinessApplication.getResources());
+
+            // Initialize MongoDB connection
+            LOGGER.info("Initializing MongoDB connection...");
+            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration);
+            MongoDatabase mongoDatabase = mongoClient.getDatabase(configuration.getDbName());
+            LOGGER.info("MongoDB client created");
+
+            // Initialize repositories
+            TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(mongoDatabase);
+            TapeDriveRepository tapeDriveRepository = new TapeDriveRepository(mongoDatabase);
+
+            // Initialize services
+            TapeInitializationService tapeInitializationService = new TapeInitializationService(
+                configuration,
+                tapeCatalogRepository,
+                tapeDriveRepository
+            );
+
+            InaService service = tapeInitializationService.initializeService();
+
+            set.add(new InaTapeProxyResource(service));
+            set.add(new InaTapeProxyExceptionMapper());
+
+            LOGGER.info("Resources initialized");
+            return set;
+        } catch (Exception e) {
+            LOGGER.error("Failed to initialize resources", e);
+            throw new VitamRuntimeException("Failed to initialize resources", e);
+        }
     }
 
     @Override

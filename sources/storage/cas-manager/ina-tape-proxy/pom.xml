@@ -12,10 +12,9 @@
     <artifactId>ina-tape-proxy</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>ina-tape-proxy-api</module>
+        <module>ina-tape-proxy-common</module>
         <module>ina-tape-proxy-web</module>
         <module>ina-tape-proxy-client</module>
-        <module>ina-tape-proxy-common</module>
     </modules>
 
     <properties>

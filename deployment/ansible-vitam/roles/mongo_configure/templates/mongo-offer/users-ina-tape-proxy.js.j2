@@ -1,0 +1,33 @@
+{% if vitam_offers[mongo_cluster_name]["provider"] in ["tape-library"]
+  and vitam_offers[mongo_cluster_name]["tapeLibraryConfiguration"]["mode"] | default("local") == "ina"
+%}
+
+// Switch to ina-tape-proxy database
+db = db.getSiblingDB('ina-tape-proxy')
+
+// Create ina-tape-proxy user
+
+if (! db.getUser("{{ mongodb[mongo_cluster_name]['ina-tape-proxy'].user }}")) {
+    db.createUser(
+        {
+            user: "{{ mongodb[mongo_cluster_name]['ina-tape-proxy'].user }}",
+            pwd: "{{ mongodb[mongo_cluster_name]['ina-tape-proxy'].password }}",
+            roles: [
+                { role: "readWrite", db: "ina-tape-proxy" }
+            ]
+        }
+    )
+}
+else {
+    db.updateUser(
+        "{{ mongodb[mongo_cluster_name]['ina-tape-proxy'].user }}",
+        {
+            pwd: "{{ mongodb[mongo_cluster_name]['ina-tape-proxy'].password }}",
+            roles: [
+                { role: "readWrite", db: "ina-tape-proxy" }
+            ]
+        }
+    )
+}
+
+{% endif %}

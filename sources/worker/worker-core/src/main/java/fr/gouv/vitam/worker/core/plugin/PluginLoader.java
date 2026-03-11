@@ -87,7 +87,7 @@ public class PluginLoader {
      */
     PluginLoader(String pluginsConfigFile) throws IllegalPathException {
         LOGGER.debug("Load plugin files : " + pluginsConfigFile);
-        SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamConfigFolder(), pluginsConfigFile);
+        SafeFileChecker.checkSafeFileSubPaths(VitamConfiguration.getVitamConfigFolder(), pluginsConfigFile);
         this.pluginsConfigFile = pluginsConfigFile;
         this.plugins = new HashMap<>();
     }
@@ -161,7 +161,7 @@ public class PluginLoader {
 
     private Optional<Class<ActionHandler>> loadExternalPlugins(String handlerID, PluginProperties pluginProperties) {
         try {
-            File jarFile = SafeFileChecker.checkSafeFilePath(
+            File jarFile = SafeFileChecker.checkSafeFileSubPaths(
                 VitamConfiguration.getVitamConfigFolder(),
                 WORKER_PLUGIN_WORKSPACE,
                 pluginProperties.getJarName()

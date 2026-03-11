@@ -28,22 +28,24 @@ package fr.gouv.vitam.storage.offers.tape.impl.remote.service;
 
 import fr.gouv.vitam.storage.cold.client.InaTapeProxyApi;
 import fr.gouv.vitam.storage.cold.client.invoker.ApiException;
-import fr.gouv.vitam.storage.engine.common.api.dto.TapeDriveSpec;
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeDriveState;
 import fr.gouv.vitam.storage.engine.common.api.exception.TapeCommandException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
 
 public class RemoteTapeDriveCommandService implements TapeDriveCommandService {
 
     private final InaTapeProxyApi inaTapeProxyApi;
+    private final Integer driveIndex;
 
-    public RemoteTapeDriveCommandService(InaTapeProxyApi inaTapeProxyApi) {
+    public RemoteTapeDriveCommandService(InaTapeProxyApi inaTapeProxyApi, Integer driveIndex) {
         this.inaTapeProxyApi = inaTapeProxyApi;
+        this.driveIndex = driveIndex;
     }
 
     @Override
-    public TapeDriveSpec status() throws TapeCommandException {
+    public TapeDriveState status() throws TapeCommandException {
         try {
-            return inaTapeProxyApi.getDriveStatus();
+            return inaTapeProxyApi.getDriveStatus(driveIndex);
         } catch (ApiException e) {
             throw new TapeCommandException(e.getLocalizedMessage());
         }
@@ -52,7 +54,7 @@ public class RemoteTapeDriveCommandService implements TapeDriveCommandService {
     @Override
     public void move(int position, boolean isBackward) throws TapeCommandException {
         try {
-            inaTapeProxyApi.move(position, isBackward);
+            inaTapeProxyApi.move(driveIndex, position, isBackward);
         } catch (ApiException e) {
             throw new TapeCommandException(e.getLocalizedMessage());
         }
@@ -61,7 +63,7 @@ public class RemoteTapeDriveCommandService implements TapeDriveCommandService {
     @Override
     public void rewind() throws TapeCommandException {
         try {
-            inaTapeProxyApi.rewind();
+            inaTapeProxyApi.rewind(driveIndex);
         } catch (ApiException e) {
             throw new TapeCommandException(e.getLocalizedMessage());
         }
@@ -70,7 +72,7 @@ public class RemoteTapeDriveCommandService implements TapeDriveCommandService {
     @Override
     public void goToEnd() throws TapeCommandException {
         try {
-            inaTapeProxyApi.goToEnd();
+            inaTapeProxyApi.goToEnd(driveIndex);
         } catch (ApiException e) {
             throw new TapeCommandException(e.getLocalizedMessage());
         }
@@ -79,7 +81,7 @@ public class RemoteTapeDriveCommandService implements TapeDriveCommandService {
     @Override
     public void eject() throws TapeCommandException {
         try {
-            inaTapeProxyApi.eject();
+            inaTapeProxyApi.eject(driveIndex);
         } catch (ApiException e) {
             throw new TapeCommandException(e.getLocalizedMessage());
         }

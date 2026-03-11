@@ -54,7 +54,7 @@ public class DriveManagerFactory {
             case INA -> {
                 InaTapeProxyApi inaTapeProxyClient = InaTapeProxyClientFactory.getInstance().getInaTapeProxyClient();
 
-                return new RemoteTapeDriveManager(inaTapeProxyClient, tapeDriveConf);
+                return new RemoteTapeDriveManager(inaTapeProxyClient, tapeDriveConf, configuration);
             }
         }
 

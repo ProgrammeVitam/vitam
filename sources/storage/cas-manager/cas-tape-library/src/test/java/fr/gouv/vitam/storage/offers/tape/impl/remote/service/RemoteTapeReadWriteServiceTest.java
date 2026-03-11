@@ -30,31 +30,51 @@ import fr.gouv.vitam.storage.cold.client.InaTapeProxyApi;
 import fr.gouv.vitam.storage.cold.client.invoker.ApiException;
 import fr.gouv.vitam.storage.engine.common.api.exception.TapeCommandException;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-import static org.mockito.Mockito.*;
+import java.io.File;
+import java.io.IOException;
+
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class RemoteTapeReadWriteServiceTest {
 
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
+
+    private static final Integer DRIVE_INDEX = 0;
     private InaTapeProxyApi inaTapeProxyApi;
     private RemoteTapeReadWriteService service;
 
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
         inaTapeProxyApi = mock(InaTapeProxyApi.class);
-        service = new RemoteTapeReadWriteService(inaTapeProxyApi);
+        File inputTars = tempFolder.newFolder("inputTars");
+        File tmpOutputStorageFolder = tempFolder.newFolder("tmpOutputStorageFolder");
+        service = new RemoteTapeReadWriteService(
+            inaTapeProxyApi,
+            DRIVE_INDEX,
+            inputTars.getAbsolutePath(),
+            tmpOutputStorageFolder.getAbsolutePath()
+        );
     }
 
     @Test
     public void shouldCallWriteToTapeOnColdStorageApi() throws Exception {
         service.writeToTape("/path/input.tar");
 
-        verify(inaTapeProxyApi).writeToTape("/path/input.tar");
+        verify(inaTapeProxyApi).writeToTape(DRIVE_INDEX, "/path/input.tar");
     }
 
     @Test(expected = TapeCommandException.class)
     public void shouldThrowTapeCommandException_whenApiExceptionOnWriteToTape() throws Exception {
-        doThrow(new ApiException("Write failed")).when(inaTapeProxyApi).writeToTape(anyString());
+        doThrow(new ApiException("Write failed")).when(inaTapeProxyApi).writeToTape(anyInt(), anyString());
 
         service.writeToTape("/bad/path.tar");
     }
@@ -62,12 +82,12 @@ public class RemoteTapeReadWriteServiceTest {
     @Test
     public void shouldCallReadFromTapeOnColdStorageApi() throws Exception {
         service.readFromTape("/output/path.tar");
-        verify(inaTapeProxyApi).readFromTape("/output/path.tar");
+        verify(inaTapeProxyApi).readFromTape(DRIVE_INDEX, "/output/path.tar");
     }
 
     @Test(expected = TapeCommandException.class)
     public void shouldThrowTapeCommandException_whenApiExceptionOnReadFromTape() throws Exception {
-        doThrow(new ApiException("Read failed")).when(inaTapeProxyApi).readFromTape(anyString());
+        doThrow(new ApiException("Read failed")).when(inaTapeProxyApi).readFromTape(anyInt(), anyString());
         service.readFromTape("/output/fail.tar");
     }
 }

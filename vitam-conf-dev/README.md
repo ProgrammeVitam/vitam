@@ -29,6 +29,8 @@
    127.0.0.1       batch-report.service.consul
    127.0.0.1       offer-fs-1.service.consul
    127.0.0.1       offer-fs-2.service.consul
+   127.0.0.1       offer-tape-1.service.consul
+   127.0.0.1       ina-tape-proxy.service.consul
    127.0.0.1       metadata-collect.service.consul
    127.0.0.1       workspace-collect.service.consul
    127.0.0.1       collect-external.service.consul

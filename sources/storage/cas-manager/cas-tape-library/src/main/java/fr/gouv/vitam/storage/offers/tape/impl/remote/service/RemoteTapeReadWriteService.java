@@ -30,18 +30,32 @@ import fr.gouv.vitam.storage.cold.client.InaTapeProxyApi;
 import fr.gouv.vitam.storage.engine.common.api.exception.TapeCommandException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
 
+import java.nio.file.Paths;
+
 public class RemoteTapeReadWriteService implements TapeReadWriteService {
 
     private final InaTapeProxyApi inaTapeProxyApi;
+    private final Integer driveIndex;
+    private final String inputDirectory;
+    private final String tmpOutputStorageFolder;
 
-    public RemoteTapeReadWriteService(InaTapeProxyApi inaTapeProxyApi) {
+    public RemoteTapeReadWriteService(
+        InaTapeProxyApi inaTapeProxyApi,
+        Integer driveIndex,
+        String inputDirectory,
+        String tmpOutputStorageFolder
+    ) {
         this.inaTapeProxyApi = inaTapeProxyApi;
+        this.driveIndex = driveIndex;
+        this.inputDirectory = inputDirectory;
+        this.tmpOutputStorageFolder = tmpOutputStorageFolder;
     }
 
     @Override
     public void writeToTape(String inputPath) throws TapeCommandException {
         try {
-            inaTapeProxyApi.writeToTape(inputPath);
+            String fullPath = Paths.get(this.inputDirectory).resolve(inputPath).toAbsolutePath().toString();
+            inaTapeProxyApi.writeToTape(driveIndex, fullPath);
         } catch (fr.gouv.vitam.storage.cold.client.invoker.ApiException e) {
             throw new TapeCommandException(e.getLocalizedMessage());
         }
@@ -50,7 +64,8 @@ public class RemoteTapeReadWriteService implements TapeReadWriteService {
     @Override
     public void readFromTape(String outputPath) throws TapeCommandException {
         try {
-            inaTapeProxyApi.readFromTape(outputPath);
+            String fullPath = Paths.get(this.tmpOutputStorageFolder).resolve(outputPath).toAbsolutePath().toString();
+            inaTapeProxyApi.readFromTape(driveIndex, fullPath);
         } catch (fr.gouv.vitam.storage.cold.client.invoker.ApiException e) {
             throw new TapeCommandException(e.getLocalizedMessage());
         }
@@ -58,7 +73,6 @@ public class RemoteTapeReadWriteService implements TapeReadWriteService {
 
     @Override
     public String getTmpOutputStorageFolder() {
-        // Requires helper implementation, may break order engine.
-        return null;
+        return tmpOutputStorageFolder;
     }
 }

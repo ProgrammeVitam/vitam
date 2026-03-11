@@ -1,0 +1,18 @@
+resourcePackages:
+  - fr.gouv.vitam.storage.cold.server.rest
+prettyPrint : true
+sortOutput : true
+openAPI31 : true
+outputFormat: YAML
+alwaysResolveAppPath: true
+openAPI:
+  info:
+    title: INA Tape Proxy API
+    version: 1.0.0
+    description: API for the INA tape service
+    contact:
+      name: Programme Vitam
+      email: contact@programmevitam.fr
+    license:
+      name: CeCILL-C
+      url: http://www.cecill.info/licences/Licence_CeCILL-C_V1-fr.html

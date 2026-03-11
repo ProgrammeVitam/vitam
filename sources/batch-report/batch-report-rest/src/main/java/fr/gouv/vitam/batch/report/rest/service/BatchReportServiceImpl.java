@@ -1041,7 +1041,7 @@ public class BatchReportServiceImpl {
     @NotNull
     private File createTemporaryFile(@NotNull String processId, @NotNull String filename)
         throws IOException, IllegalPathException {
-        File file = SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamTmpFolder(), processId, filename);
+        File file = SafeFileChecker.checkSafeFileSubPaths(VitamConfiguration.getVitamTmpFolder(), processId, filename);
         FileUtils.forceMkdirParent(file);
         return file;
     }

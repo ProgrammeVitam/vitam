@@ -2185,7 +2185,7 @@ public class LogbookResource extends ApplicationStatusResource {
     @Nonnull
     private File exportLifecyclesToTempFile(CloseableIterator<JsonNode> lfcIterator) throws IOException {
         try {
-            File tmpFile = SafeFileChecker.checkSafeFilePath(
+            File tmpFile = SafeFileChecker.checkSafeFileSubPaths(
                 VitamConfiguration.getVitamTmpFolder(),
                 GUIDFactory.newGUID().getId()
             );

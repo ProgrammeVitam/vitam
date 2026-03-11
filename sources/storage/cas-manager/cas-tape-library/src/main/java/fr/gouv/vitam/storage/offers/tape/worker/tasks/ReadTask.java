@@ -83,7 +83,6 @@ public class ReadTask implements Future<ReadWriteResult> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReadTask.class);
     public static final String TAPE_MSG = " [Tape] : ";
-    public static final String TEMP_EXT = ".TMP";
 
     private final TapeLibraryService tapeLibraryService;
     private final TapeCatalogService tapeCatalogService;
@@ -257,8 +256,9 @@ public class ReadTask implements Future<ReadWriteResult> {
     }
 
     private void copyFileFromTapeToCache() throws IOException, IllegalPathException, ReadWriteException {
+        //FIXME : double check
         Path tmpArchiveFile = Paths.get(tapeLibraryService.getTmpOutputDirectory())
-            .resolve(readOrder.getFileName() + TEMP_EXT)
+            .resolve(readOrder.getFileName())
             .toAbsolutePath();
         Files.deleteIfExists(tmpArchiveFile);
 
@@ -271,7 +271,7 @@ public class ReadTask implements Future<ReadWriteResult> {
 
         try {
             // Read file from tape
-            tapeLibraryService.read(workerCurrentTape, readOrder.getFilePosition(), readOrder.getFileName() + TEMP_EXT);
+            tapeLibraryService.read(workerCurrentTape, readOrder.getFilePosition(), readOrder.getFileName());
 
             // Move file to cache
             archiveCacheStorage.moveArchiveToCache(

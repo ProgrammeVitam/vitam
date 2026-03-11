@@ -196,7 +196,7 @@ public class SanityCheckOfferServiceDecorator implements DefaultOfferService {
 
     private void checkSafeObjectPath(String containerName, String objectId) throws ContentAddressableStorageException {
         try {
-            SafeFileChecker.checkSafeFilePath(this.rootPath, containerName, objectId);
+            SafeFileChecker.checkSafeFileSubPaths(this.rootPath, containerName, objectId);
         } catch (IllegalPathException e) {
             throw new ContentAddressableStorageException("Illegal object path " + containerName + "/" + objectId, e);
         }
@@ -204,7 +204,7 @@ public class SanityCheckOfferServiceDecorator implements DefaultOfferService {
 
     private void checkSafeContainerPath(String containerName) throws ContentAddressableStorageException {
         try {
-            SafeFileChecker.checkSafeFilePath(this.rootPath, containerName);
+            SafeFileChecker.checkSafeFileSubPaths(this.rootPath, containerName);
         } catch (IllegalPathException e) {
             throw new ContentAddressableStorageException("Illegal container name " + containerName, e);
         }

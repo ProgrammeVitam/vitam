@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.storage.engine.common.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.List;
 
 public interface TapeDriveSpec {
@@ -39,26 +41,32 @@ public interface TapeDriveSpec {
 
     List<TapeDriveStatus> getDriveStatuses();
 
+    @JsonIgnore
     default boolean isBeginOfTape() {
         return getDriveStatuses().contains(TapeDriveStatus.BOT);
     }
 
+    @JsonIgnore
     default boolean needCleanDrive() {
         return getDriveStatuses().contains(TapeDriveStatus.CLN);
     }
 
+    @JsonIgnore
     default boolean isEndOfData() {
         return getDriveStatuses().contains(TapeDriveStatus.EOD);
     }
 
+    @JsonIgnore
     default boolean isEndOfFile() {
         return getDriveStatuses().contains(TapeDriveStatus.EOF);
     }
 
+    @JsonIgnore
     default boolean isSetMark() {
         return getDriveStatuses().contains(TapeDriveStatus.SM);
     }
 
+    @JsonIgnore
     default boolean hasDensity() {
         return (
             getDriveStatuses().contains(TapeDriveStatus.D_800) ||
@@ -67,18 +75,22 @@ public interface TapeDriveSpec {
         );
     }
 
+    @JsonIgnore
     default boolean isWormTape() {
         return getDriveStatuses().contains(TapeDriveStatus.WR_PROT);
     }
 
+    @JsonIgnore
     default boolean isEmptyDrive() {
         return getDriveStatuses().contains(TapeDriveStatus.DR_OPEN);
     }
 
+    @JsonIgnore
     default boolean driveHasTape() {
         return getDriveStatuses().contains(TapeDriveStatus.ONLINE);
     }
 
+    @JsonIgnore
     default boolean isCacheEnabled() {
         return getDriveStatuses().contains(TapeDriveStatus.IM_REP_EN);
     }
