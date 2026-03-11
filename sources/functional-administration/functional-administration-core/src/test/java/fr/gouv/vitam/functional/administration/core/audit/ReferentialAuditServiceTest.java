@@ -46,7 +46,6 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import jakarta.ws.rs.core.Response;
 import org.bson.BsonDocument;
 import org.bson.Document;
-import org.jboss.resteasy.specimpl.BuiltResponse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -155,7 +154,7 @@ public class ReferentialAuditServiceTest {
                 )
         );
 
-        Response responseMock = mock(BuiltResponse.class);
+        Response responseMock = mock(Response.class);
         doReturn(new FileInputStream(profileFile)).when(responseMock).readEntity(eq(InputStream.class));
         when(
             storageClient.getContainerAsync(
@@ -224,7 +223,7 @@ public class ReferentialAuditServiceTest {
                 )
         );
 
-        Response offerOneResponse = mock(BuiltResponse.class);
+        Response offerOneResponse = mock(Response.class);
         doReturn(new FileInputStream(profileFile)).when(offerOneResponse).readEntity(eq(InputStream.class));
 
         when(
@@ -237,7 +236,7 @@ public class ReferentialAuditServiceTest {
             )
         ).thenReturn(offerOneResponse);
 
-        Response offerTwoResponse = mock(BuiltResponse.class);
+        Response offerTwoResponse = mock(Response.class);
 
         String jsonString = JsonHandler.unprettyPrint(createObjectNode());
         doReturn(new ByteArrayInputStream(jsonString.getBytes()))
@@ -286,7 +285,7 @@ public class ReferentialAuditServiceTest {
                 )
         );
 
-        Response responseMock = mock(BuiltResponse.class);
+        Response responseMock = mock(Response.class);
         doReturn(PropertiesUtils.getResourceAsStream(PROFILE_FILE))
             .when(responseMock)
             .readEntity(eq(InputStream.class));
@@ -336,7 +335,7 @@ public class ReferentialAuditServiceTest {
             )
         ).thenReturn(createObjectNode().setAll(map));
 
-        Response offerOneResponse = mock(BuiltResponse.class);
+        Response offerOneResponse = mock(Response.class);
         doReturn(new FileInputStream(profileFile)).when(offerOneResponse).readEntity(eq(InputStream.class));
 
         when(

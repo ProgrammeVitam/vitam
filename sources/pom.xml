@@ -121,6 +121,7 @@
         <maven.dependency.version>3.6.1</maven.dependency.version>
         <maven.site.version>3.12.1</maven.site.version>
         <maven.assembly.version>3.7.1</maven.assembly.version>
+        <maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
         <maven.exec.version>3.2.0</maven.exec.version>
         <maven.failsafe.version>3.2.5</maven.failsafe.version>
         <maven.javadoc.version>3.6.3</maven.javadoc.version>
@@ -193,7 +194,7 @@
         <commons-codec.version>1.18.0</commons-codec.version>
         <commons-lang3>3.18.0</commons-lang3>
         <commons-text>1.11.0</commons-text>
-        <jackson.version>2.18.3</jackson.version>
+        <jackson.version>2.18.5</jackson.version>
         <jslt.version>0.1.14</jslt.version>
         <apache-shiro.version>2.1.0</apache-shiro.version>
         <assertj.version>3.25.3</assertj.version>
