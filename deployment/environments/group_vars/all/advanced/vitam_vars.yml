@@ -552,6 +552,7 @@ vitam:
     # Library topology configuration :
     nbDrives: 1   # Number of drives
     nbSlots: 15   # Number of tape storage slots
+    tapeMaxCapacityMB: 10_000_000   # Tape max capacity in MB
     tapeCodes: [] # Tape codes (ex TAPE001, TAPE002...)
 
 # http://www.programmevitam.fr/ressources/DocCourante/html/installation/installation/21-addons.html#durees-minimales-permettant-de-controler-les-valeurs-saisies
