@@ -80,7 +80,7 @@ public class OriginatingAgencyReassignmentObjectGroupsPreparationPluginTest {
 
     HandlerIO handlerIO = mock(HandlerIO.class);
 
-    private OriginatingAgencyReassignmentObjectGroupPreparationPlugin originatingAgencyReassignmentObjectGroupPreparationPlugin;
+    private OriginatingAgencyReassignmentPrepareObjectGroupsPlugin originatingAgencyReassignmentPrepareObjectGroupsPlugin;
 
     @Before
     public void setUp() throws Exception {
@@ -88,8 +88,8 @@ public class OriginatingAgencyReassignmentObjectGroupsPreparationPluginTest {
         when(handlerIO.getWorkspaceClient(any())).thenReturn(workspaceClient);
         when(handlerIO.getBatchReportClient()).thenReturn(batchReportClient);
 
-        originatingAgencyReassignmentObjectGroupPreparationPlugin =
-            new OriginatingAgencyReassignmentObjectGroupPreparationPlugin();
+        originatingAgencyReassignmentPrepareObjectGroupsPlugin =
+            new OriginatingAgencyReassignmentPrepareObjectGroupsPlugin();
     }
 
     @Test
@@ -137,7 +137,7 @@ public class OriginatingAgencyReassignmentObjectGroupsPreparationPluginTest {
         doNothing().when(batchReportClient).appendReportEntries(any());
 
         // When
-        ItemStatus itemStatus = originatingAgencyReassignmentObjectGroupPreparationPlugin.execute(
+        ItemStatus itemStatus = originatingAgencyReassignmentPrepareObjectGroupsPlugin.execute(
             workerParameters,
             handlerIO
         );
@@ -158,5 +158,41 @@ public class OriginatingAgencyReassignmentObjectGroupsPreparationPluginTest {
 
         assertThat(reportBody.getEntries()).extracting("objectGroupId").containsAll(objectGroupsIdsToUpdateSp);
         verify((batchReportClient)).exportObjectGroupsReassignmentToUpdateOriginatingAgency(anyString(), any(), any());
+    }
+
+    @Test
+    public void should_generate_warning_status_with_object_groups_propagation_and_empty_object_ids() throws Exception {
+        // Given
+
+        JsonNode queryNode = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("reassignment/query.json")
+        );
+
+        OriginatingAgencyReassignmentRequest originatingAgencyReassignmentRequest =
+            new OriginatingAgencyReassignmentRequest(
+                queryNode,
+                "sourceOriginatingAgency",
+                "targetOriginatingAgency",
+                true
+            );
+
+        WorkerParameters workerParameters = mock(WorkerParameters.class);
+
+        when(handlerIO.getContainerName()).thenReturn("processId");
+        doReturn(JsonHandler.writeToInpustream(originatingAgencyReassignmentRequest))
+            .when(handlerIO)
+            .getInputStreamFromWorkspace(any(), eq("request.json"));
+
+        File objectGroupListFile = PropertiesUtils.getResourceFile("reassignment/empty_object_group_list.jsonl");
+        when(handlerIO.getInput(0)).thenReturn(objectGroupListFile);
+
+        // When
+        ItemStatus itemStatus = originatingAgencyReassignmentPrepareObjectGroupsPlugin.execute(
+            workerParameters,
+            handlerIO
+        );
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
     }
 }

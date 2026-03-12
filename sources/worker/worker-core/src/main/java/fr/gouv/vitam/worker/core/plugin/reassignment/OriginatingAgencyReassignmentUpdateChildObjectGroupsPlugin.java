@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -47,15 +46,20 @@ import fr.gouv.vitam.worker.core.plugin.StoreMetadataObjectActionHandler;
 
 import java.util.List;
 
-public class OriginatingAgencyReassignmentUnitsChildrenAgenciesComputePlugin extends StoreMetadataObjectActionHandler {
+/**
+ * update SPS on Object group
+ */
+public class OriginatingAgencyReassignmentUpdateChildObjectGroupsPlugin extends StoreMetadataObjectActionHandler {
+
+    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILD_OBJECT_GROUPS";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
-        OriginatingAgencyReassignmentUnitsChildrenAgenciesComputePlugin.class
+        OriginatingAgencyReassignmentUpdateChildObjectGroupsPlugin.class
     );
-    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILDREN_UNITS";
+
     private final OriginatingAgencyReassignmentService originatingAgencyReassignmentService;
 
-    public OriginatingAgencyReassignmentUnitsChildrenAgenciesComputePlugin() {
+    public OriginatingAgencyReassignmentUpdateChildObjectGroupsPlugin() {
         // Default constructor for workflow initialization by Worker
         originatingAgencyReassignmentService = new OriginatingAgencyReassignmentService();
     }
@@ -63,38 +67,39 @@ public class OriginatingAgencyReassignmentUnitsChildrenAgenciesComputePlugin ext
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
         throws ProcessingException {
-        LOGGER.debug(String.format("executeList from plugin '%s'", PLUGIN_NAME));
+        LOGGER.info("starting update sps for object group  ");
 
-        List<String> unitsIds = workerParameters.getObjectNameList();
+        List<String> objectGroupsIds = workerParameters.getObjectNameList();
+
         try (MetaDataClient mdClient = handler.getMetaDataClient()) {
             final OriginatingAgencyReassignmentRequest reassignmentRequest =
                 originatingAgencyReassignmentService.loadRequestJsonFromWorkspace(handler);
-            List<JsonNode> units = originatingAgencyReassignmentService.findUnitsByIds(handler, unitsIds);
 
+            List<JsonNode> objectGroups = originatingAgencyReassignmentService.getObjectGroupsByIds(
+                handler,
+                objectGroupsIds
+            );
             List<JsonNode> updateQueries =
-                originatingAgencyReassignmentService.buildUnitsOriginatingAgenciesComputingUpdateQueries(
+                originatingAgencyReassignmentService.buildObjectGroupsOriginatingAgenciesReassignmentUpdateQueries(
                     handler,
-                    units,
+                    objectGroups,
                     reassignmentRequest.getSourceOriginatingAgency(),
                     reassignmentRequest.getTargetOriginatingAgency(),
-                    workerParameters.getContainerName()
+                    handler.getContainerName()
                 );
 
-            RequestResponse<JsonNode> requestResponse = mdClient.atomicUpdateBulk(updateQueries);
+            RequestResponse<JsonNode> requestResponse = mdClient.objectGroupsAtomicUpdateBulk(updateQueries);
 
             return originatingAgencyReassignmentService.buildUpdateItemsStatusResponse(requestResponse, getPluginId());
         } catch (
-            InvalidCreateOperationException
-            | MetaDataExecutionException
-            | InvalidParseOperationException
+            MetaDataExecutionException
             | MetaDataNotFoundException
-            | MetaDataDocumentSizeException
-            | MetaDataClientServerException e
+            | MetaDataClientServerException
+            | InvalidParseOperationException
+            | InvalidCreateOperationException
+            | MetaDataDocumentSizeException e
         ) {
-            throw new ProcessingException(
-                "originating agencies update reassignment failed with status [" + StatusCode.FATAL + "]",
-                e
-            );
+            throw new ProcessingException(e.getMessage(), e);
         }
     }
 

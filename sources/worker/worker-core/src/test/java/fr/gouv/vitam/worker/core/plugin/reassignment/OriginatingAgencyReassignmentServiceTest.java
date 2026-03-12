@@ -132,7 +132,7 @@ public class OriginatingAgencyReassignmentServiceTest {
                 "oldOriginatingAgency"
             );
 
-        assertThat(result).contains("id_unit_3", "id_unit_5");
+        assertThat(result).containsExactlyInAnyOrderElementsOf(List.of("id_unit_3", "id_unit_5"));
     }
 
     @Test

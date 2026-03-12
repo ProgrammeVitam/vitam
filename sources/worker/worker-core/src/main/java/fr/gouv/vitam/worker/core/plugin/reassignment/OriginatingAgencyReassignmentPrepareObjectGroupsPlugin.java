@@ -74,15 +74,15 @@ import java.util.stream.Collectors;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
- * OriginatingAgencyReassignmentObjectGroupPreparationPlugin
+ * OriginatingAgencyReassignmentPrepareObjectGroupsPlugin
  */
-public class OriginatingAgencyReassignmentObjectGroupPreparationPlugin extends ActionHandler {
+public class OriginatingAgencyReassignmentPrepareObjectGroupsPlugin extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
-        OriginatingAgencyReassignmentObjectGroupPreparationPlugin.class
+        OriginatingAgencyReassignmentPrepareObjectGroupsPlugin.class
     );
 
-    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_OBJECT_GROUP_PREPARATION";
+    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_PREPARE_OBJECT_GROUPS";
 
     static final String GOTS_IDS_TO_UPDATE_JSONL_FILE_NAME = "object_groups_to_update_sp.jsonl";
 
@@ -90,7 +90,7 @@ public class OriginatingAgencyReassignmentObjectGroupPreparationPlugin extends A
 
     private final OriginatingAgencyReassignmentService originatingAgencyReassignmentService;
 
-    public OriginatingAgencyReassignmentObjectGroupPreparationPlugin() {
+    public OriginatingAgencyReassignmentPrepareObjectGroupsPlugin() {
         // Default constructor for workflow initialization by Worker
         originatingAgencyReassignmentService = new OriginatingAgencyReassignmentService();
     }
@@ -98,8 +98,23 @@ public class OriginatingAgencyReassignmentObjectGroupPreparationPlugin extends A
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-            handleObjectGroupReassignmentGenerationDistributions(handler, param);
+            File gotIdsToFillInIntermediateFile = (File) handler.getInput(INTERMEDIATE_OG_FILE_OUT_RANK);
+            final OriginatingAgencyReassignmentRequest reassignmentRequest =
+                originatingAgencyReassignmentService.loadRequestJsonFromWorkspace(handler);
+            if (
+                reassignmentRequest.isPropagateToObjectGroups() &&
+                gotIdsToFillInIntermediateFile.exists() &&
+                gotIdsToFillInIntermediateFile.length() == 0
+            ) {
+                return buildItemStatus(PLUGIN_NAME, StatusCode.WARNING, null);
+            }
 
+            handleObjectGroupReassignmentGenerationDistributions(
+                handler,
+                param,
+                gotIdsToFillInIntermediateFile,
+                reassignmentRequest
+            );
             return buildItemStatus(PLUGIN_NAME, StatusCode.OK, null);
         } catch (ProcessingStatusException e) {
             LOGGER.error(
@@ -110,13 +125,13 @@ public class OriginatingAgencyReassignmentObjectGroupPreparationPlugin extends A
         }
     }
 
-    private void handleObjectGroupReassignmentGenerationDistributions(HandlerIO handler, WorkerParameters param)
-        throws ProcessingStatusException {
-        File gotIdsToFillInIntermediateFile = (File) handler.getInput(INTERMEDIATE_OG_FILE_OUT_RANK);
+    private void handleObjectGroupReassignmentGenerationDistributions(
+        HandlerIO handler,
+        WorkerParameters param,
+        File gotIdsToFillInIntermediateFile,
+        OriginatingAgencyReassignmentRequest reassignmentRequest
+    ) throws ProcessingStatusException {
         try {
-            final OriginatingAgencyReassignmentRequest reassignmentRequest =
-                originatingAgencyReassignmentService.loadRequestJsonFromWorkspace(handler);
-
             if (!reassignmentRequest.isPropagateToObjectGroups()) {
                 //create an empty distribution file for GOts update step
                 createEmptyDistributionFile(handler);

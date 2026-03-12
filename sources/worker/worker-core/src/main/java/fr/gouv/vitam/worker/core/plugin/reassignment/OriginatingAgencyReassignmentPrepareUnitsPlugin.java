@@ -68,15 +68,15 @@ import java.util.Objects;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
- * OriginatingAgencyReassignmentUnitsPreparationPlugin
+ * OriginatingAgencyReassignmentPrepareUnitsPlugin
  */
-public class OriginatingAgencyReassignmentUnitsPreparationPlugin extends ActionHandler {
+public class OriginatingAgencyReassignmentPrepareUnitsPlugin extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
-        OriginatingAgencyReassignmentUnitsPreparationPlugin.class
+        OriginatingAgencyReassignmentPrepareUnitsPlugin.class
     );
 
-    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_UNITS_PREPARATION";
+    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_PREPARE_UNITS";
 
     private static final String UNITS_TO_UPDATE_FILE = "units_to_update.jsonl";
 
@@ -86,7 +86,7 @@ public class OriginatingAgencyReassignmentUnitsPreparationPlugin extends ActionH
 
     private final OriginatingAgencyReassignmentService originatingAgencyReassignmentService;
 
-    public OriginatingAgencyReassignmentUnitsPreparationPlugin() {
+    public OriginatingAgencyReassignmentPrepareUnitsPlugin() {
         // Default constructor for workflow initialization by Worker
         originatingAgencyReassignmentService = new OriginatingAgencyReassignmentService();
     }

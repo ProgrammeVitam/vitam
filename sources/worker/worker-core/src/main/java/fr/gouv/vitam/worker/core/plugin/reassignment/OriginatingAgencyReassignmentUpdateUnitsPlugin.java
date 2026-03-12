@@ -27,13 +27,13 @@
 package fr.gouv.vitam.worker.core.plugin.reassignment;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -47,19 +47,19 @@ import fr.gouv.vitam.worker.core.plugin.StoreMetadataObjectActionHandler;
 import java.util.List;
 
 /**
- * update SPS on Object group
+ * update SP and SPS on units
  */
-public class OriginatingAgencyReassignmentObjectGroupAgenciesComputePlugin extends StoreMetadataObjectActionHandler {
+public class OriginatingAgencyReassignmentUpdateUnitsPlugin extends StoreMetadataObjectActionHandler {
 
-    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILDREN_OBJECT_GROUPS";
+    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_UNITS";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
-        OriginatingAgencyReassignmentObjectGroupAgenciesComputePlugin.class
+        OriginatingAgencyReassignmentUpdateUnitsPlugin.class
     );
 
     private final OriginatingAgencyReassignmentService originatingAgencyReassignmentService;
 
-    public OriginatingAgencyReassignmentObjectGroupAgenciesComputePlugin() {
+    public OriginatingAgencyReassignmentUpdateUnitsPlugin() {
         // Default constructor for workflow initialization by Worker
         originatingAgencyReassignmentService = new OriginatingAgencyReassignmentService();
     }
@@ -67,28 +67,24 @@ public class OriginatingAgencyReassignmentObjectGroupAgenciesComputePlugin exten
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
         throws ProcessingException {
-        LOGGER.info("starting update sps for object group  ");
+        LOGGER.info("starting update sp and sps for units by replacing SP ");
 
-        List<String> objectGroupsIds = workerParameters.getObjectNameList();
+        List<JsonNode> units = workerParameters.getObjectMetadataList();
 
         try (MetaDataClient mdClient = handler.getMetaDataClient()) {
             final OriginatingAgencyReassignmentRequest reassignmentRequest =
                 originatingAgencyReassignmentService.loadRequestJsonFromWorkspace(handler);
 
-            List<JsonNode> objectGroups = originatingAgencyReassignmentService.getObjectGroupsByIds(
-                handler,
-                objectGroupsIds
-            );
             List<JsonNode> updateQueries =
-                originatingAgencyReassignmentService.buildObjectGroupsOriginatingAgenciesReassignmentUpdateQueries(
+                originatingAgencyReassignmentService.buildUnitsOriginatingAgencyReassignmentUpdateQueries(
                     handler,
-                    objectGroups,
+                    units,
                     reassignmentRequest.getSourceOriginatingAgency(),
                     reassignmentRequest.getTargetOriginatingAgency(),
                     handler.getContainerName()
                 );
 
-            RequestResponse<JsonNode> requestResponse = mdClient.objectGroupsAtomicUpdateBulk(updateQueries);
+            RequestResponse<JsonNode> requestResponse = mdClient.atomicUpdateBulk(updateQueries);
 
             return originatingAgencyReassignmentService.buildUpdateItemsStatusResponse(requestResponse, getPluginId());
         } catch (
@@ -96,10 +92,12 @@ public class OriginatingAgencyReassignmentObjectGroupAgenciesComputePlugin exten
             | MetaDataNotFoundException
             | MetaDataClientServerException
             | InvalidParseOperationException
-            | InvalidCreateOperationException
             | MetaDataDocumentSizeException e
         ) {
-            throw new ProcessingException(e.getMessage(), e);
+            throw new ProcessingException(
+                "originating agency update reassignment failed  [" + StatusCode.FATAL + "]",
+                e
+            );
         }
     }
 

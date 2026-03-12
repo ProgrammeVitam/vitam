@@ -61,7 +61,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class OriginatingAgencyReassignmentObjectGroupAgenciesComputePluginTest {
+public class OriginatingAgencyReassignmentUpdateChildObjectGroupsPluginTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -74,13 +74,13 @@ public class OriginatingAgencyReassignmentObjectGroupAgenciesComputePluginTest {
     @Mock
     private MetaDataClient metaDataClient;
 
-    private OriginatingAgencyReassignmentObjectGroupAgenciesComputePlugin objectGroupAgenciesComputePlugin;
+    private OriginatingAgencyReassignmentUpdateChildObjectGroupsPlugin objectGroupAgenciesComputePlugin;
 
     private HandlerIO handlerIO;
 
     @Before
     public void setUp() throws Exception {
-        objectGroupAgenciesComputePlugin = new OriginatingAgencyReassignmentObjectGroupAgenciesComputePlugin();
+        objectGroupAgenciesComputePlugin = new OriginatingAgencyReassignmentUpdateChildObjectGroupsPlugin();
         handlerIO = mock(HandlerIO.class);
         when(handlerIO.getMetaDataClient()).thenReturn(metaDataClient);
     }

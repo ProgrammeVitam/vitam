@@ -85,12 +85,12 @@ import java.util.stream.Collectors;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
- * OriginatingAgencyReassignmentUnitsChildrenPreparationPlugin
+ * OriginatingAgencyReassignmentPrepareChildUnitsPlugin
  */
-public class OriginatingAgencyReassignmentUnitsChildrenPreparationPlugin extends ActionHandler {
+public class OriginatingAgencyReassignmentPrepareChildUnitsPlugin extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
-        OriginatingAgencyReassignmentUnitsChildrenPreparationPlugin.class
+        OriginatingAgencyReassignmentPrepareChildUnitsPlugin.class
     );
     private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {};
     private static final String UNITS_TO_UPDATE_FILE_NAME = "units_to_update.jsonl";
@@ -99,7 +99,7 @@ public class OriginatingAgencyReassignmentUnitsChildrenPreparationPlugin extends
 
     private static final String INTERMEDIATE_UNITS_IDS_FILE_NAME = "intermediate_units_ids.jsonl";
 
-    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_UNITS_CHILDREN_PREPARATION";
+    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_PREPARE_CHILD_UNITS";
 
     private static final String UNITS_CHILDREN_SPS_TO_UPDATE_JSONL_FILE_NAME = "unitsChildrenToUpdateSps.jsonl";
 
@@ -107,7 +107,7 @@ public class OriginatingAgencyReassignmentUnitsChildrenPreparationPlugin extends
 
     private final OriginatingAgencyReassignmentService originatingAgencyReassignmentService;
 
-    public OriginatingAgencyReassignmentUnitsChildrenPreparationPlugin() {
+    public OriginatingAgencyReassignmentPrepareChildUnitsPlugin() {
         // Default constructor for workflow initialization by Worker
         originatingAgencyReassignmentService = new OriginatingAgencyReassignmentService();
     }
