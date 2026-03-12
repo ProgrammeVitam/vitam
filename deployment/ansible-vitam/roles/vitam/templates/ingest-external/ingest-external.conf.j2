@@ -1,10 +1,31 @@
-path: {{ vitam_folder_data }}
 jettyConfig: jetty-config.xml
+
+path: {{ vitam_folder_data }}
 authentication: false
 tenantFilter: true
-ignoreAntivirusCheck: {{ vitam_struct.ignore_antivirus_check | default(false) | bool | lower }}
+
+# Directory where files should be placed for local ingest
 baseUploadPath: {{ vitam_struct.upload_dir | default('/vitam/data/ingest-external/upload') }}
+# Directory where successful ingested files will be moved to
 successfulUploadDir: {{ vitam_struct.success_dir | default('/vitam/data/ingest-external/upload/success') }}
+# Directory where failed ingested files will be moved to
 failedUploadDir: {{ vitam_struct.fail_dir | default('/vitam/data/ingest-external/upload/failure') }}
-fileActionAfterUpload: {{ vitam_struct.upload_final_action | default('MOVE') }}
+
+# Action done to file after local ingest
+# fileActionAfterUpload can be set to three different values (case insensitive) :
+# - MOVE   : After upload, the local file will be moved to either success_dir or fail_dir depending on the status of the ingest towards ingest-internal
+# - DELETE : After upload, the local file will be deleted if the upload succeeded
+# - NONE   : After upload, nothing will be done to the local file
+fileActionAfterUpload: {{ vitam_struct.upload_final_action | default('NONE') }}
+
+### Trust X-SSL-CLIENT-CERT header for external api authentication
+# Should only be enabled when accessing to vitam externals through a Reverse Proxy that does "SSL offloading"
+# NGINX configuration        : proxy_set_header X-SSL-CLIENT-CERT $ssl_client_escaped_cert;
+# Apache httpd configuration : RequestHeader set X-SSL-CLIENT-CERT "%{SSL_CLIENT_CERT}s"
+# Important : When enabled, special care must be taken to ensure firewall rules are properly set to ensure only
+#             reverse proxy can access vitam external applications through their respective port_service to avoid
+#             malicious header injection.
 allowSslClientHeader: {{ vitam_defaults.trust_client_certificate_header | default(false) | bool | lower }}
+
+# this variable has containerization purposes only : must not be used in production environment
+ignoreAntivirusCheck: {{ vitam_struct.ignore_antivirus_check | default(false) | bool | lower }}

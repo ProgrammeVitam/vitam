@@ -4,22 +4,19 @@
   set_fact:
     vitam_strategy_offers_names: "{{ vitam_strategy_offers_names + [item.name] }}"
   loop: "{{ vitam_strategy }}"
-  tags:
-    - update_vitam_configuration
+  tags: update_vitam_configuration
 
 - name: Get the offers present in other_strategy but not in vitam_strategy
   set_fact:
     other_strategy_offers_list: "{{ (other_strategy_offers_list + [item]) | unique }}"
   loop: "{{ other_strategies | default({}) | dict2items | sum(attribute='value', start=[]) }}"
   when: item.name not in vitam_strategy_offers_names
-  tags:
-    - update_vitam_configuration
+  tags: update_vitam_configuration
 
 - name: Compute all offers (with offer configuration from vitam_offer by default)
   set_fact:
     all_used_offers: "{{ vitam_strategy + other_strategy_offers_list }}"
-  tags:
-    - update_vitam_configuration
+  tags: update_vitam_configuration
 
 - name: copy file for driver in data
   template:
@@ -28,10 +25,8 @@
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  tags:
-    - update_vitam_configuration
-  notify:
-    - "vitam - restart service"
+  tags: update_vitam_configuration
+  notify: vitam - restart service
 
 - name: Check that storage_archives directory exists for storage component
   file:
@@ -40,10 +35,8 @@
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.folder_permission }}"
-  tags:
-    - update_vitam_configuration
-  notify:
-    - "vitam - restart service"
+  tags: update_vitam_configuration
+  notify: vitam - restart service
   when: vitam_struct.vitam_component == "storage"
 
 - name: create directories for ihm-recette
@@ -58,8 +51,6 @@
     - report/system
     - test-data/performance
     - test-data/system
-  tags:
-    - update_vitam_configuration
-  notify:
-    - "vitam - restart service"
+  tags: update_vitam_configuration
+  notify: vitam - restart service
   when: vitam_struct.vitam_component == "ihm-recette"

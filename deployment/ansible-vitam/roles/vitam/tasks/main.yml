@@ -106,6 +106,19 @@
   when: install_mode != "container" or (vitam_struct.vitam_component in legacy_components_list)
   notify: vitam - restart service
 
+- name: ensure upload directories are present for special local ingests (huge files)
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_upload_permission }}"
+  with_items:
+    - "{{ vitam_struct.upload_dir | default(vitam_folder_data + '/upload') }}"
+    - "{{ vitam_struct.success_dir | default(vitam_folder_data + '/upload/success') }}"
+    - "{{ vitam_struct.fail_dir | default(vitam_folder_data + '/upload/failure') }}"
+  when: vitam_struct.vitam_component == 'ingest-external'
+
 - name: Deploy script for ExecStart
   template:
     src: "script-componentid.sh.j2"

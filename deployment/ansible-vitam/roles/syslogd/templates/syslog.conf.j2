@@ -33,8 +33,7 @@ source s_src {
 
 #       filtre
 filter f_facility {
-        facility({{ vitam_defaults.syslog_facility }});
-        facility({{ vitam_defaults.syslog_facility|upper }});
+        facility({{ vitam_defaults.syslog_facility | default('LOCAL0') | upper }});
         facility(kern);
 };
 

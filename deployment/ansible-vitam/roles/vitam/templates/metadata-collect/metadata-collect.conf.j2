@@ -1,13 +1,15 @@
 #jinja2: lstrip_blocks: True
-urlWorkspace: {{ vitam.workspace | client_url }}
+jettyConfig: jetty-config.xml
 
 urlProcessing: {{ vitam.processing | client_url }}
+urlWorkspace: {{ vitam.workspace | client_url }}
+
 contextPath: {{ vitam_struct.context_path }}
 collectModule: true
 
 # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
-archiveUnitProfileCacheMaxEntries: {{ vitam.metadata_collect.archiveUnitProfileCacheMaxEntries }}
-archiveUnitProfileCacheTimeoutInSeconds: {{ vitam.metadata_collect.archiveUnitProfileCacheTimeoutInSeconds }}
+archiveUnitProfileCacheMaxEntries: {{ vitam.metadata_collect.archiveUnitProfileCacheMaxEntries | default(100) }}
+archiveUnitProfileCacheTimeoutInSeconds: {{ vitam.metadata_collect.archiveUnitProfileCacheTimeoutInSeconds | default(300) }}
 
 # Schema validator cache settings (max entries in cache & retention timeout in seconds)
 schemaValidatorCacheMaxEntries: {{ vitam.metadata_collect.schemaValidatorCacheMaxEntries }}
@@ -20,7 +22,12 @@ criticalDipTimeToLiveInMinutes: {{ vitam.metadata_collect.criticalDipTimeToLiveI
 # TRANSFER purge service (in minutes)
 transfersSIPTimeToLiveInMinutes: {{ vitam.metadata_collect.transfersSIPTimeToLiveInMinutes }}
 
-# Configuration MongoDB
+# Basic Authentication
+adminBasicAuth:
+  - userName: {{ admin_basic_auth_user }}
+    password: {{ admin_basic_auth_password }}
+
+# MongoDB configuration
 mongoDbNodes:
 {% for server in groups['hosts_mongos_data'] %}
   - dbHost: {{ hostvars[server]['ip_service'] }}
@@ -31,9 +38,7 @@ dbAuthentication: {{ mongodb.mongo_authentication | bool | lower }}
 dbUserName: {{ mongodb['mongo-data'].metadataCollect.user }}
 dbPassword: {{ mongodb['mongo-data'].metadataCollect.password }}
 
-jettyConfig: jetty-config.xml
-
-# ElasticSearch
+# ElasticSearch configuration
 clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchConfigurationFile: {{ vitam_folder_conf }}/elasticsearch-settings/elasticsearch-configuration.json
 elasticsearchNodes:
@@ -116,11 +121,6 @@ elasticsearchTenantIndexation:
     {% endif %}
   {% endfor %}
 {% endif %}
-
-#Basic Authentication
-adminBasicAuth:
-  - userName: {{ admin_basic_auth_user }}
-    password: {{ admin_basic_auth_password }}
 
 refreshElasticIndexPostBulkIndexing: {{ vitam.metadata_collect.refreshElasticIndexPostBulkIndexing | default(true) | bool | lower }}
 

@@ -17,10 +17,11 @@ securityManager.cacheManager = $builtInCacheManager
 sessionManager = org.apache.shiro.web.session.mgt.DefaultWebSessionManager
 securityManager.sessionManager = $sessionManager
 securityManager.sessionMode = native
-securityManager.sessionManager.globalSessionTimeout = {{ vitam_struct.session_timeout }}
+# User session timeout in milliseconds
+securityManager.sessionManager.globalSessionTimeout = {{ vitam_struct.session_timeout | default(1800000) }}
 securityManager.sessionManager.sessionIdUrlRewritingEnabled = false
-securityManager.sessionManager.sessionIdCookie.secure = {{ vitam_struct.secure_cookie }}
-securityManager.rememberMeManager.cookie.secure = {{ vitam_struct.secure_cookie }}
+securityManager.sessionManager.sessionIdCookie.secure = {{ vitam_struct.secure_cookie | default(true) | bool | lower }}
+securityManager.rememberMeManager.cookie.secure = {{ vitam_struct.secure_cookie | default(true) | bool | lower }}
 securityManager.rememberMeManager.cookie.httpOnly = true
 
 # Notice how we didn't define the class for the FormAuthenticationFilter ('authc') - it is instantiated and available already:

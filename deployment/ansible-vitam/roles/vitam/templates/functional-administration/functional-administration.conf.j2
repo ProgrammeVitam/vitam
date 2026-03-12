@@ -1,5 +1,15 @@
 #jinja2: lstrip_blocks: True
-# Configuration MongoDB
+jettyConfig: jetty-config.xml
+
+urlProcessing: {{ vitam.processing | client_url }}
+urlWorkspace: {{ vitam.workspace | client_url }}
+
+# Basic Authentication
+adminBasicAuth:
+  - userName: {{ admin_basic_auth_user }}
+    password: {{ admin_basic_auth_password }}
+
+# MongoDB configuration
 mongoDbNodes:
 {% for host in groups['hosts_mongos_data'] %}
   - dbHost: {{ hostvars[host]['ip_service'] }}
@@ -10,16 +20,7 @@ dbAuthentication: {{ mongodb.mongo_authentication | bool | lower }}
 dbUserName: {{ mongodb['mongo-data'].functionalAdmin.user }}
 dbPassword: {{ mongodb['mongo-data'].functionalAdmin.password }}
 
-#Basic Authentication
-adminBasicAuth:
-  - userName: {{ admin_basic_auth_user }}
-    password: {{ admin_basic_auth_password }}
-
-jettyConfig: jetty-config.xml
-urlWorkspace: {{ vitam.workspace | client_url }}
-urlProcessing: {{ vitam.processing | client_url }}
-
-# ElasticSearch
+# ElasticSearch configuration
 clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchConfigurationFile: {{ vitam_folder_conf }}/elasticsearch-settings/elasticsearch-configuration.json
 elasticsearchNodes:
@@ -34,7 +35,7 @@ elasticsearchTenantIndexation:
     number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.masterdata.number_of_shards | default('1') }}
     number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.masterdata.number_of_replicas | default('2') }}
 
-{% for collection in ["accesscontract", "accessionregisterdetail", "accessionregistersummary", "accessionregistersymbolic", "agencies", "archiveunitprofile", "context", "fileformat", "filerules", "griffin", "ingestcontract", "managementcontract", "ontology", "preservationscenario", "profile", "securityprofile","schema"] %}
+{% for collection in ["accesscontract", "accessionregisterdetail", "accessionregistersummary", "accessionregistersymbolic", "agencies", "archiveunitprofile", "context", "fileformat", "filerules", "griffin", "ingestcontract", "managementcontract", "ontology", "preservationscenario", "profile", "securityprofile", "schema"] %}
   {% if vitam_elasticsearch_tenant_indexation.masterdata[collection] is defined %}
   {{ collection }}:
     {% if vitam_elasticsearch_tenant_indexation.masterdata[collection].number_of_shards is defined %}
@@ -73,11 +74,13 @@ listMinimumRuleDuration:
   {% endfor %}
 {% endif %}
 
+# Number of AccessionRegisterSymbolic creation threads that can be run in parallel.
 accessionRegisterSymbolicThreadPoolSize: {{ vitam.functional_administration.accessionRegisterSymbolicThreadPoolSize | default(16) }}
+# Number of rule audit threads that can be run in parallel.
 ruleAuditThreadPoolSize: {{ vitam.functional_administration.ruleAuditThreadPoolSize | default(16) }}
 
 {% if not primary_site | bool %}
-# Reconstruction cache duration (in minutes)
+# Reconstruction metrics cache in minutes (secondary site)
 reconstructionMetricsCacheDurationInMinutes: {{ vitam.functional_administration.reconstructionMetricsCacheDurationInMinutes | default(15) }}
 {% endif %}
 

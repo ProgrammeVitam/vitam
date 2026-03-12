@@ -1,11 +1,12 @@
 #jinja2: lstrip_blocks: True
+jettyConfig: jetty-config.xml
+
 serverHost: {{ ip_service }}
 port: {{ vitam_struct.port_service }}
 
 baseUrl: /{{ vitam_struct.baseuri }}
 baseUri: /{{ vitam_struct.baseuri }}
 
-jettyConfig: jetty-config.xml
 authentication: true
 enableXsrFilter: true
 enableSession: true
@@ -14,6 +15,7 @@ secureMode:
 {% for securemode in vitam_struct.secure_mode %}
   - {{ securemode }}
 {% endfor %}
+
 sipDirectory: {{ vitam_folder_data }}/test-data
 performanceReportDirectory: {{ vitam_folder_data }}/report/performance
 
@@ -23,7 +25,7 @@ ingestMaxThread: {{ ansible_processor_cores * ansible_processor_threads_per_core
 
 urlWorkspace: {{ vitam.workspace | client_url }}
 
-# Configuration MongoDB
+# MongoDB configuration
 mongoDbNodes:
 {% for server in groups['hosts_mongos_data'] %}
   - dbHost: {{ hostvars[server]['ip_service'] }}
@@ -39,7 +41,7 @@ dbAuthentication: {{ mongodb.mongo_authentication | bool | lower }}
 dbUserName: {{ mongodb['mongo-data']['admin']['user'] }}
 dbPassword: {{ mongodb['mongo-data']['admin']['password'] }}
 
-# ElasticSearch
+# ElasticSearch configuration
 clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchNodes:
 {% for server in groups['hosts_elasticsearch_data'] %}

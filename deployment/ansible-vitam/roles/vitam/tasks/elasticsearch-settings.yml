@@ -17,6 +17,5 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   tags: update_vitam_configuration
-  notify:
-    - "vitam - restart service"
+  notify: vitam - restart service
 
