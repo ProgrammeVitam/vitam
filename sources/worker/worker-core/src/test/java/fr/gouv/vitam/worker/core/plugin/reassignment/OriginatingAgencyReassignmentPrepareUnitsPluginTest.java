@@ -70,7 +70,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class OriginatingAgencyReassignmentUnitsPreparationPluginTest {
+public class OriginatingAgencyReassignmentPrepareUnitsPluginTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -92,7 +92,7 @@ public class OriginatingAgencyReassignmentUnitsPreparationPluginTest {
 
     HandlerIO handlerIO = mock(HandlerIO.class);
 
-    private OriginatingAgencyReassignmentUnitsPreparationPlugin originatingAgencyReassignmentUnitsPreparationPlugin;
+    private OriginatingAgencyReassignmentPrepareUnitsPlugin originatingAgencyReassignmentPrepareUnitsPlugin;
 
     private static final TypeReference<JsonLineModel> jsonLineModelTypeReference = new TypeReference<>() {};
 
@@ -103,7 +103,7 @@ public class OriginatingAgencyReassignmentUnitsPreparationPluginTest {
         when(handlerIO.getAdminManagementClient()).thenReturn(adminManagementClient);
         when(handlerIO.getBatchReportClient()).thenReturn(batchReportClient);
 
-        originatingAgencyReassignmentUnitsPreparationPlugin = new OriginatingAgencyReassignmentUnitsPreparationPlugin();
+        originatingAgencyReassignmentPrepareUnitsPlugin = new OriginatingAgencyReassignmentPrepareUnitsPlugin();
     }
 
     @Test
@@ -163,10 +163,7 @@ public class OriginatingAgencyReassignmentUnitsPreparationPluginTest {
             .transferFileToWorkspace(any(), any(), eq(true), eq(false));
 
         // When
-        ItemStatus itemStatus = originatingAgencyReassignmentUnitsPreparationPlugin.execute(
-            workerParameters,
-            handlerIO
-        );
+        ItemStatus itemStatus = originatingAgencyReassignmentPrepareUnitsPlugin.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -227,10 +224,7 @@ public class OriginatingAgencyReassignmentUnitsPreparationPluginTest {
             .getInputStreamFromWorkspace(any(), eq("request.json"));
 
         // When
-        ItemStatus itemStatus = originatingAgencyReassignmentUnitsPreparationPlugin.execute(
-            workerParameters,
-            handlerIO
-        );
+        ItemStatus itemStatus = originatingAgencyReassignmentPrepareUnitsPlugin.execute(workerParameters, handlerIO);
         // Then
         StatusCode globalStatus = itemStatus.getGlobalStatus();
         assertThat(globalStatus).isEqualTo(StatusCode.KO);
@@ -267,10 +261,7 @@ public class OriginatingAgencyReassignmentUnitsPreparationPluginTest {
             .getInputStreamFromWorkspace(any(), eq("request.json"));
 
         // When
-        ItemStatus itemStatus = originatingAgencyReassignmentUnitsPreparationPlugin.execute(
-            workerParameters,
-            handlerIO
-        );
+        ItemStatus itemStatus = originatingAgencyReassignmentPrepareUnitsPlugin.execute(workerParameters, handlerIO);
         // Then
         StatusCode globalStatus = itemStatus.getGlobalStatus();
         assertThat(globalStatus).isEqualTo(StatusCode.KO);

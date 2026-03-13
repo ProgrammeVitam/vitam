@@ -34,7 +34,6 @@ import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.io.TempWorkspace;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -67,7 +66,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class OriginatingAgencyReassignmentUnitsChildrenPreparationPluginTest {
+public class OriginatingAgencyReassignmentPrepareChildUnitsPluginTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -89,13 +88,10 @@ public class OriginatingAgencyReassignmentUnitsChildrenPreparationPluginTest {
 
     HandlerIO handlerIO = mock(HandlerIO.class);
 
-    private TempWorkspace tempWorkspace;
-
-    private OriginatingAgencyReassignmentUnitsChildrenPreparationPlugin originatingAgencyReassignmentUnitsChildrenPreparationPlugin;
+    private OriginatingAgencyReassignmentPrepareChildUnitsPlugin originatingAgencyReassignmentPrepareChildUnitsPlugin;
 
     private static final String UNITS_TO_UPDATE_FILE_NAME = "units_to_update.jsonl";
     private static final String UNITS_CHILDREN_FILE_NAME = "unitsChildrenToUpdateSps.jsonl";
-    private static final String INTERMEDIATE_UNITS_IDS_FILE_NAME = "intermediate_units_ids.jsonl";
 
     @Before
     public void setUp() throws Exception {
@@ -104,10 +100,8 @@ public class OriginatingAgencyReassignmentUnitsChildrenPreparationPluginTest {
         when(handlerIO.getAdminManagementClient()).thenReturn(adminManagementClient);
         when(handlerIO.getBatchReportClient()).thenReturn(batchReportClient);
 
-        originatingAgencyReassignmentUnitsChildrenPreparationPlugin =
-            new OriginatingAgencyReassignmentUnitsChildrenPreparationPlugin();
-
-        tempWorkspace = new TempWorkspace();
+        originatingAgencyReassignmentPrepareChildUnitsPlugin =
+            new OriginatingAgencyReassignmentPrepareChildUnitsPlugin();
     }
 
     @After
@@ -165,7 +159,7 @@ public class OriginatingAgencyReassignmentUnitsChildrenPreparationPluginTest {
             .thenReturn(gotsDistributionFileTempFile); // 2nd call
 
         // When
-        originatingAgencyReassignmentUnitsChildrenPreparationPlugin.execute(workerParameters, handlerIO);
+        originatingAgencyReassignmentPrepareChildUnitsPlugin.execute(workerParameters, handlerIO);
 
         // Then
         verify(batchReportClient, times(2)).appendReportEntries(reportBodyArgumentCaptor.capture());

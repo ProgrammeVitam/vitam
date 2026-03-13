@@ -49,18 +49,17 @@ import java.util.List;
 /**
  * update SP and SPS on Object group
  */
-public class OriginatingAgencyReassignmentMainUnitsObjectGroupsUpdatePlugin extends StoreMetadataObjectActionHandler {
+public class OriginatingAgencyReassignmentUpdateObjectGroupsPlugin extends StoreMetadataObjectActionHandler {
 
-    public static final String REASSIGNMENT_MAIN_UNITS_OBJECT_GROUPS_UPDATE_PLUGIN_NAME =
-        "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_OBJECT_GROUPS";
+    public static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_OBJECT_GROUPS";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
-        OriginatingAgencyReassignmentMainUnitsObjectGroupsUpdatePlugin.class
+        OriginatingAgencyReassignmentUpdateObjectGroupsPlugin.class
     );
 
     private final OriginatingAgencyReassignmentService originatingAgencyReassignmentService;
 
-    public OriginatingAgencyReassignmentMainUnitsObjectGroupsUpdatePlugin() {
+    public OriginatingAgencyReassignmentUpdateObjectGroupsPlugin() {
         // Default constructor for workflow initialization by Worker
         originatingAgencyReassignmentService = new OriginatingAgencyReassignmentService();
     }
@@ -111,6 +110,6 @@ public class OriginatingAgencyReassignmentMainUnitsObjectGroupsUpdatePlugin exte
     }
 
     public static String getPluginId() {
-        return REASSIGNMENT_MAIN_UNITS_OBJECT_GROUPS_UPDATE_PLUGIN_NAME;
+        return PLUGIN_NAME;
     }
 }

@@ -43,7 +43,7 @@
         },
         {
           "action": {
-            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_UNITS_PREPARATION",
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_PREPARE_UNITS",
             "behavior": "BLOCKING",
             "out": [
               {
@@ -59,7 +59,7 @@
         },
         {
           "action": {
-            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_OBJECT_GROUP_PREPARATION",
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_PREPARE_OBJECT_GROUPS",
             "behavior": "BLOCKING",
             "in": [
               {
@@ -115,7 +115,7 @@
         "kind": "LIST_IN_JSONL_FILE",
         "element": "object_groups_to_update_sp.jsonl",
         "type": "ObjectGroup",
-        "statusOnEmptyDistribution": "WARNING",
+        "statusOnEmptyDistribution": "OK",
         "bulkSize": 1000
       },
       "actions": [
@@ -137,7 +137,7 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_UNITS_CHILDREN_PREPARATION",
+      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_PREPARE_CHILD_UNITS",
       "behavior": "BLOCKING",
       "cancellable": false,
       "distribution": {
@@ -146,7 +146,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_UNITS_CHILDREN_PREPARATION",
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_PREPARE_CHILD_UNITS",
             "behavior": "BLOCKING",
             "lifecycleLog": "DISABLED",
             "in": [
@@ -171,7 +171,7 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILDREN_UNITS",
+      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILD_UNITS",
       "behavior": "BLOCKING",
       "cancellable": false,
       "distribution": {
@@ -184,7 +184,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILDREN_UNITS",
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILD_UNITS",
             "behavior": "BLOCKING",
             "lifecycleLog": "DISABLED"
           }
@@ -193,7 +193,7 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILDREN_OBJECT_GROUPS",
+      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILD_OBJECT_GROUPS",
       "behavior": "BLOCKING",
       "cancellable": false,
       "distribution": {
@@ -206,7 +206,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILDREN_OBJECT_GROUPS",
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILD_OBJECT_GROUPS",
             "behavior": "BLOCKING",
             "lifecycleLog": "DISABLED"
           }

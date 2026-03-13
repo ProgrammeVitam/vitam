@@ -59,7 +59,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class OriginatingAgencyReassignmentMainUnitsObjectGroupsUpdatePluginTest {
+public class OriginatingAgencyReassignmentUpdateUnitsPluginTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -72,21 +72,20 @@ public class OriginatingAgencyReassignmentMainUnitsObjectGroupsUpdatePluginTest 
     @Mock
     private MetaDataClient metaDataClient;
 
-    private OriginatingAgencyReassignmentMainUnitsObjectGroupsUpdatePlugin originatingAgencyReassignmentMainUnitsObjectGroupsUpdatePlugin;
+    private OriginatingAgencyReassignmentUpdateUnitsPlugin originatingAgencyReassignmentUpdateUnitsPlugin;
 
     private HandlerIO handlerIO;
 
     @Before
     public void setUp() throws Exception {
-        originatingAgencyReassignmentMainUnitsObjectGroupsUpdatePlugin =
-            new OriginatingAgencyReassignmentMainUnitsObjectGroupsUpdatePlugin();
+        originatingAgencyReassignmentUpdateUnitsPlugin = new OriginatingAgencyReassignmentUpdateUnitsPlugin();
         handlerIO = mock(HandlerIO.class);
         when(handlerIO.getMetaDataClient()).thenReturn(metaDataClient);
     }
 
     @Test
     @RunWithCustomExecutor
-    public void givingObjectGroupToUpdateOriginatingAgencyOK() throws Exception {
+    public void givingAllUnitsToUpdateOriginatingAgencyOK() throws Exception {
         // given
 
         JsonNode queryNode = JsonHandler.getFromInputStream(
@@ -104,17 +103,14 @@ public class OriginatingAgencyReassignmentMainUnitsObjectGroupsUpdatePluginTest 
         JsonNode unitResponse = JsonHandler.getFromInputStream(
             PropertiesUtils.getResourceAsStream("reassignment/units.json")
         );
-        JsonNode objectGroupResponse = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream("reassignment/objectGroups.json")
-        );
-        List<JsonNode> objectGroupNodes = new ArrayList<>();
-        ArrayNode results = (ArrayNode) objectGroupResponse.get("$results");
-        for (JsonNode objectGroup : results) {
-            objectGroupNodes.add(objectGroup);
+        List<JsonNode> unitsNodes = new ArrayList<>();
+        ArrayNode results = (ArrayNode) unitResponse.get("$results");
+        for (JsonNode unitNode : results) {
+            unitsNodes.add(unitNode);
         }
 
         JsonNode bulkUpdateResponseData = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream("reassignment/bulk_update_response_gots.json")
+            PropertiesUtils.getResourceAsStream("reassignment/bulk_update_response.json")
         );
 
         List<String> diffsResponse = new ArrayList<>();
@@ -131,12 +127,11 @@ public class OriginatingAgencyReassignmentMainUnitsObjectGroupsUpdatePluginTest 
 
         WorkerParameters workerParameters = mock(WorkerParameters.class);
 
-        when(workerParameters.getObjectMetadataList()).thenReturn(objectGroupNodes);
+        when(workerParameters.getObjectMetadataList()).thenReturn(unitsNodes);
 
         when(metaDataClient.selectUnits(any())).thenReturn(unitResponse);
-        when(metaDataClient.selectObjectGroups(any())).thenReturn(objectGroupResponse);
 
-        when(metaDataClient.objectGroupsAtomicUpdateBulk(any())).thenReturn(bulkUpdateResponse);
+        when(metaDataClient.atomicUpdateBulk(any())).thenReturn(bulkUpdateResponse);
 
         AgenciesModel targetOriginatingAgenciesModel = new AgenciesModel();
         targetOriginatingAgenciesModel.setId(originatingAgencyReassignmentRequest.getTargetOriginatingAgency());
@@ -147,14 +142,14 @@ public class OriginatingAgencyReassignmentMainUnitsObjectGroupsUpdatePluginTest 
             .getInputStreamFromWorkspace(any(), eq("request.json"));
 
         // When
-        List<ItemStatus> itemStatuses = originatingAgencyReassignmentMainUnitsObjectGroupsUpdatePlugin.executeList(
+        List<ItemStatus> itemStatuses = originatingAgencyReassignmentUpdateUnitsPlugin.executeList(
             workerParameters,
             handlerIO
         );
 
         // Then
 
-        assertThat(itemStatuses).hasSize(2);
+        assertThat(itemStatuses).hasSize(4);
         int index = 0;
         for (ItemStatus itemStatus : itemStatuses) {
             assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
