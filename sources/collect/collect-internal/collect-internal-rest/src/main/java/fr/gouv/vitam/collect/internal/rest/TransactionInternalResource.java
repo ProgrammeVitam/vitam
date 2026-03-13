@@ -35,6 +35,7 @@ import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.dto.UploadSipResult;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.common.enums.TransactionValidationMode;
 import fr.gouv.vitam.collect.common.exception.CollectInternalErrorsDetailsException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
@@ -102,6 +103,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import jakarta.annotation.Nullable;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
@@ -298,12 +300,17 @@ public class TransactionInternalResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response closeTransaction(@PathParam("transactionId") String transactionId) {
+    public Response closeTransaction(
+        @PathParam("transactionId") String transactionId,
+        @HeaderParam(GlobalDataRest.X_VALIDATION_MODE) @DefaultValue(
+            "VALIDATE"
+        ) TransactionValidationMode validationMode
+    ) {
         try {
             SanityChecker.checkParameter(transactionId);
             TransactionModel transaction = getTransaction(transactionId);
 
-            transactionService.closeTransaction(transaction);
+            transactionService.closeTransaction(transaction, validationMode);
             sipService.generateSipAsync(transaction);
 
             return Response.status(OK).build();

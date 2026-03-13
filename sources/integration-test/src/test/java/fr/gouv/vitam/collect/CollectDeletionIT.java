@@ -35,6 +35,7 @@ import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.enums.TransactionValidationMode;
 import fr.gouv.vitam.collect.external.client.CollectExternalClient;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
 import fr.gouv.vitam.collect.external.rest.CollectExternalMain;
@@ -343,7 +344,7 @@ public class CollectDeletionIT extends VitamRuleRunner {
             }
 
             // Close the transaction
-            collectClient.closeTransaction(vitamContext, transactionId);
+            collectClient.closeTransaction(vitamContext, transactionId, TransactionValidationMode.VALIDATE);
 
             // Try to perform a deletion action on the closed transaction
             final String collectDeletionOperationGuid = newOperationLogbookGUID(TENANT_ID).toString();

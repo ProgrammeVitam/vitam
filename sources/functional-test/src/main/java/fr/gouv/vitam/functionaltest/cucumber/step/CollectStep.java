@@ -32,6 +32,7 @@ import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.dto.UploadSipResult;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.common.enums.TransactionValidationMode;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -411,7 +412,7 @@ public class CollectStep extends CommonStep {
         String transactionId = world.getTransactionId();
         RequestResponse response = world
             .getCollectExternalClient()
-            .closeTransaction(new VitamContext(world.getTenantId()), transactionId);
+            .closeTransaction(new VitamContext(world.getTenantId()), transactionId, TransactionValidationMode.VALIDATE);
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
         verifyStatus(TransactionStatus.VALIDATED.name());
     }

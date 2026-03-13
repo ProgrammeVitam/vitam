@@ -28,11 +28,15 @@ package fr.gouv.vitam.collect;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
+import fr.gouv.vitam.antivirus.rest.AntivirusMain;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.dto.UploadSipResult;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.common.enums.TransactionValidationMode;
 import fr.gouv.vitam.collect.external.client.CollectExternalClient;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
+import fr.gouv.vitam.collect.external.exception.CollectExternalClientInvalidRequestException;
 import fr.gouv.vitam.collect.external.rest.CollectExternalMain;
 import fr.gouv.vitam.collect.internal.CollectInternalMain;
 import fr.gouv.vitam.common.DataLoader;
@@ -52,8 +56,12 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
+import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
+import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
@@ -67,6 +75,7 @@ import java.util.Collections;
 
 import static fr.gouv.vitam.collect.CollectTestHelper.initProjectData;
 import static fr.gouv.vitam.collect.CollectTestHelper.initTransaction;
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static org.apache.hc.core5.http.HttpStatus.SC_OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -79,6 +88,7 @@ public class TransactionIT extends VitamRuleRunner {
 
     private static final String AU_TO_UPLOAD = "collect/upload_au_collect.json";
     private static final String ZIP_FILE = "collect/sampleStream.zip";
+    private static final String SIP_KO = "collect/SIP_KO_BatchError.zip";
     private final VitamContext vitamContext = new VitamContext(TENANT_ID);
 
     @ClassRule
@@ -90,6 +100,10 @@ public class TransactionIT extends VitamRuleRunner {
             AdminManagementMain.class,
             LogbookMain.class,
             WorkspaceMain.class,
+            ProcessManagementMain.class,
+            WorkerMain.class,
+            DefaultOfferMain.class,
+            AntivirusMain.class,
             CollectInternalMain.class,
             CollectExternalMain.class
         )
@@ -156,7 +170,7 @@ public class TransactionIT extends VitamRuleRunner {
                 Assertions.assertThat(response.getStatus()).isEqualTo(200);
             }
 
-            collectClient.closeTransaction(vitamContext, transactionId);
+            collectClient.closeTransaction(vitamContext, transactionId, TransactionValidationMode.VALIDATE);
             verifyTransactionStatus(TransactionStatus.READY, transactionId);
 
             //test reopen
@@ -166,6 +180,90 @@ public class TransactionIT extends VitamRuleRunner {
             //test abort
             collectClient.abortTransaction(vitamContext, transactionId);
             verifyTransactionStatus(TransactionStatus.ABORTED, transactionId);
+        }
+    }
+
+    @Test
+    public void closeTransaction_withValidateMode_shouldSetStatusReady() throws Exception {
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            // Given
+            TransactionDto transaction = createProjectAndTransaction(collectClient);
+            uploadZipToTransaction(collectClient, transaction.getId(), ZIP_FILE);
+
+            // when
+            collectClient.closeTransaction(vitamContext, transaction.getId(), TransactionValidationMode.VALIDATE);
+
+            // Then
+            verifyTransactionStatus(TransactionStatus.READY, transaction.getId());
+        }
+    }
+
+    @Test
+    public void closeTransaction_withValidateIgnoreMode_shouldSetStatusReady() throws Exception {
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            // Given
+            TransactionDto transaction = createProjectAndTransaction(collectClient);
+            uploadZipToTransaction(collectClient, transaction.getId(), ZIP_FILE);
+
+            // when
+            collectClient.closeTransaction(
+                vitamContext,
+                transaction.getId(),
+                TransactionValidationMode.VALIDATE_IGNORE
+            );
+
+            // Then
+            verifyTransactionStatus(TransactionStatus.READY, transaction.getId());
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void closeTransaction_withValidateModeAndBatchKo_shouldThrowException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            // Given
+            TransactionDto transaction = createProjectAndTransaction(collectClient);
+            uploadSipToTransaction(collectClient, transaction.getId(), SIP_KO);
+
+            // when // then
+            assertThatThrownBy(
+                () ->
+                    collectClient.closeTransaction(
+                        vitamContext,
+                        transaction.getId(),
+                        TransactionValidationMode.VALIDATE
+                    )
+            )
+                .isInstanceOf(CollectExternalClientInvalidRequestException.class)
+                .hasMessage(
+                    String.format(
+                        "Cannot generate the SIP for transaction %s because it has at least one batch KO.",
+                        transaction.getId()
+                    )
+                );
+
+            verifyTransactionStatus(TransactionStatus.OPEN, transaction.getId());
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void closeTransaction_withValidateIgnoreModeAndBatchKo_shouldSetStatusReady() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            // Given
+            TransactionDto transaction = createProjectAndTransaction(collectClient);
+            uploadSipToTransaction(collectClient, transaction.getId(), SIP_KO);
+
+            // when // then
+            collectClient.closeTransaction(
+                vitamContext,
+                transaction.getId(),
+                TransactionValidationMode.VALIDATE_IGNORE
+            );
+
+            verifyTransactionStatus(TransactionStatus.READY, transaction.getId());
         }
     }
 
@@ -411,6 +509,60 @@ public class TransactionIT extends VitamRuleRunner {
                 "aeeaaaaaacezlakvcyequamii7qkn4aaaaaq",
                 select.getFinalSelect()
             );
+        }
+    }
+
+    private TransactionDto createProjectAndTransaction(CollectExternalClient collectClient) throws Exception {
+        ProjectDto projectDto = initProjectData();
+        final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+        Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+        ProjectDto projectDtoResult = JsonHandler.getFromJsonNode(
+            ((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+            ProjectDto.class
+        );
+
+        TransactionDto transactiondto = initTransaction(projectDtoResult.getId());
+        RequestResponse<JsonNode> transactionResponse = collectClient.initTransaction(
+            vitamContext,
+            transactiondto,
+            projectDtoResult.getId()
+        );
+        Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
+        TransactionDto transactionDtoResult = JsonHandler.getFromJsonNode(
+            ((RequestResponseOK<JsonNode>) transactionResponse).getFirstResult(),
+            TransactionDto.class
+        );
+
+        return transactionDtoResult;
+    }
+
+    private void uploadSipToTransaction(CollectExternalClient collectClient, String transactionId, String sipResource)
+        throws Exception {
+        String operationGuid;
+        try (InputStream inputStream = PropertiesUtils.getResourceAsStream(sipResource)) {
+            final RequestResponse<UploadSipResult> response = collectClient.uploadSipToTransaction(
+                vitamContext,
+                transactionId,
+                inputStream
+            );
+            Assertions.assertThat(response.getStatus()).isEqualTo(200);
+            UploadSipResult operationIdDto = ((RequestResponseOK<UploadSipResult>) response).getFirstResult();
+            operationGuid = operationIdDto.requestId();
+        }
+        waitOperation(operationGuid);
+    }
+
+    private void uploadZipToTransaction(CollectExternalClient collectClient, String transactionId, String zipResource)
+        throws Exception {
+        try (InputStream inputStream = PropertiesUtils.getResourceAsStream(zipResource)) {
+            final RequestResponse<JsonNode> response = collectClient.uploadZipToTransaction(
+                vitamContext,
+                transactionId,
+                inputStream,
+                null,
+                null
+            );
+            Assertions.assertThat(response.getStatus()).isEqualTo(200);
         }
     }
 }

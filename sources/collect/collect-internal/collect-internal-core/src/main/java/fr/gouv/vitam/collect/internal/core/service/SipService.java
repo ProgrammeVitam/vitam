@@ -38,7 +38,6 @@ import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalNotFoundException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalServerSideException;
-import fr.gouv.vitam.collect.internal.core.common.BatchStatus;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.SipHelper;
@@ -155,17 +154,6 @@ public class SipService {
     }
 
     private void preSipGenerationChecks(TransactionModel transaction) throws CollectInternalException {
-        boolean hasBatchKo =
-            transaction.getBatches() != null &&
-            transaction.getBatches().stream().anyMatch(batch -> BatchStatus.KO.equals(batch.getBatchStatus()));
-        if (hasBatchKo) {
-            throw new CollectInternalInvalidRequestException(
-                "Cannot generate the SIP for the transaction " +
-                transaction.getId() +
-                " because it has at least one batch KO."
-            );
-        }
-
         if (transactionService.isTransactionContentEmpty(transaction.getId())) {
             throw new CollectInternalInvalidRequestException(
                 "Cannot generate the SIP of an empty transaction (" + transaction.getId() + ")"

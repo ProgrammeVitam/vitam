@@ -39,6 +39,7 @@ import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.dto.UploadSipResult;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.common.enums.TransactionValidationMode;
 import fr.gouv.vitam.collect.external.client.CollectExternalClient;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
 import fr.gouv.vitam.collect.external.rest.CollectExternalMain;
@@ -395,7 +396,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
                 new VitamContext(TENANT_ID)
                     .setApplicationSessionId(APPLICATION_SESSION_ID)
                     .setAccessContract(ACCESS_CONTRACT),
-                transactionId
+                transactionId,
+                TransactionValidationMode.VALIDATE
             );
 
             InputStream sipInputStream = generateSip(transactionId);
@@ -1281,7 +1283,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
                 new VitamContext(TENANT_ID)
                     .setApplicationSessionId(APPLICATION_SESSION_ID)
                     .setAccessContract(ACCESS_CONTRACT),
-                transactionId
+                transactionId,
+                TransactionValidationMode.VALIDATE
             );
 
             InputStream sipInputStream = generateSip(transactionId);

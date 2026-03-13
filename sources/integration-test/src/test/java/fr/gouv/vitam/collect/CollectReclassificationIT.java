@@ -32,6 +32,7 @@ import com.google.common.collect.Sets;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.enums.TransactionValidationMode;
 import fr.gouv.vitam.collect.external.client.CollectExternalClient;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
 import fr.gouv.vitam.collect.external.rest.CollectExternalMain;
@@ -380,7 +381,7 @@ public class CollectReclassificationIT extends VitamRuleRunner {
             JsonNode selectedUnits = unitsByTransaction.get(TAG_RESULTS);
 
             // Close the transaction
-            collectClient.closeTransaction(vitamContext, transactionId);
+            collectClient.closeTransaction(vitamContext, transactionId, TransactionValidationMode.VALIDATE);
 
             // Try to perform a reclassification action on the closed transaction
             final String collectReclassificationOperationGuid = newOperationLogbookGUID(TENANT_ID).toString();

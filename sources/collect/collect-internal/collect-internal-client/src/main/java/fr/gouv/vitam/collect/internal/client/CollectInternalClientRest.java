@@ -34,6 +34,7 @@ import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.dto.UploadSipResult;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.common.enums.TransactionValidationMode;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientErrorsDetailsInvalidRequestException;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientException;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientInvalidRequestException;
@@ -290,10 +291,14 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
     }
 
     @Override
-    public Response closeTransaction(String transactionId) throws VitamClientException {
+    public Response closeTransaction(String transactionId, TransactionValidationMode validationMode)
+        throws VitamClientException {
         try (
             Response response = make(
-                post().withPath(TRANSACTION_PATH + "/" + transactionId + "/close").withJsonAccept()
+                post()
+                    .withPath(TRANSACTION_PATH + "/" + transactionId + "/close")
+                    .withJsonAccept()
+                    .withHeader(GlobalDataRest.X_VALIDATION_MODE, validationMode.name())
             )
         ) {
             check(response);

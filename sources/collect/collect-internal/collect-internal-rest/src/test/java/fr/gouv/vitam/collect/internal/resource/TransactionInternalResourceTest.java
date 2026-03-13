@@ -411,7 +411,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
         when(transactionService.findTransaction("1")).thenReturn(
             Optional.of(new TransactionModel().setStatus(TransactionStatus.OPEN))
         );
-        doThrow(new CollectInternalException("error")).when(transactionService).closeTransaction(any());
+        doThrow(new CollectInternalException("error")).when(transactionService).closeTransaction(any(), any());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -427,7 +427,9 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
         when(transactionService.findTransaction("1")).thenReturn(
             Optional.of(new TransactionModel().setStatus(TransactionStatus.OPEN))
         );
-        doThrow(new CollectInternalInvalidRequestException("error")).when(transactionService).closeTransaction(any());
+        doThrow(new CollectInternalInvalidRequestException("error"))
+            .when(transactionService)
+            .closeTransaction(any(), any());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)

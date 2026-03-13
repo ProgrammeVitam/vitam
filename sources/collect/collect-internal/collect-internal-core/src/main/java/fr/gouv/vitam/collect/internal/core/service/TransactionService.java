@@ -37,6 +37,7 @@ import fr.gouv.vitam.collect.common.dto.BatchDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.common.enums.TransactionValidationMode;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalNotFoundException;
@@ -1172,7 +1173,36 @@ public class TransactionService {
         }
     }
 
-    public void closeTransaction(TransactionModel transaction) throws CollectInternalException {
+    public void closeTransaction(TransactionModel transaction, TransactionValidationMode validationMode)
+        throws CollectInternalException {
+        boolean hasBatchKo =
+            transaction.getBatches() != null &&
+            transaction.getBatches().stream().anyMatch(batch -> BatchStatus.KO.equals(batch.getBatchStatus()));
+
+        switch (validationMode) {
+            case VALIDATE:
+                if (hasBatchKo) {
+                    throw new CollectInternalInvalidRequestException(
+                        String.format(
+                            "Cannot generate the SIP for transaction %s because it has at least one batch KO.",
+                            transaction.getId()
+                        )
+                    );
+                }
+                break;
+            case VALIDATE_IGNORE:
+                if (hasBatchKo) {
+                    LOGGER.warn(
+                        "Transaction {} closed with validation bypassed despite having batches in KO status",
+                        transaction.getId()
+                    );
+                }
+                break;
+            default:
+                throw new CollectInternalInvalidRequestException(
+                    String.format("Unknown validation mode: %s", validationMode)
+                );
+        }
         // Mark transaction as Ready
         changeTransactionStatus(TransactionStatus.READY, transaction);
     }

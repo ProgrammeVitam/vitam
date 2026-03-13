@@ -37,6 +37,7 @@ import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.common.enums.TransactionValidationMode;
 import fr.gouv.vitam.collect.external.client.CollectExternalClient;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
 import fr.gouv.vitam.collect.external.exception.CollectExternalClientInvalidRequestException;
@@ -689,7 +690,11 @@ public class FluxIT extends VitamRuleRunner {
                 );
             }
 
-            collectClient.closeTransaction(vitamContext, transactionDtoResult.getId());
+            collectClient.closeTransaction(
+                vitamContext,
+                transactionDtoResult.getId(),
+                TransactionValidationMode.VALIDATE
+            );
 
             TransactionDto closedTransaction = CollectTestHelper.getTransaction(
                 vitamContext,
@@ -1297,7 +1302,7 @@ public class FluxIT extends VitamRuleRunner {
         assertThat(transaction.getId()).isNotBlank();
 
         uploadZipTransaction(vitamContext, transaction.getId(), zipPath, null);
-        closeTransaction(vitamContext, transaction.getId());
+        closeTransaction(vitamContext, transaction.getId(), TransactionValidationMode.VALIDATE);
 
         final VitamClientException vitamClientException = assertThrows(
             VitamClientException.class,
