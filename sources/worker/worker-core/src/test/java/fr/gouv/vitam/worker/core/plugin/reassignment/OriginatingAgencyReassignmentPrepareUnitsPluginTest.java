@@ -144,7 +144,7 @@ public class OriginatingAgencyReassignmentPrepareUnitsPluginTest {
 
         // Create 2 separate local files
         File unitsDistributionFile = temporaryFolder.newFile("units_to_update.jsonl");
-        File intermediateGotFile = temporaryFolder.newFile("intermediate_gots_ids.jsonl");
+        File intermediateGotFile = temporaryFolder.newFile("intermediate_og_ids.jsonl");
 
         // This simulates the file copied to workspace
         File copiedFile = temporaryFolder.newFile("workspace_copy.jsonl");

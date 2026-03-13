@@ -80,7 +80,7 @@ public class OriginatingAgencyReassignmentPrepareUnitsPlugin extends ActionHandl
 
     private static final String UNITS_TO_UPDATE_FILE = "units_to_update.jsonl";
 
-    private static final String INTERMEDIATE_GOTS_IDS_FILE_NAME = "intermediate_gots_ids.jsonl";
+    private static final String INTERMEDIATE_OG_IDS_FILE_NAME = "intermediate_og_ids.jsonl";
 
     private static final int INTERMEDIATE_OG_FILE_OUT_RANK = 1;
 
@@ -97,17 +97,7 @@ public class OriginatingAgencyReassignmentPrepareUnitsPlugin extends ActionHandl
             final OriginatingAgencyReassignmentRequest reassignmentRequest =
                 originatingAgencyReassignmentService.loadRequestJsonFromWorkspace(handler);
 
-            if (
-                Objects.equals(
-                    reassignmentRequest.getSourceOriginatingAgency(),
-                    reassignmentRequest.getTargetOriginatingAgency()
-                )
-            ) {
-                throw new ProcessingStatusException(
-                    StatusCode.KO,
-                    "sourceOriginatingAgency should be different to targetOriginatingAgency"
-                );
-            }
+            validationQuery(reassignmentRequest);
 
             checkTargetOriginatingAgency(handler, reassignmentRequest.getTargetOriginatingAgency());
 
@@ -120,6 +110,21 @@ public class OriginatingAgencyReassignmentPrepareUnitsPlugin extends ActionHandl
                 e
             );
             return buildItemStatus(PLUGIN_NAME, e.getStatusCode(), e);
+        }
+    }
+
+    private void validationQuery(OriginatingAgencyReassignmentRequest reassignmentRequest)
+        throws ProcessingStatusException {
+        if (
+            Objects.equals(
+                reassignmentRequest.getSourceOriginatingAgency(),
+                reassignmentRequest.getTargetOriginatingAgency()
+            )
+        ) {
+            throw new ProcessingStatusException(
+                StatusCode.KO,
+                "sourceOriginatingAgency should be different to targetOriginatingAgency"
+            );
         }
     }
 
@@ -156,7 +161,7 @@ public class OriginatingAgencyReassignmentPrepareUnitsPlugin extends ActionHandl
 
         File gotIdsToFillInIntermediateFile = handler.getNewLocalFile(
             handler.getWorkFlowExecutionContext(),
-            INTERMEDIATE_GOTS_IDS_FILE_NAME
+            INTERMEDIATE_OG_IDS_FILE_NAME
         );
         try (MetaDataClient metadataClient = handler.getMetaDataClient();) {
             SelectMultiQuery selectMultiQuery = createSelectMultiple(reassignmentRequest.getDslRequest());

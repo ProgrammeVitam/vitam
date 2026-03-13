@@ -152,7 +152,7 @@ public class OriginatingAgencyReassignmentPrepareChildUnitsPluginTest {
 
         // Create 2 separate local files
         File unitsDistributionFileTempFile = temporaryFolder.newFile("units_to_update.jsonl");
-        File gotsDistributionFileTempFile = temporaryFolder.newFile("intermediate_gots_ids.jsonl");
+        File gotsDistributionFileTempFile = temporaryFolder.newFile("intermediate_og_ids.jsonl");
 
         when(handlerIO.getNewLocalFile(any(), anyString()))
             .thenReturn(unitsDistributionFileTempFile) // 1st call
