@@ -42,7 +42,7 @@ public class OriginatingAgencyReassignmentRequest {
     private String targetOriginatingAgency;
 
     @JsonProperty("propagateToObjectGroups")
-    private Boolean propagateToObjectGroups;
+    private boolean propagateToObjectGroups;
 
     @JsonCreator
     public OriginatingAgencyReassignmentRequest(

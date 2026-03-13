@@ -43,3 +43,4 @@ cucumber-reports
 deployment/environments/keystores
 deployment/environments/certs
 .java-version
+/sources/functional-test/dependency-reduced-pom.xml
