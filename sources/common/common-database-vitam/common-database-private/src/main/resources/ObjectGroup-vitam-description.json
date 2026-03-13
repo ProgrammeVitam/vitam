@@ -658,5 +658,35 @@
     "type": "keyword",
     "indexed": true,
     "cardinality": "one"
+  },
+  {
+    "path": "_reassignments",
+    "type": "object",
+    "cardinality": "many",
+    "indexed": true
+  },
+  {
+    "path": "_reassignments.OperationId",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_reassignments.ReassignmentDate",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_reassignments.TargetOriginatingAgency",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_reassignments.SourceOriginatingAgency",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
   }
 ]

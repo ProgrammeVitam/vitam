@@ -44,8 +44,10 @@ import org.mockito.MockitoAnnotations;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -110,7 +112,7 @@ public class OriginatingAgencyReassignmentServiceTest {
     public void testComputeNodesIdsWithAtLeastOneParentHavingOriginatingAgencyEqualTo() throws Exception {
         // Setup units with parents
         JsonNode unitResponse = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream("reassignment/units.json")
+            PropertiesUtils.getResourceAsStream("reassignment/units_with_parents.json")
         );
 
         JsonNode unitResponse1 = JsonHandler.getFromInputStream(
@@ -146,9 +148,16 @@ public class OriginatingAgencyReassignmentServiceTest {
         List<JsonNode> unitsNodes = new ArrayList<>();
         ArrayNode results = (ArrayNode) unitResponse.get("$results");
         List<String> unitIds = new ArrayList<>();
+        Set<String> unitIdsWithComputedInheritedRules = new HashSet<>();
+
         for (JsonNode unitNode : results) {
             unitsNodes.add(unitNode);
-            unitIds.add(unitNode.get(VitamFieldsHelper.id()).asText());
+            String unitId = unitNode.get(VitamFieldsHelper.id()).asText();
+            unitIds.add(unitId);
+
+            if (unitNode.has(VitamFieldsHelper.validComputedInheritedRules())) {
+                unitIdsWithComputedInheritedRules.add(unitId);
+            }
         }
 
         when(metaDataClient.selectUnits(any())).thenReturn(unitResponse);
@@ -166,7 +175,47 @@ public class OriginatingAgencyReassignmentServiceTest {
         for (JsonNode query : queries) {
             ArrayNode roots = (ArrayNode) query.get("$roots");
             assertThat(roots).hasSize(1);
-            assertThat(unitIds).contains(roots.get(0).asText());
+            String unitId = roots.get(0).asText();
+            assertThat(unitIds).contains(unitId);
+
+            ArrayNode actions = (ArrayNode) query.get("$action");
+
+            int indexAction = 0;
+            JsonNode actionNode;
+            if (unitIdsWithComputedInheritedRules.contains(unitId)) {
+                actionNode = actions.get(indexAction++);
+                assertThat(actionNode.has("$set")).isTrue();
+                assertThat(actionNode.get("$set").has("#validComputedInheritedRules")).isTrue();
+
+                actionNode = actions.get(indexAction++);
+                assertThat(actionNode.has("$unset")).isTrue();
+
+                String value = actionNode.get("$unset").get(0).asText();
+                assertThat(Objects.equals(value, "#computedInheritedRules")).isTrue();
+            }
+            actionNode = actions.get(indexAction++);
+            assertThat(actionNode.has("$set")).isTrue();
+            assertThat(actionNode.get("$set").has("#graph_last_persisted_date")).isTrue();
+
+            actionNode = actions.get(indexAction++);
+            assertThat(actionNode.has("$add")).isTrue();
+            assertThat(actionNode.get("$add").has("#originating_agencies")).isTrue();
+
+            actionNode = actions.get(indexAction++);
+            assertThat(actionNode.has("$set")).isTrue();
+            assertThat(actionNode.get("$set").has("#originating_agency")).isTrue();
+
+            actionNode = actions.get(indexAction++);
+            assertThat(actionNode.has("$push")).isTrue();
+            assertThat(actionNode.get("$push").has("#operations")).isTrue();
+
+            actionNode = actions.get(indexAction++);
+            assertThat(actionNode.has("$pull")).isTrue();
+            assertThat(actionNode.get("$pull").has("#originating_agencies")).isTrue();
+
+            actionNode = actions.get(indexAction);
+            assertThat(actionNode.has("$push")).isTrue();
+            assertThat(actionNode.get("$push").has("#reassignments")).isTrue();
         }
     }
 }

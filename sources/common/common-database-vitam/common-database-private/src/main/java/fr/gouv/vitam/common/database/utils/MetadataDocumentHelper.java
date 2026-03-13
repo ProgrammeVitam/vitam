@@ -62,7 +62,8 @@ public class MetadataDocumentHelper {
         MANAGEMENT("_mgt"),
         INITIAL_OPERATION("_opi"),
         OPERATIONS("_ops"),
-        UNIT_TYPE("_unitType");
+        UNIT_TYPE("_unitType"),
+        REASSIGNMENTS("_reassignments");
 
         private final String fieldName;
 
@@ -134,7 +135,8 @@ public class MetadataDocumentHelper {
         INITIAL_OPERATION("_opi"),
         OPERATIONS("_ops"),
         QUALIFIERS("_qualifiers"),
-        PROFIL("_profil");
+        PROFIL("_profil"),
+        REASSIGNMENTS("_reassignments");
 
         private final String fieldName;
 

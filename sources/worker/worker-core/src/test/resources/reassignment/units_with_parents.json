@@ -31,17 +31,17 @@
       "#originating_agency": "sourceOriginatingAgency",
       "#originating_agencies": ["sourceOriginatingAgency"],
       "#max": 2,
-      "#allunitups": [],
+      "#allunitups": ["id_unit_1"],
       "#validComputedInheritedRules": true,
-      "#unitups": []
+      "#unitups": ["id_unit_1"]
     },
     {
       "#id": "id_unit_5",
       "#originating_agency": "sourceOriginatingAgency",
       "#max": 3,
       "#validComputedInheritedRules": true,
-      "#allunitups": [],
-      "#unitups": []
+      "#allunitups": ["id_unit_1","id_unit_3"],
+      "#unitups": ["id_unit_3"]
     }
   ],
   "$facetResults": [],

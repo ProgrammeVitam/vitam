@@ -224,6 +224,9 @@ public class MongoDbMetadataResponseFilter {
                 case OGINFO:
                     filterObjectGroupInfo(document);
                     break;
+                case REASSIGNMENTS:
+                    replace(document, Unit.REASSIGNMENTS, PROJECTIONARGS.REASSIGNMENTS.exactToken());
+                    break;
                 default:
                     break;
             }

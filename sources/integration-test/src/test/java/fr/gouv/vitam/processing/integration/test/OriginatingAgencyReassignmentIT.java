@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.integration.test;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
@@ -55,6 +56,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
+import fr.gouv.vitam.common.model.reassignment.ReassignmentOperation;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -342,6 +344,14 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
         //check Invalidate computed inherited Rules
         assertUnitsComputedInheritedRulesInvalidated(unitsByTitle.values(), unitsIdsToUpdate);
 
+        //check reassignment history
+        assertReassignmentOperationsHistory(
+            unitsByTitle.values(),
+            unitsIdsToUpdate,
+            reassignOperationId,
+            currentOriginatingAgency,
+            targetOriginatingAgency
+        );
         //check operation in OPS
         assertOperationInOps(unitsByTitle.values(), unitsIdsToUpdate, reassignOperationId);
         assertOperationInOps(objectGroupsNodes, objectGroupIdsForUpdatedUnits, reassignOperationId);
@@ -439,6 +449,24 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
             unitsIdsToUpdate,
             targetOriginatingAgency,
             currentOriginatingAgency
+        );
+
+        //check reassignment history
+        assertReassignmentOperationsHistory(
+            unitsByTitle.values(),
+            unitsIdsToUpdate,
+            reassignOperationId,
+            currentOriginatingAgency,
+            targetOriginatingAgency
+        );
+
+        //check reassignment history
+        assertReassignmentOperationsHistory(
+            objectGroupsNodes,
+            objectGroupIdsForUpdatedUnits,
+            reassignOperationId,
+            currentOriginatingAgency,
+            targetOriginatingAgency
         );
 
         //check operation in OPS
@@ -551,6 +579,24 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
         assertOperationInOps(unitsByTitle.values(), unitsIdsToUpdate, reassignOperationId);
         assertOperationInOps(objectGroupsNodes, Collections.emptySet(), reassignOperationId);
 
+        //check reassignment history
+        assertReassignmentOperationsHistory(
+            unitsByTitle.values(),
+            unitsIdsToUpdate,
+            reassignOperationId,
+            currentOriginatingAgency,
+            targetOriginatingAgency
+        );
+
+        //check reassignment history
+        assertReassignmentOperationsHistory(
+            objectGroupsNodes,
+            Collections.emptySet(),
+            reassignOperationId,
+            currentOriginatingAgency,
+            targetOriginatingAgency
+        );
+
         //check lfc
         assertLfcOnUnits(unitsByTitle.values(), unitsIdsToUpdate, targetOriginatingAgency, currentOriginatingAgency);
 
@@ -615,6 +661,38 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
             if (concernedToBeUpdated.contains(id)) {
                 assertThat(validComputedInheritedRules).isFalse();
                 assertThat(computedInheritedRulesNode).isNull();
+            }
+        }
+    }
+
+    private static void assertReassignmentOperationsHistory(
+        Collection<JsonNode> metadataNodes,
+        Collection<String> concernedToBeUpdated,
+        String operationId,
+        String sourceOriginatingAgency,
+        String targetOriginatingAgency
+    ) throws InvalidParseOperationException {
+        for (JsonNode metadataNode : metadataNodes) {
+            String id = metadataNode.get(VitamFieldsHelper.id()).asText();
+            if (concernedToBeUpdated.contains(id)) {
+                assertThat(metadataNode.has(VitamFieldsHelper.reassignments())).isTrue();
+
+                ArrayNode reassignmentsNode = (ArrayNode) metadataNode.get(VitamFieldsHelper.reassignments());
+
+                assertThat(reassignmentsNode).isNotNull();
+                assertThat(reassignmentsNode).isNotEmpty();
+                JsonNode lastReassignmentOperationNode = reassignmentsNode.get(reassignmentsNode.size() - 1);
+
+                ReassignmentOperation lastReassignmentOperation = JsonHandler.getFromJsonNode(
+                    lastReassignmentOperationNode,
+                    ReassignmentOperation.class
+                );
+                assertThat(lastReassignmentOperation.getOperationId()).isEqualTo(operationId);
+                assertThat(lastReassignmentOperation.getTargetOriginatingAgency()).isEqualTo(targetOriginatingAgency);
+                assertThat(lastReassignmentOperation.getSourceOriginatingAgency()).isEqualTo(sourceOriginatingAgency);
+                assertThat(lastReassignmentOperation.getReassignmentDate()).isNotNull();
+            } else {
+                assertThat(metadataNode.has(VitamFieldsHelper.reassignments())).isFalse();
             }
         }
     }

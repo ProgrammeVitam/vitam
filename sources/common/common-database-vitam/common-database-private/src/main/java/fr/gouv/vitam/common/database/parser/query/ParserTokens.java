@@ -154,6 +154,7 @@ public class ParserTokens extends BuilderToken {
         ATOMIC_VERSION("atomic_version"),
         /**
          * Document's usage (BINARY_MASTER, PHYSICAL_MASTER, DISSEMINATION, ...)
+         *
          * @deprecated Useless. Will be removed in future releases
          */
         USAGE("usage"),
@@ -224,7 +225,12 @@ public class ParserTokens extends BuilderToken {
         /**
          * Object group information
          */
-        OGINFO("ogInfo");
+        OGINFO("ogInfo"),
+
+        /**
+         * reassignments operations
+         */
+        REASSIGNMENTS("reassignments");
 
         private static final String NOT_FOUND = "Not found";
         private final String exactToken;
@@ -307,40 +313,42 @@ public class ParserTokens extends BuilderToken {
                 try {
                     final PROJECTIONARGS proj = PROJECTIONARGS.valueOf(realname.toUpperCase());
                     switch (proj) {
-                        case FORMAT:
-                        case ID:
-                        case NBUNITS:
-                        case NBOBJECTS:
-                        case QUALIFIERS:
-                        case SIZE:
-                        case OBJECT:
-                        case UNITUPS:
-                        case ALLUNITUPS:
-                        case TENANT:
-                        case MIN:
-                        case MAX:
-                        case UNITTYPE:
-                        case ORIGINATING_AGENCY:
-                        case ORIGINATING_AGENCIES:
-                        case VERSION:
-                        case USAGE:
-                        case OPERATIONS:
-                        case OPI:
-                        case SCORE:
-                        case LAST_PERSISTED_DATE:
-                        case GRAPH:
-                        case GRAPH_LAST_PERSISTED_DATE:
-                        case HISTORY:
-                        case ELIMINATION:
-                        case SEDAVERSION:
-                        case IMPLEMENTATIONVERSION:
-                        case STORAGE:
-                        case COMPUTEDINHERITEDRULES:
-                        case NBC:
-                        case ERRORS:
-                        case OGINFO:
+                        case FORMAT,
+                            ID,
+                            NBUNITS,
+                            NBOBJECTS,
+                            QUALIFIERS,
+                            SIZE,
+                            OBJECT,
+                            UNITUPS,
+                            ALLUNITUPS,
+                            TENANT,
+                            MIN,
+                            MAX,
+                            UNITTYPE,
+                            ORIGINATING_AGENCY,
+                            ORIGINATING_AGENCIES,
+                            VERSION,
+                            USAGE,
+                            OPERATIONS,
+                            OPI,
+                            SCORE,
+                            LAST_PERSISTED_DATE,
+                            GRAPH,
+                            GRAPH_LAST_PERSISTED_DATE,
+                            HISTORY,
+                            ELIMINATION,
+                            SEDAVERSION,
+                            IMPLEMENTATIONVERSION,
+                            STORAGE,
+                            COMPUTEDINHERITEDRULES,
+                            NBC,
+                            ERRORS,
+                            OGINFO,
+                            REASSIGNMENTS -> {
                             return true;
-                        default:
+                        }
+                        default -> {}
                     }
                 } catch (final Exception e) {
                     // Ignore
