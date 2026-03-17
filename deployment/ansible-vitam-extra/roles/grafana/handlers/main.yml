@@ -9,8 +9,24 @@
 - name: "grafana - restart docker"
   docker_container:
     name: grafana-server
+    image: "{{ container_repository.registry_url }}/vitam-external/grafana/grafana:{{ grafana_version }}"
     state: started
     restart: true
+    recreate: true
+    restart_policy: always
+    network_mode: host
+    volumes:
+      - "{{ grafana_conf_dir }}:{{ grafana_conf_dir }}:rw"
+      - "{{ grafana_path_provisioning }}:{{ grafana_path_provisioning }}:rw"
+      - "{{ grafana_data_dir }}:{{ grafana_data_dir }}:rw"
+      - "{{ grafana_log_dir }}:{{ grafana_log_dir }}:rw"
+    env:
+      GF_PATHS_CONFIG: "/vitam/conf/grafana/grafana.ini"
+      GF_PATHS_DATA: "{{ grafana_data_dir }}"
+      GF_PATHS_PROVISIONING: "{{ grafana_path_provisioning }}"
+      GF_PATHS_PLUGINS: "{{ grafana_path_plugins }}"
+      GF_PATHS_LOGS: "{{ grafana_log_dir }}"
+    user: "{{ grafana_user }}"
 
 - name: "grafana - reload consul configuration"
   systemd:
