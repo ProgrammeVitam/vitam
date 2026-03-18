@@ -17,3 +17,4 @@ prometheuscommunity/elasticsearch-exporter:v1.7.0
 prom/node-exporter:v1.7.0
 prom/blackbox-exporter:v0.25.0
 percona/mongodb_exporter:0.40.0
+ghcr.io/keeps/siegfried:v1.9.6
