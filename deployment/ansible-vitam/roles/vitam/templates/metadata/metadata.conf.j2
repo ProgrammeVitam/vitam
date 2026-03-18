@@ -11,15 +11,15 @@ archiveUnitProfileCacheMaxEntries: {{ vitam.metadata.archiveUnitProfileCacheMaxE
 archiveUnitProfileCacheTimeoutInSeconds: {{ vitam.metadata.archiveUnitProfileCacheTimeoutInSeconds | default(300) }}
 
 # Schema validator cache settings (max entries in cache & retention timeout in seconds)
-schemaValidatorCacheMaxEntries: {{ vitam.metadata.schemaValidatorCacheMaxEntries }}
-schemaValidatorCacheTimeoutInSeconds: {{ vitam.metadata.schemaValidatorCacheTimeoutInSeconds }}
+schemaValidatorCacheMaxEntries: {{ vitam.metadata.schemaValidatorCacheMaxEntries | default(100) }}
+schemaValidatorCacheTimeoutInSeconds: {{ vitam.metadata.schemaValidatorCacheTimeoutInSeconds| default(300) }}
 
 # DIP purge service (in minutes)
-dipTimeToLiveInMinutes: {{ vitam.metadata.dipTimeToLiveInMinutes }}
-criticalDipTimeToLiveInMinutes: {{ vitam.metadata.criticalDipTimeToLiveInMinutes }}
+dipTimeToLiveInMinutes: {{ vitam.metadata.dipTimeToLiveInMinutes | default(10080) }}
+criticalDipTimeToLiveInMinutes: {{ vitam.metadata.criticalDipTimeToLiveInMinutes | default(1440) }}
 
 # TRANSFER purge service (in minutes)
-transfersSIPTimeToLiveInMinutes: {{ vitam.metadata.transfersSIPTimeToLiveInMinutes }}
+transfersSIPTimeToLiveInMinutes: {{ vitam.metadata.transfersSIPTimeToLiveInMinutes | default(10080) }}
 
 {% if not primary_site | bool %}
 # Reconstruction metrics cache in minutes (secondary site)

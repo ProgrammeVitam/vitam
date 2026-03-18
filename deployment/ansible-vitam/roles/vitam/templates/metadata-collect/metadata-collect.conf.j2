@@ -12,15 +12,15 @@ archiveUnitProfileCacheMaxEntries: {{ vitam.metadata_collect.archiveUnitProfileC
 archiveUnitProfileCacheTimeoutInSeconds: {{ vitam.metadata_collect.archiveUnitProfileCacheTimeoutInSeconds | default(300) }}
 
 # Schema validator cache settings (max entries in cache & retention timeout in seconds)
-schemaValidatorCacheMaxEntries: {{ vitam.metadata_collect.schemaValidatorCacheMaxEntries }}
-schemaValidatorCacheTimeoutInSeconds: {{ vitam.metadata_collect.schemaValidatorCacheTimeoutInSeconds }}
+schemaValidatorCacheMaxEntries: {{ vitam.metadata_collect.schemaValidatorCacheMaxEntries | default(100) }}
+schemaValidatorCacheTimeoutInSeconds: {{ vitam.metadata_collect.schemaValidatorCacheTimeoutInSeconds | default(300) }}
 
 # DIP purge service (in minutes)
-dipTimeToLiveInMinutes: {{ vitam.metadata_collect.dipTimeToLiveInMinutes }}
-criticalDipTimeToLiveInMinutes: {{ vitam.metadata_collect.criticalDipTimeToLiveInMinutes }}
+dipTimeToLiveInMinutes: {{ vitam.metadata_collect.dipTimeToLiveInMinutes | default(10080) }}
+criticalDipTimeToLiveInMinutes: {{ vitam.metadata_collect.criticalDipTimeToLiveInMinutes | default(1440) }}
 
 # TRANSFER purge service (in minutes)
-transfersSIPTimeToLiveInMinutes: {{ vitam.metadata_collect.transfersSIPTimeToLiveInMinutes }}
+transfersSIPTimeToLiveInMinutes: {{ vitam.metadata_collect.transfersSIPTimeToLiveInMinutes | default(10080) }}
 
 # Basic Authentication
 adminBasicAuth:
