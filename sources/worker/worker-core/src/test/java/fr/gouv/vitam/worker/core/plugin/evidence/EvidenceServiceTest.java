@@ -59,7 +59,6 @@ import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditExceptio
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditParameters;
 import jakarta.ws.rs.core.Response;
-import org.jboss.resteasy.specimpl.BuiltResponse;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -320,7 +319,7 @@ public class EvidenceServiceTest {
                 "evidenceAudit/0_LogbookLifecycles_20180220_111512.zip"
             )
         ) {
-            Response responseMock = mock(BuiltResponse.class);
+            Response responseMock = mock(Response.class);
             doReturn(in).when(responseMock).readEntity(eq(InputStream.class));
             when(
                 storageClient.getContainerAsync(
