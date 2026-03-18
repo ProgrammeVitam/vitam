@@ -27,9 +27,9 @@ indexInheritedRulesWithAPIV2OutputByTenant: {{ vitam.worker.api_output_index_ten
 indexInheritedRulesWithRulesIdByTenant: {{ vitam.worker.rules_index_tenants | expand_list }}
 
 # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
-archiveUnitProfileCacheMaxEntries: {{ vitam.metadata.archiveUnitProfileCacheMaxEntries | default(100) }}
+archiveUnitProfileCacheMaxEntries: {{ vitam.worker.archiveUnitProfileCacheMaxEntries | default(100) }}
 archiveUnitProfileCacheTimeoutInSeconds: {{ vitam.worker.archiveUnitProfileCacheTimeoutInSeconds | default(300) }}
 
 # Schema validator cache settings (max entries in cache & retention timeout in seconds)
-schemaValidatorCacheMaxEntries: {{ vitam.metadata.schemaValidatorCacheMaxEntries | default(100) }}
+schemaValidatorCacheMaxEntries: {{ vitam.worker.schemaValidatorCacheMaxEntries | default(100) }}
 schemaValidatorCacheTimeoutInSeconds: {{ vitam.worker.schemaValidatorCacheTimeoutInSeconds | default(300) }}

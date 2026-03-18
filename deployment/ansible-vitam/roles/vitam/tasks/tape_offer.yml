@@ -4,12 +4,12 @@
   getent:
     database: group
     split: ':'
-    fail_key: False
+    fail_key: false
 
 - name: add user vitam to tape group if component is offer
   user:
     name: "{{ vitam_defaults.users.vitam }}"
     groups: tape
-    append: yes
-  when: "tape" in getent_group
+    append: true
+  when: "'tape' in getent_group"
 # TODO OMA: maybe even more restrictive on conf_offer ?
