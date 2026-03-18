@@ -61,20 +61,35 @@ mongodb:
       user: offer
       password: change_it_pQi1T1yT9LAF8au8
 
-  offer-fs-2:
-    passphrase: changeiteSY1By57qZr4MX2s
+  offer-swift-1:
+    passphrase: changeitgYvt42M2pKL6Zx3T
     admin:
       user: vitamdb-admin
-      password: change_it_84aTMFZ7h8e2NgMe
+      password: change_it_e21hLp51WNa4sJFS
     localadmin:
       user: vitamdb-localadmin
-      password: change_it_Am1B37tGY1w5VfvX
+      password: change_it_QB8857SJrGrQh2yu
     system:
       user: vitamdb-system
       password: change_it_HycFEVD74g397iRe
     offer:
       user: offer
-      password: change_it_mLDYds957sNQ53mA
+      password: change_it_AWJg2Bp3s69P6nMe
+
+  offer-s3-1:
+    passphrase: changeituF1jVdR9NqdTG625
+    admin:
+      user: vitamdb-admin
+      password: change_it_5b7cSWcS5M1NF4kv
+    localadmin:
+      user: vitamdb-localadmin
+      password: change_it_S9jE24rxHwUZP6y5
+    system:
+      user: vitamdb-system
+      password: change_it_HycFEVD74g397iRe
+    offer:
+      user: offer
+      password: change_it_TuTB1i2k7iQW3zL2
 
   offer-tape-1:
     passphrase: changeitmB5rnk1M5TY61PqZ
@@ -90,38 +105,10 @@ mongodb:
     offer:
       user: offer
       password: change_it_pQi1T1yT9LAF8au8
+    # Mandatory when 'mode: ina' is set for 'tape-library' offer configuration
     ina-tape-proxy:
       user: ina-tape-proxy
       password: change_it_RoklFlziZr5grr90
-
-  offer-swift-1:
-    passphrase: changeitgYvt42M2pKL6Zx3T
-    admin:
-      user: vitamdb-admin
-      password: change_it_e21hLp51WNa4sJFS
-    localadmin:
-      user: vitamdb-localadmin
-      password: change_it_QB8857SJrGrQh2yu
-    system:
-      user: vitamdb-system
-      password: change_it_HycFEVD74g397iRe
-    offer:
-      user: offer
-      password: change_it_AWJg2Bp3s69P6nMe
-  offer-s3-1:
-    passphrase: changeituF1jVdR9NqdTG625
-    admin:
-      user: vitamdb-admin
-      password: change_it_5b7cSWcS5M1NF4kv
-    localadmin:
-      user: vitamdb-localadmin
-      password: change_it_S9jE24rxHwUZP6y5
-    system:
-      user: vitamdb-system
-      password: change_it_HycFEVD74g397iRe
-    offer:
-      user: offer
-      password: change_it_TuTB1i2k7iQW3zL2
 
 vitam_users:
   - vitam_aadmin:
@@ -142,14 +129,14 @@ vitam_users:
     role: admin
 
 ldap_authentification:
-    ldap_pwd: "change_it_t69Rn5NdUv39EYkC"
+  ldap_pwd: "change_it_t69Rn5NdUv39EYkC"
 
 admin_basic_auth_password: change_it_5Yn74JgXwbQ9KdP8
 
 vitam_offers:
-    offer-swift-1:
-        swiftUser: swift_user
-        swiftPassword: password_change_m44j57aYeRPnPXQ2
-    offer-s3-1:
-        s3AccessKey: accessKey_change_grLS8372Uga5EJSx
-        s3SecretKey: secretKey_change_p97es2m2CHXPJA1m
+  offer-swift-1:
+    swiftUser: swift_user
+    swiftPassword: password_change_m44j57aYeRPnPXQ2
+  offer-s3-1:
+    s3AccessKey: accessKey_change_grLS8372Uga5EJSx
+    s3SecretKey: secretKey_change_p97es2m2CHXPJA1m
