@@ -18,7 +18,7 @@
         group: "{{ vitam_defaults.users.group }}"
         mode: "{{ '0644' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
       tags: consul_conf
-      notify: "vitam - reload consul configuration"
+      notify: vitam - reload consul configuration
 
     - name: "Set correct SELinux file context for {{ consul_folder_conf }}/service-{{ vitam_struct.vitam_component }}.json"
       shell: "restorecon {{ consul_folder_conf }}/service-{{ vitam_struct.vitam_component }}.json"

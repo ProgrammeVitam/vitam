@@ -1,6 +1,17 @@
-authentication: false
 jettyConfig: jetty-config.xml
+
+authentication: false
+
 authorizeTrackTotalHits: {{ vitam.collect_external.authorizeTrackTotalHits | default(false) | bool | lower }}
-allowSslClientHeader: {{ vitam_defaults.trust_client_certificate_header | default(false) | bool | lower }}
+
 ingestionThreadPoolSize: {{ vitam.collect_external.ingestionThreadPoolSize | default(4) }}
 ingestionThreadFrequencySeconds: {{ vitam.collect_external.ingestionThreadFrequencySeconds | default(5) }}
+
+### Trust X-SSL-CLIENT-CERT header for external api authentication
+# Should only be enabled when accessing to vitam externals through a Reverse Proxy that does "SSL offloading"
+# NGINX configuration        : proxy_set_header X-SSL-CLIENT-CERT $ssl_client_escaped_cert;
+# Apache httpd configuration : RequestHeader set X-SSL-CLIENT-CERT "%{SSL_CLIENT_CERT}s"
+# Important : When enabled, special care must be taken to ensure firewall rules are properly set to ensure only
+#             reverse proxy can access vitam external applications through their respective port_service to avoid
+#             malicious header injection.
+allowSslClientHeader: {{ vitam_defaults.trust_client_certificate_header | default(false) | bool | lower }}

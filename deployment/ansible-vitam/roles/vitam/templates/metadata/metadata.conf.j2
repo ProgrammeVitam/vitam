@@ -1,12 +1,14 @@
 #jinja2: lstrip_blocks: True
-urlWorkspace: {{ vitam.workspace | client_url }}
+jettyConfig: jetty-config.xml
 
 urlProcessing: {{ vitam.processing | client_url }}
+urlWorkspace: {{ vitam.workspace | client_url }}
+
 contextPath: {{ vitam_struct.context_path }}
 
 # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
-archiveUnitProfileCacheMaxEntries: {{ vitam.metadata.archiveUnitProfileCacheMaxEntries }}
-archiveUnitProfileCacheTimeoutInSeconds: {{ vitam.metadata.archiveUnitProfileCacheTimeoutInSeconds }}
+archiveUnitProfileCacheMaxEntries: {{ vitam.metadata.archiveUnitProfileCacheMaxEntries | default(100) }}
+archiveUnitProfileCacheTimeoutInSeconds: {{ vitam.metadata.archiveUnitProfileCacheTimeoutInSeconds | default(300) }}
 
 # Schema validator cache settings (max entries in cache & retention timeout in seconds)
 schemaValidatorCacheMaxEntries: {{ vitam.metadata.schemaValidatorCacheMaxEntries }}
@@ -20,7 +22,7 @@ criticalDipTimeToLiveInMinutes: {{ vitam.metadata.criticalDipTimeToLiveInMinutes
 transfersSIPTimeToLiveInMinutes: {{ vitam.metadata.transfersSIPTimeToLiveInMinutes }}
 
 {% if not primary_site | bool %}
-# Reconstruction cache duration (in minutes)
+# Reconstruction metrics cache in minutes (secondary site)
 reconstructionMetricsCacheDurationInMinutes: {{ vitam.metadata.reconstructionMetricsCacheDurationInMinutes | default(15) }}
 # Concurrent reconstruction threads
 reconstructionPoolSize: {{ vitam.metadata.reconstructionPoolSize | default(16) }}
@@ -43,7 +45,12 @@ persistentIdentifierReconstructionDelayInMinutes: {{ vitam.metadata.persistentId
 persistentIdentifierReconstructionThreadPoolSize: {{ vitam.metadata.persistentIdentifierReconstructionThreadPoolSize | default(10) }}
 persistentIdentifierReconstructionBulkSize: {{ vitam.metadata.persistentIdentifierReconstructionBulkSize | default(1000) }}
 
-# Configuration MongoDB
+# Basic Authentication
+adminBasicAuth:
+  - userName: {{ admin_basic_auth_user }}
+    password: {{ admin_basic_auth_password }}
+
+# MongoDB configuration
 mongoDbNodes:
 {% for server in groups['hosts_mongos_data'] %}
   - dbHost: {{ hostvars[server]['ip_service'] }}
@@ -54,9 +61,7 @@ dbAuthentication: {{ mongodb.mongo_authentication | bool | lower }}
 dbUserName: {{ mongodb['mongo-data'].metadata.user }}
 dbPassword: {{ mongodb['mongo-data'].metadata.password }}
 
-jettyConfig: jetty-config.xml
-
-# ElasticSearch
+# ElasticSearch configuration
 clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchConfigurationFile: {{ vitam_folder_conf }}/elasticsearch-settings/elasticsearch-configuration.json
 elasticsearchNodes:
@@ -140,13 +145,8 @@ elasticsearchTenantIndexation:
   {% endfor %}
 {% endif %}
 
-#Basic Authentication
-adminBasicAuth:
-  - userName: {{ admin_basic_auth_user }}
-    password: {{ admin_basic_auth_password }}
-
 {% if vitam.metadata.isDataConsistencyAuditRunnable | default(false) | bool %}
-# Metadata Consistency Audit (Experimental / Not for Production)
+# Metadata Consistency Audit MongoDB-ES (Experimental / Not for Production)
 isDataConsistencyAuditRunnable: true
 enableDataConsistencyRectificationMode: {{ vitam.metadata.enableDataConsistencyRectificationMode | default(false) | bool | lower }}
 dataConsistencyAuditOplogMaxSize: {{ vitam.metadata.dataConsistencyAuditOplogMaxSize | default(100) }}

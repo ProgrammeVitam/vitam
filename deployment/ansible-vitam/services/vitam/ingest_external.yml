@@ -4,7 +4,6 @@
   any_errors_fatal: true
   roles:
     - siegfried
-    - create_upload_dir
     - vitam
   vars:
     vitam_struct: "{{ vitam.ingest_external }}"
@@ -12,5 +11,5 @@
     password_manager_keystore: "{{ keystores.server.ingest_external }}"
     password_truststore: "{{ truststores.client_external }}"
     password_grantedstore: "{{ grantedstores.client_external }}"
-    vitam_certificate_client_type: "external"
+    vitam_certificate_client_type: external
   tags: ingest_external

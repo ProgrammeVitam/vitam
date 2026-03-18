@@ -1,9 +1,11 @@
+jettyConfig: jetty-config.xml
+
 contextPath: /
 # Smile : TODO : remove storagePath from this file
 storagePath: {{ vitam_folder_data }}
-jettyConfig: jetty-config.xml
 authentication: {{ vitam_struct.https_enabled | bool | lower }}
-# Configuration MongoDB
+
+# MongoDB configuration
 mongoDbNodes:
 {% for server in groups['hosts_mongos_offer'] %}
 {% if hostvars[server]['mongo_cluster_name'] == offer_conf or inventory_hostname in single_vm_hostnames %}
@@ -18,9 +20,9 @@ dbPassword: {{ mongodb[offer_conf].offer.password }}
 
 offerLogCompaction:
   expirationValue: {{ vitam_offers[offer_conf].offer_log_compaction.expiration_value | default(21) }}
-  expirationUnit: {{ vitam_offers[offer_conf].offer_log_compaction.expiration_unit | default("DAYS") }}
+  expirationUnit: {{ vitam_offers[offer_conf].offer_log_compaction.expiration_unit | default('DAYS') }}
   compactionSize: {{ vitam_offers[offer_conf].offer_log_compaction.compaction_size | default(10000) }}
 
-maxBatchThreadPoolSize: {{ vitam_offers[offer_conf]["maxBatchThreadPoolSize"] | default(32) }}
-batchMetadataComputationTimeout: {{ vitam_offers[offer_conf]["batchMetadataComputationTimeout"] | default(600) }}
-cleanupObjectsOnWriteError: {{ vitam_offers[offer_conf]["cleanupObjectsOnWriteError"] | default(true) | bool | lower }}
+maxBatchThreadPoolSize: {{ vitam_offers[offer_conf]['maxBatchThreadPoolSize'] | default(32) }}
+batchMetadataComputationTimeout: {{ vitam_offers[offer_conf]['batchMetadataComputationTimeout'] | default(600) }}
+cleanupObjectsOnWriteError: {{ vitam_offers[offer_conf]['cleanupObjectsOnWriteError'] | default(true) | bool | lower }}

@@ -1,5 +1,11 @@
+jettyConfig: jetty-config.xml
 
-# Configuration MongoDB
+# Basic Authentication
+adminBasicAuth:
+  - userName: {{ admin_basic_auth_user }}
+    password: {{ admin_basic_auth_password }}
+
+# MongoDB configuration
 mongoDbNodes:
 {% for host in groups['hosts_mongos_data'] %}
   - dbHost: {{ hostvars[host]['ip_service'] }}
@@ -10,11 +16,4 @@ dbAuthentication: {{ mongodb.mongo_authentication | bool | lower }}
 dbUserName: {{ mongodb['mongo-data'].securityInternal.user }}
 dbPassword: {{ mongodb['mongo-data'].securityInternal.password }}
 
-jettyConfig: jetty-config.xml
-
 personalCertificatePermissionConfig: personal-certificate-permissions.conf
-
-#Basic Authentication
-adminBasicAuth:
-  - userName: {{ admin_basic_auth_user }}
-    password: {{ admin_basic_auth_password }}

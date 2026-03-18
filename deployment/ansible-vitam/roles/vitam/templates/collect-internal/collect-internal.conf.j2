@@ -1,8 +1,16 @@
-authentication: false
-urlWorkspaceCollect: {{ vitam.workspace_collect | client_url }}
-urlWorkspace: {{ vitam.workspace | client_url }}
+jettyConfig: jetty-config.xml
 
-# Configuration MongoDB
+authentication: false
+
+urlWorkspace: {{ vitam.workspace | client_url }}
+urlWorkspaceCollect: {{ vitam.workspace_collect | client_url }}
+
+# Basic Authentication
+adminBasicAuth:
+  - userName: {{ admin_basic_auth_user }}
+    password: {{ admin_basic_auth_password }}
+
+# MongoDB configuration
 mongoDbNodes:
 {% for host in groups['hosts_mongos_data'] %}
   - dbHost: {{ hostvars[host]['ip_service'] }}
@@ -13,20 +21,17 @@ dbAuthentication: {{ mongodb.mongo_authentication | bool | lower }}
 dbUserName: {{ mongodb['mongo-data'].collect.user }}
 dbPassword: {{ mongodb['mongo-data'].collect.password }}
 
-jettyConfig: jetty-config.xml
-
-#Basic Authentication
-adminBasicAuth:
-  - userName: {{ admin_basic_auth_user }}
-    password: {{ admin_basic_auth_password }}
-
 statusTransactionThreadFrequency: {{ vitam.collect_internal.statusTransactionThreadFrequency | default(5) }}
 transactionStatusThreadPoolSize: {{ vitam.collect_internal.transactionStatusThreadPoolSize | default(4) }}
 
+# Max waiting time (in seconds) for transaction validation before timeout on SIP ingest
 maxWaitDelayForTransactionValidationInSeconds: {{ vitam.collect_internal.maxWaitDelayForTransactionValidationInSeconds | default(3600) }}
 
+# Max threads that can be run in concurrently is thread pool for bulk atomic update
 bulkAtomicUpdateThreadPoolSize: {{ vitam.collect_internal.bulkAtomicUpdateThreadPoolSize | default(8) }}
+# Number of jobs that can be queued in memory before blocking for bulk atomic update
 bulkAtomicUpdateThreadPoolQueueSize: {{ vitam.collect_internal.bulkAtomicUpdateThreadPoolQueueSize | default(16) }}
+# Bulk atomic update batch size
 bulkAtomicUpdateBatchSize: {{ vitam.collect_internal.bulkAtomicUpdateBatchSize | default(100) }}
 
 purgeTransactionThreadFrequency: 60

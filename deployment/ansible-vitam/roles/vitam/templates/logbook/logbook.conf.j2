@@ -1,5 +1,18 @@
 #jinja2: lstrip_blocks: True
-# Configuration MongoDB
+jettyConfig: jetty-config.xml
+
+urlProcessing: {{ vitam.processing | client_url }}
+urlWorkspace: {{ vitam.workspace | client_url }}
+
+p12LogbookPassword: {{ keystores.timestamping.secure_logbook }}
+p12LogbookFile: keystore_secure-logbook.p12
+
+# Basic Authentication
+adminBasicAuth:
+  - userName: {{ admin_basic_auth_user }}
+    password: {{ admin_basic_auth_password }}
+
+# MongoDB configuration
 mongoDbNodes:
 {% for server in groups['hosts_mongos_data'] %}
   - dbHost: {{ hostvars[server]['ip_service'] }}
@@ -9,13 +22,8 @@ dbName: logbook
 dbAuthentication: {{ mongodb.mongo_authentication | bool | lower }}
 dbUserName: {{ mongodb['mongo-data'].logbook.user }}
 dbPassword: {{ mongodb['mongo-data'].logbook.password }}
-jettyConfig: jetty-config.xml
-p12LogbookPassword: {{ keystores.timestamping.secure_logbook }}
-p12LogbookFile: keystore_secure-logbook.p12
-urlWorkspace: {{ vitam.workspace | client_url }}
-urlProcessing: {{ vitam.processing | client_url }}
 
-# ElasticSearch
+# ElasticSearch configuration
 clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchConfigurationFile: {{ vitam_folder_conf }}/elasticsearch-settings/elasticsearch-configuration.json
 elasticsearchNodes:
@@ -64,10 +72,7 @@ elasticsearchTenantIndexation:
   {% endfor %}
 
 {% endif %}
-#Basic Authentication
-adminBasicAuth:
-  - userName: {{ admin_basic_auth_user }}
-    password: {{ admin_basic_auth_password }}
+
 
 ## Configuration for logbook coherence check
 # list of operations that generate LFC
@@ -104,18 +109,43 @@ alertEvents:
   - outDetail: 'CHECK_CLASSIFICATION_LEVEL.KO'
   - outDetail: 'STP_PERSONAL_CERTIFICATE_CHECK.KO'
 
-# Traceability params
+## Traceability params
+
+# Temporization delay (in seconds) for recent logbook operation events.
+# Set it to a reasonable delay to cover max clock difference across servers + VM/GC pauses
 operationTraceabilityTemporizationDelay: {{ vitam.logbook.operationTraceabilityTemporizationDelay | default(300) }}
+
+# Max delay between 2 logbook operation traceability operations.
+# A new logbook operation traceability is generated after this delay,
+# even if tenant has no new logbook operations to secure
+# Unit can be in DAYS, HOURS, MINUTES, SECONDS
+# Hint: Set it to 690 MINUTES (11 hours and 30 minutes) to force new traceability after +/- 12 hours
+# (supposing logbook operation traceability timer run every hour +/- some clock delays)
 operationTraceabilityMaxRenewalDelay: {{ vitam.logbook.operationTraceabilityMaxRenewalDelay | default(690) }}
 operationTraceabilityMaxRenewalDelayUnit: {{ vitam.logbook.operationTraceabilityMaxRenewalDelayUnit | default('MINUTES') }}
+
+# Number of logbook operations that can be run in parallel.
 operationTraceabilityThreadPoolSize: {{ vitam.logbook.operationTraceabilityThreadPoolSize | default(16) }}
+
+# Max entries selected per LogbookOperation traceability
 operationTraceabilityMaxEntries: {{ vitam.logbook.operationTraceabilityMaxEntries | default(100000) }}
+
+# Temporization delay (in seconds) for recent logbook lifecycle events.
+# Set it to a reasonable delay to cover max clock difference across servers + VM/GC pauses
 lifecycleTraceabilityTemporizationDelay: {{ vitam.logbook.lifecycleTraceabilityTemporizationDelay | default(300) }}
+
+# Max delay between 2 lifecycle traceability operations.
+# A new unit/objectgroup lifecycle traceability is generated after this delay,
+# even if tenant has no new unit/objectgroups to secure
+# Unit can be in DAYS, HOURS, MINUTES, SECONDS
+# Hint: Set it to 690 MINUTES (11 hours and 30 minutes) to force new traceability after +/- 12 hour
+# (supposing LFC traceability timers run every hour +/- some clock delays)
 lifecycleTraceabilityMaxRenewalDelay: {{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelay | default(690) }}
 lifecycleTraceabilityMaxRenewalDelayUnit: {{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelayUnit | default('MINUTES') }}
+# Max entries selected per (Unit or Object Group) LFC traceability operation
 lifecycleTraceabilityMaxEntries: {{ vitam.logbook.lifecycleTraceabilityMaxEntries | default(100000) }}
 
 {% if not primary_site | bool %}
-# Reconstruction cache duration (in minutes)
+# Reconstruction metrics cache in minutes (secondary site)
 reconstructionMetricsCacheDurationInMinutes: {{ vitam.logbook.reconstructionMetricsCacheDurationInMinutes | default(15) }}
 {% endif %}

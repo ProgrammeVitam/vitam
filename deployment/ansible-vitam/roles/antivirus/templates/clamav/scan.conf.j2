@@ -49,7 +49,7 @@ LogClean yes
 # Specify the type of syslog messages - please refer to 'man syslog'
 # for facility names.
 # Default: LOG_LOCAL6
-LogFacility LOG_{{ vitam_defaults.syslog_facility|upper }}
+LogFacility LOG_{{ vitam_defaults.syslog_facility | default('LOCAL0') | upper }}
 
 # Enable verbose logging.
 # Default: no

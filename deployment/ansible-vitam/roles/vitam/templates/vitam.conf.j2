@@ -21,18 +21,28 @@ maxDelayUnusedConnection: 5000
 delayValidationAfterInactivity: 2500
 tenants: {{ vitam_tenant_ids | expand_list }}
 adminTenant: {{ vitam_tenant_admin | default(1) }}
+
+# Force chunk mode : set true if chunk header should be checked
 forceChunkModeInputStream: {{ vitam_struct.vitam_force_chunk_mode | default(default_vitam_force_chunk_mode) | bool | lower }}
 
 {% if vitam_struct.vitam_component == vitam.worker.vitam_component %}
 reclassificationMaxBulkThreshold: 1000
 reclassificationMaxUnitsThreshold: 10000
 reclassificationMaxGuildListSizeInLogbookOperation: 1000
+
+# Batch size for bulk atomic update
 queriesThreshold: {{ vitam.worker.queriesThreshold | default(100000) }}
+
+# Bulk atomic update batch size
 bulkAtomicUpdateBatchSize: {{ vitam.worker.bulkAtomicUpdateBatchSize | default(100) }}
+
+# Max threads that can be run in concurrently is thread pool for bulk atomic update
 bulkAtomicUpdateThreadPoolSize: {{ vitam.worker.bulkAtomicUpdateThreadPoolSize | default(8) }}
+
+# Number of jobs that can be queued in memory before blocking for bulk atomic update
 bulkAtomicUpdateThreadPoolQueueSize: {{ vitam.worker.bulkAtomicUpdateThreadPoolQueueSize | default(16) }}
 
-binarySizePlatformThreshold: # 1 Go
+binarySizePlatformThreshold:
   limit: {{ vitam.worker.binarySizePlatformThreshold | default(1) }}
   sizeUnit: {{ vitam.worker.binarySizePlatformThresholdSizeUnit | default('GIGABYTE') }}
 
@@ -66,15 +76,19 @@ textMaxLength: {{ vitam_struct.textMaxLength | default(default_textMaxLength) }}
 
 classificationLevel:
   allowList: [{% for classification in classificationList %}{{ classification }}{% if not loop.last %},{% endif %}{% endfor %}]
-  authorizeNotDefined: {{ classificationLevelOptional }}
+  authorizeNotDefined: {{ classificationLevelOptional | default(true) | bool | lower }}
 
 indexInheritedRulesWithAPIV2OutputByTenant: {{ vitam.worker.api_output_index_tenants | expand_list }}
 indexInheritedRulesWithRulesIdByTenant: {{ vitam.worker.rules_index_tenants | expand_list }}
 
 environmentName: {{ vitam_prefix_offer | default(vitam_site_name) }}
 
+# Request time check settings. Do NOT update except if required by Vitam support
+# Max acceptable time desynchronization between machines (in seconds).
 acceptableRequestTime: {{ acceptableRequestTime | default(10) }}
+# Critical time desynchronization between machines (in seconds)
 criticalRequestTime: {{ criticalRequestTime | default(60) }}
+# Request time alert throttling Delay (in seconds)
 requestTimeAlertThrottlingDelay: {{ requestTimeAlertThrottlingDelay | default(60) }}
 
 # Ontology cache settings (max entries in cache & retention timeout in seconds)
@@ -88,6 +102,8 @@ elasticSearchScrollTimeoutInMilliseconds: {{ vitam_struct.elasticSearchScrollTim
 processEngineWaitForStepTimeout: 172800
 {% endif %}
 
+# Reconstruction config
 restoreBulkSize: {{ restoreBulkSize | default(10000) }}
 
+# this variable has containerization purposes only : must not be used in production environment
 ignoreAntivirusCheckForWorker: {{ vitam.worker.ignore_antivirus_check | default(false) | bool | lower }}

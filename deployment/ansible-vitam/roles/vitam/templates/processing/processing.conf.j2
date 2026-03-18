@@ -1,14 +1,17 @@
+jettyConfig: jetty-config.xml
+
 urlMetadata: {{ vitam.metadata | client_url }}
+urlWorkspace: {{ vitam.workspace | client_url }}
 {% if groups['hosts_metadata_collect'] | length > 0 %}
 urlMetadataCollect: {{ vitam.metadata_collect | client_url }}
 {% endif %}
-urlWorkspace: {{ vitam.workspace | client_url }}
 {% if groups['hosts_workspace_collect'] | length > 0 %}
 urlWorkspaceCollect: {{ vitam.workspace_collect | client_url }}
 {% endif %}
-jettyConfig: jetty-config.xml
+
 workflowRefreshPeriod: 1
 processingCleanerPeriod: 1
+
 maxDistributionInMemoryBufferSize: {{vitam.processing.maxDistributionInMemoryBufferSize | default(100000) }}
 maxDistributionOnDiskBufferSize: {{vitam.processing.maxDistributionOnDiskBufferSize | default(100000000) }}
 
