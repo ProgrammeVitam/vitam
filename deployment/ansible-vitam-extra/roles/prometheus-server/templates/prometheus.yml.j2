@@ -304,7 +304,8 @@ scrape_configs:
   - job_name: vitam-scheduler
     metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
-{% for host in groups['hosts_scheduler'] %}
+{# We currently limit scraping to the first scheduler instance #}
+{% for host in [groups['hosts_scheduler'] | first] %}
     - targets:
       - {{ hostvars[host]['ip_admin'] }}:{{ vitam.scheduler.port_admin | default(28799) }}
       labels:
