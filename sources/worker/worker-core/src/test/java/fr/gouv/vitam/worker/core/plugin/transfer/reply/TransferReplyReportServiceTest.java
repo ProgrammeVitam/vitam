@@ -120,11 +120,13 @@ public class TransferReplyReportServiceTest {
             new TransferReplyUnitReportEntry(
                 "unit1",
                 TransferReplyUnitStatus.ALREADY_DELETED.name(),
+                Collections.emptyList(),
                 List.of(persistentIdentifierEntry)
             ),
             new TransferReplyUnitReportEntry(
                 "unit2",
                 TransferReplyUnitStatus.ALREADY_DELETED.name(),
+                Collections.emptyList(),
                 Collections.emptyList()
             )
         );

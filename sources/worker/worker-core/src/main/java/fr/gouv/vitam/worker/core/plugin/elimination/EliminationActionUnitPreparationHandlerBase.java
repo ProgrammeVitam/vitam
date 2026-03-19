@@ -28,6 +28,7 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -63,7 +64,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationUtils.loadRequestJsonFromWorkspace;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -84,6 +87,7 @@ public abstract class EliminationActionUnitPreparationHandlerBase extends Action
     protected static final String REQUEST_JSON = "request.json";
     protected static final String UNITS_TO_DELETE_FILE = "units_to_delete.jsonl";
     protected static final String PERSISTENT_IDENTIFIER = "PersistentIdentifier";
+    public static final String REASSIGNMENT_SOURCE_ORIGINATING_AGENCY = "SourceOriginatingAgency";
 
     private final EliminationAnalysisService eliminationAnalysisService;
     private final EliminationActionReportService eliminationActionReportService;
@@ -181,13 +185,16 @@ public abstract class EliminationActionUnitPreparationHandlerBase extends Action
                                 status = EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT;
                             }
 
+                            List<String> formerOriginatingAgenciesPostReassignments =
+                                retrieveFormerOriginatingAgenciesPostReassignments(unit);
                             reportAppender.accept(
                                 new EliminationActionUnitReportEntry(
                                     unitId,
                                     getField(unit, VitamFieldsHelper.originatingAgency()),
                                     getField(unit, VitamFieldsHelper.initialOperation()),
                                     getField(unit, VitamFieldsHelper.object()),
-                                    status.name()
+                                    status.name(),
+                                    formerOriginatingAgenciesPostReassignments
                                 )
                             );
 
@@ -278,7 +285,8 @@ public abstract class EliminationActionUnitPreparationHandlerBase extends Action
                 VitamFieldsHelper.originatingAgency(),
                 VitamFieldsHelper.max(),
                 VitamFieldsHelper.storage(),
-                VitamFieldsHelper.unitType()
+                VitamFieldsHelper.unitType(),
+                VitamFieldsHelper.reassignments()
             );
             request.addUsedProjection(PERSISTENT_IDENTIFIER);
             request.addUsedProjection(EliminationUtils.getReportExtraFields().toArray(String[]::new));
@@ -288,5 +296,17 @@ public abstract class EliminationActionUnitPreparationHandlerBase extends Action
             EliminationEventDetails eventDetails = new EliminationEventDetails().setError(COULD_NOT_PARSE_DSL_REQUEST);
             throw new ProcessingStatusException(StatusCode.KO, eventDetails, COULD_NOT_PARSE_DSL_REQUEST, e);
         }
+    }
+
+    private static List<String> retrieveFormerOriginatingAgenciesPostReassignments(JsonNode unit) {
+        if (!unit.has(VitamFieldsHelper.reassignments())) {
+            return null;
+        }
+        ArrayNode reassignments = (ArrayNode) unit.get(VitamFieldsHelper.reassignments());
+        List<String> originatingAgencies = new ArrayList<>();
+        for (JsonNode reassignmentNode : reassignments) {
+            originatingAgencies.add(reassignmentNode.get(REASSIGNMENT_SOURCE_ORIGINATING_AGENCY).asText());
+        }
+        return originatingAgencies;
     }
 }

@@ -28,12 +28,16 @@ package fr.gouv.vitam.worker.core.plugin.purge;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
+import fr.gouv.vitam.common.model.reassignment.ReassignmentOperation;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class PurgeObjectGroupParams {
+
+    private static final String FORMER_ORIGINATING_AGENCIES = "formerOriginatingAgencies";
 
     @JsonProperty("id")
     private String id;
@@ -43,6 +47,9 @@ public class PurgeObjectGroupParams {
 
     @JsonProperty("opi")
     private String opi;
+
+    @JsonProperty(FORMER_ORIGINATING_AGENCIES)
+    private List<String> formerOriginatingAgencies;
 
     @JsonProperty("objects")
     private List<PurgeObjectParams> objects;
@@ -83,6 +90,15 @@ public class PurgeObjectGroupParams {
         return this;
     }
 
+    public List<String> getFormerOriginatingAgencies() {
+        return formerOriginatingAgencies;
+    }
+
+    public PurgeObjectGroupParams setFormerOriginatingAgencies(List<String> formerOriginatingAgencies) {
+        this.formerOriginatingAgencies = formerOriginatingAgencies;
+        return this;
+    }
+
     public static PurgeObjectGroupParams fromObjectGroup(ObjectGroupResponse objectGroup) {
         List<PurgeObjectParams> objectParams = ListUtils.emptyIfNull(objectGroup.getQualifiers())
             .stream()
@@ -104,6 +120,12 @@ public class PurgeObjectGroupParams {
             .setOpi(objectGroup.getOpi());
         if (objectGroup.getStorage() != null) {
             purgeObjectGroupParams.setStrategyId(objectGroup.getStorage().getStrategyId());
+        }
+
+        if (CollectionUtils.isNotEmpty(objectGroup.getReassignments())) {
+            purgeObjectGroupParams.setFormerOriginatingAgencies(
+                objectGroup.getReassignments().stream().map(ReassignmentOperation::getSourceOriginatingAgency).toList()
+            );
         }
         return purgeObjectGroupParams;
     }

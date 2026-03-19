@@ -80,6 +80,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -176,6 +177,7 @@ public class TransferReplyUnitPreparationHandler extends ActionHandler {
                         new TransferReplyUnitReportEntry(
                             notFoundUnitId,
                             TransferReplyUnitStatus.ALREADY_DELETED.name(),
+                            Collections.emptyList(),
                             null
                         )
                     );
@@ -249,7 +251,8 @@ public class TransferReplyUnitPreparationHandler extends ActionHandler {
             VitamFieldsHelper.originatingAgency(),
             VitamFieldsHelper.max(),
             VitamFieldsHelper.storage(),
-            PERSISTENT_IDENTIFIER_FIELD
+            PERSISTENT_IDENTIFIER_FIELD,
+            VitamFieldsHelper.reassignments()
         );
 
         return selectQuery;
