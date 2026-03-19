@@ -28,7 +28,6 @@ Ajout du nouveau composant scheduler
 
     [hosts_scheduler]
     # TODO: Put here servers where this service will be deployed : scheduler
-    # Optional parameter after each host : vitam_scheduler_thread_count=<integer> ; This is the number of threads that are available for concurrent execution of jobs. ; default is 3 thread
 
   ..
 

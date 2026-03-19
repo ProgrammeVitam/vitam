@@ -120,8 +120,6 @@ xlarge-app-vm-8
 
 [hosts_scheduler]
 xlarge-app-vm-3
-xlarge-app-vm-10
-xlarge-app-vm-11
 
 [hosts_processing]
 xlarge-app-vm-9
