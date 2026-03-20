@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-ICU_VERSION=${1:-9.2.2}
+ICU_VERSION=${1:-9.3.2}
 ICU_FILE=analysis-icu-${ICU_VERSION}.zip
 INTERNAL_REPO=${SERVICE_REPOSITORY_URL}/vitam-product-binaries
 

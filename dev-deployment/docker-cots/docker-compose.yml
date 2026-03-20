@@ -1,7 +1,7 @@
 version: "3"
 services:
   elasticsearch:
-    image: elasticsearch:9.2.2
+    image: elasticsearch:9.3.2
     ports:
       - 9200:9200
       - 9300:9300
