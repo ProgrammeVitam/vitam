@@ -6,7 +6,7 @@ After=docker.service
 
 [Service]
 EnvironmentFile={{ vitam_defaults.folder.root_path }}/conf/siegfried/sysconfig.conf
-ExecStartPre=-/usr/bin/docker pull {{ container_repository.registry_url }}/vitam-external/ghcr.io/keeps/siegfried:v1.11.2
+ExecStartPre=-/usr/bin/docker pull {{ container_repository.registry_url }}/vitam-external/ghcr.io/keeps/siegfried:v1.11.4
 ExecStartPre=-/usr/bin/docker stop vitam-siegfried
 ExecStartPre=-/usr/bin/docker rm vitam-siegfried
 ExecStart=/usr/bin/docker run --rm --net=host --name vitam-siegfried --user {{ getent_passwd[vitam_defaults.users.vitam | default('vitam')].1 }}:{{ getent_passwd[vitam_defaults.users.vitam | default('vitam')].2 }} \
@@ -18,7 +18,7 @@ ExecStart=/usr/bin/docker run --rm --net=host --name vitam-siegfried --user {{ g
 {% if inventory_hostname in groups.get('hosts_worker', []) %}
         -v "{{ vitam_defaults.folder.root_path }}/data/worker:{{ vitam_defaults.folder.root_path }}/data/worker:rw" \
 {% endif %}
-        {{ container_repository.registry_url }}/vitam-external/ghcr.io/keeps/siegfried:v1.11.2 \
+        {{ container_repository.registry_url }}/vitam-external/ghcr.io/keeps/siegfried:v1.11.4 \
         sf -home {{ vitam_defaults.folder.root_path }}/app/siegfried -serve $LISTEN
 
 ExecStop=/usr/bin/docker stop -t 85 vitam-siegfried

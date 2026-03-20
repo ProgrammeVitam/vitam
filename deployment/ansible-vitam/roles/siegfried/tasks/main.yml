@@ -33,7 +33,7 @@
       shell: >
         /usr/bin/docker run --rm --net=host
         -v "{{ vitam_defaults.folder.root_path }}/app/siegfried:{{ vitam_defaults.folder.root_path }}/app/siegfried:rw"
-        {{ container_repository.registry_url }}/vitam-external/ghcr.io/keeps/siegfried:v1.11.2
+        {{ container_repository.registry_url }}/vitam-external/ghcr.io/keeps/siegfried:v1.11.4
         sf -update -home {{ vitam_defaults.folder.root_path }}/app/siegfried
       when: not siegfried_signature.stat.exists
 
