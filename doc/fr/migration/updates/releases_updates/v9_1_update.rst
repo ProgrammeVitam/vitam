@@ -128,7 +128,7 @@ Puis exécutez le playbook suivant **sur tous les sites** :
 
 ..
 
-Mise à jour de MongoDB 8.0.17
+Mise à jour de MongoDB 8.0.20
 -----------------------------
 
 .. caution:: **Attention**
