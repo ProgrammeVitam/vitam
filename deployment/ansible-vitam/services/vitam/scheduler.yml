@@ -1,10 +1,18 @@
 ---
 
-- hosts: hosts_scheduler
+- hosts: hosts_scheduler[0] # Configure only the first host in the group
   any_errors_fatal: true
   roles:
     - vitam
     - init_scheduler_jobs
+  vars:
+    vitam_struct: "{{ vitam.scheduler }}"
+  tags: scheduler
+
+- hosts: hosts_scheduler[1:] # Remove the scheduler in the other hosts if they exists
+  any_errors_fatal: true
+  roles:
+    - remove_vitam_component
   vars:
     vitam_struct: "{{ vitam.scheduler }}"
   tags: scheduler
