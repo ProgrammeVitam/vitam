@@ -54,7 +54,7 @@
                 <group>Logbook</group>
                 <job-name>TraceabilityLFCObjectGroupJob</job-name>
                 <job-group>Logbook</job-group>
-                <cron-expression>{{ vitam_timers.logbook.frequency_traceability_lfc_objectgroup | default('* 15 0/1 * * ?')}}</cron-expression>
+                <cron-expression>{{ vitam_timers.logbook.frequency_traceability_lfc_objectgroup | default('0 15 * * * ?')}}</cron-expression>
             </cron>
         </trigger>
     </schedule>
@@ -78,7 +78,7 @@
                 <group>Logbook</group>
                 <job-name>TraceabilityLFCUnitJob</job-name>
                 <job-group>Logbook</job-group>
-                <cron-expression>{{ vitam_timers.logbook.frequency_traceability_lfc_unit | default('* 35 0/1 * * ?') }}</cron-expression>
+                <cron-expression>{{ vitam_timers.logbook.frequency_traceability_lfc_unit | default('0 35 * * * ?') }}</cron-expression>
             </cron>
         </trigger>
     </schedule>
@@ -132,7 +132,7 @@
                 <group>Logbook</group>
                 <job-name>OperationTraceabilityJob</job-name>
                 <job-group>Logbook</job-group>
-                <cron-expression>{{ vitam_timers.logbook.frequency_traceability_operations | default('* 05 0/1 * * ?') }}</cron-expression>
+                <cron-expression>{{ vitam_timers.logbook.frequency_traceability_operations | default('0 05 * * * ?') }}</cron-expression>
             </cron>
         </trigger>
     </schedule>
