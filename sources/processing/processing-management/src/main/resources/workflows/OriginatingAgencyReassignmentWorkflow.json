@@ -43,31 +43,13 @@
         },
         {
           "action": {
-            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_PREPARE_UNITS",
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_PREPARATION",
             "behavior": "BLOCKING",
             "out": [
               {
                 "name": "units_to_update.jsonl",
                 "uri": "WORKSPACE:units_to_update.jsonl"
               },
-              {
-                "name": "intermediate_gots_children_ids.jsonl",
-                "uri": "MEMORY:intermediate_gots_children_ids.jsonl"
-              }
-            ]
-          }
-        },
-        {
-          "action": {
-            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_PREPARE_OBJECT_GROUPS",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "intermediate_gots_children_ids.jsonl",
-                "uri": "MEMORY:intermediate_gots_children_ids.jsonl"
-              }
-            ],
-            "out": [
               {
                 "name": "object_groups_to_update_sp.jsonl",
                 "uri": "WORKSPACE:object_groups_to_update_sp.jsonl"

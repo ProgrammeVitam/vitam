@@ -29,7 +29,7 @@
           ]
         }
       ],
-      "#id": "aebaaaaaaaeaaaabab44mamlsx7dj7qaaaaq",
+      "#id": "id_og_1",
       "#tenant": 0,
       "#allunitups": ["id_unit_1"],
       "#unitups": ["id_unit_1"],
@@ -62,7 +62,7 @@
           ]
         }
       ],
-      "#id": "aeaaaaaaaaeaaaabab44mamlsx2dj7iaaaba",
+      "#id": "id_og_2",
       "#tenant": 0,
       "#allunitups": ["id_unit_2"],
       "#unitups": ["id_unit_2"],
@@ -76,25 +76,5 @@
     }
   ],
   "$facetResults": [],
-  "$context": {
-    "$roots": [
-      "aebaaaaaaabgthlqabqgsalltyqvytqaaaaq"
-    ],
-    "$query": [],
-    "$filter": {},
-    "$projection": {
-      "$fields": {
-        "#qualifiers.versions": 1,
-        "#id": 0,
-        "#qualifiers.versions._id": 1,
-        "#qualifiers.qualifier": 1,
-        "#qualifiers.versions.DataObjectVersion": 1,
-        "#qualifiers.versions.FormatIdentification": 1,
-        "#qualifiers.versions.FileInfo": 1,
-        "#qualifiers.versions.Size": 1,
-        "#qualifiers.versions._storage": 1
-      }
-    },
-    "$facets": []
-  }
+  "$context": {}
 }
