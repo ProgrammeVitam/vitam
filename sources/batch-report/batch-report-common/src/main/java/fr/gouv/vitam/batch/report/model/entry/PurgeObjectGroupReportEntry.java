@@ -36,6 +36,14 @@ import java.util.Set;
 public class PurgeObjectGroupReportEntry {
 
     private static final String ORIGINATING_AGENCIES_REASSIGNMENTS = "originatingAgenciesReassignments";
+    public static final String ID = "id";
+    public static final String ORIGINATING_AGENCY = "originatingAgency";
+    public static final String OPI = "opi";
+    public static final String DELETED_PARENT_UNIT_IDS = "deletedParentUnitIds";
+    public static final String OBJECT_IDS = "objectIds";
+    public static final String STATUS = "status";
+    public static final String ARCHIVAL_AGENCY_IDENTIFIER = "archivalAgencyIdentifier";
+    public static final String OBJECT_VERSIONS = "objectVersions";
 
     private final String id;
     private final String originatingAgency;
@@ -49,15 +57,15 @@ public class PurgeObjectGroupReportEntry {
 
     @JsonCreator
     public PurgeObjectGroupReportEntry(
-        @JsonProperty("id") String id,
-        @JsonProperty("originatingAgency") String originatingAgency,
+        @JsonProperty(ID) String id,
+        @JsonProperty(ORIGINATING_AGENCY) String originatingAgency,
         @JsonProperty(ORIGINATING_AGENCIES_REASSIGNMENTS) List<ReassignmentOperation> originatingAgenciesReassignments,
-        @JsonProperty("opi") String initialOperation,
-        @JsonProperty("deletedParentUnitIds") Set<String> deletedParentUnitIds,
-        @JsonProperty("objectIds") Set<String> objectIds,
-        @JsonProperty("status") String status,
-        @JsonProperty("archivalAgencyIdentifier") String archivalAgencyIdentifier,
-        @JsonProperty("objectVersions") List<PurgeObjectGroupObjectVersion> objectVersions
+        @JsonProperty(OPI) String initialOperation,
+        @JsonProperty(DELETED_PARENT_UNIT_IDS) Set<String> deletedParentUnitIds,
+        @JsonProperty(OBJECT_IDS) Set<String> objectIds,
+        @JsonProperty(STATUS) String status,
+        @JsonProperty(ARCHIVAL_AGENCY_IDENTIFIER) String archivalAgencyIdentifier,
+        @JsonProperty(OBJECT_VERSIONS) List<PurgeObjectGroupObjectVersion> objectVersions
     ) {
         this.id = id;
         this.originatingAgency = originatingAgency;
@@ -70,42 +78,42 @@ public class PurgeObjectGroupReportEntry {
         this.objectVersions = objectVersions;
     }
 
-    @JsonProperty("id")
+    @JsonProperty(ID)
     public String getId() {
         return id;
     }
 
-    @JsonProperty("originatingAgency")
+    @JsonProperty(ORIGINATING_AGENCY)
     public String getOriginatingAgency() {
         return originatingAgency;
     }
 
-    @JsonProperty("opi")
+    @JsonProperty(OPI)
     public String getInitialOperation() {
         return initialOperation;
     }
 
-    @JsonProperty("deletedParentUnitIds")
+    @JsonProperty(DELETED_PARENT_UNIT_IDS)
     public Set<String> getDeletedParentUnitIds() {
         return deletedParentUnitIds;
     }
 
-    @JsonProperty("objectIds")
+    @JsonProperty(OBJECT_IDS)
     public Set<String> getObjectIds() {
         return objectIds;
     }
 
-    @JsonProperty("objectVersions")
+    @JsonProperty(OBJECT_VERSIONS)
     public List<PurgeObjectGroupObjectVersion> getObjectVersions() {
         return objectVersions;
     }
 
-    @JsonProperty("status")
+    @JsonProperty(STATUS)
     public String getStatus() {
         return status;
     }
 
-    @JsonProperty("archivalAgencyIdentifier")
+    @JsonProperty(ARCHIVAL_AGENCY_IDENTIFIER)
     public String getArchivalAgencyIdentifier() {
         return archivalAgencyIdentifier;
     }

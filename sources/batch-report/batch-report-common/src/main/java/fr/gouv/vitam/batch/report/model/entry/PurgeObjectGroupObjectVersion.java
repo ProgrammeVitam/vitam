@@ -34,6 +34,13 @@ import java.util.List;
 
 public class PurgeObjectGroupObjectVersion {
 
+    public static final String PERSISTENT_IDENTIFIER = "persistentIdentifier";
+    public static final String USAGE = "usage";
+    public static final String VERSION = "version";
+    public static final String SIZE = "size";
+    public static final String ID = "id";
+    public static final String OPI = "opi";
+
     private final String id;
     private final String opi;
     private final Long size;
@@ -43,12 +50,12 @@ public class PurgeObjectGroupObjectVersion {
 
     @JsonCreator
     public PurgeObjectGroupObjectVersion(
-        @JsonProperty("id") String id,
-        @JsonProperty("opi") String opi,
-        @JsonProperty("size") Long size,
-        @JsonProperty("version") String version,
-        @JsonProperty("usage") String usage,
-        @JsonProperty("persistentIdentifier") List<PersistentIdentifierModel> persistentIdentifier
+        @JsonProperty(ID) String id,
+        @JsonProperty(OPI) String opi,
+        @JsonProperty(SIZE) Long size,
+        @JsonProperty(VERSION) String version,
+        @JsonProperty(USAGE) String usage,
+        @JsonProperty(PERSISTENT_IDENTIFIER) List<PersistentIdentifierModel> persistentIdentifier
     ) {
         this.opi = opi;
         this.size = size;
@@ -58,32 +65,32 @@ public class PurgeObjectGroupObjectVersion {
         this.id = id;
     }
 
-    @JsonProperty("id")
+    @JsonProperty(ID)
     public String getId() {
         return id;
     }
 
-    @JsonProperty("opi")
+    @JsonProperty(OPI)
     public String getOpi() {
         return opi;
     }
 
-    @JsonProperty("size")
+    @JsonProperty(SIZE)
     public Long getSize() {
         return size;
     }
 
-    @JsonProperty("version")
+    @JsonProperty(VERSION)
     public String getVersion() {
         return version;
     }
 
-    @JsonProperty("usage")
+    @JsonProperty(USAGE)
     public String getUse() {
         return usage;
     }
 
-    @JsonProperty("persistentIdentifier")
+    @JsonProperty(PERSISTENT_IDENTIFIER)
     public List<PersistentIdentifierModel> getPersistentIdentifier() {
         return persistentIdentifier;
     }

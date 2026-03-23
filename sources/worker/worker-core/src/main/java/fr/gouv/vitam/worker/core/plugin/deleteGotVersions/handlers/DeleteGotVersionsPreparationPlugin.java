@@ -267,7 +267,15 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
                 "No qualifier of Object group matches with %s usage",
                 deleteGotVersionsRequest.getUsageName()
             );
-            objectGroupReportEntries.add(new ObjectGroupToDeleteReportEntry(KO, errorMsg, null));
+            objectGroupReportEntries.add(
+                new ObjectGroupToDeleteReportEntry(
+                    KO,
+                    errorMsg,
+                    null,
+                    objectGroup.getOriginatingAgency(),
+                    objectGroup.getReassignments()
+                )
+            );
             return objectGroupReportEntries;
         }
 
@@ -277,7 +285,15 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
                 "No versions associated to the qualifier of Object group for the %s usage",
                 deleteGotVersionsRequest.getUsageName()
             );
-            objectGroupReportEntries.add(new ObjectGroupToDeleteReportEntry(KO, errorMsg, null));
+            objectGroupReportEntries.add(
+                new ObjectGroupToDeleteReportEntry(
+                    KO,
+                    errorMsg,
+                    null,
+                    objectGroup.getOriginatingAgency(),
+                    objectGroup.getReassignments()
+                )
+            );
             return objectGroupReportEntries;
         }
 
@@ -297,7 +313,9 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
                     ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry = new ObjectGroupToDeleteReportEntry(
                         WARNING,
                         msgError,
-                        null
+                        null,
+                        objectGroup.getOriginatingAgency(),
+                        objectGroup.getReassignments()
                     );
                     objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
                     continue;
@@ -308,7 +326,9 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
                 ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry = new ObjectGroupToDeleteReportEntry(
                     WARNING,
                     String.format("Qualifier with this specific version %s is inexistant!", version),
-                    null
+                    null,
+                    objectGroup.getOriginatingAgency(),
+                    objectGroup.getReassignments()
                 );
                 objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
                 continue;
@@ -319,7 +339,9 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
                 ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry = new ObjectGroupToDeleteReportEntry(
                     WARNING,
                     String.format("Qualifier with forbidden version %s has been detected!", version),
-                    null
+                    null,
+                    objectGroup.getOriginatingAgency(),
+                    objectGroup.getReassignments()
                 );
                 objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
                 continue;
@@ -335,20 +357,24 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
                         "The last version of %s usage cannot be deleted.",
                         deleteGotVersionsRequest.getUsageName()
                     ),
-                    null
+                    null,
+                    objectGroup.getOriginatingAgency(),
+                    objectGroup.getReassignments()
                 );
                 objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
                 continue;
             }
 
-            deletedVersions.add(customizeVersionModel(versionModelToDelete, objectGroup.getOpi()));
+            deletedVersions.add(customizeVersionModel(versionModelToDelete, objectGroup));
         }
 
         if (!deletedVersions.isEmpty()) {
             ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry = new ObjectGroupToDeleteReportEntry(
                 OK,
                 null,
-                deletedVersions
+                deletedVersions,
+                objectGroup.getOriginatingAgency(),
+                objectGroup.getReassignments()
             );
             objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
         }
@@ -356,10 +382,13 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
         return objectGroupReportEntries;
     }
 
-    private VersionsModelCustomized customizeVersionModel(VersionsModel versionModelToDelete, String opIngest) {
+    private VersionsModelCustomized customizeVersionModel(
+        VersionsModel versionModelToDelete,
+        ObjectGroupResponse objectGroup
+    ) {
         VersionsModelCustomized versionsModelCustomized = new VersionsModelCustomized();
         versionsModelCustomized.setId(versionModelToDelete.getId());
-        versionsModelCustomized.setOpIngest(opIngest);
+        versionsModelCustomized.setOpIngest(objectGroup.getOpi());
         versionsModelCustomized.setOpCurrent(versionModelToDelete.getOpi());
         versionsModelCustomized.setSize(versionModelToDelete.getSize());
         versionsModelCustomized.setDataObjectVersion(versionModelToDelete.getDataObjectVersion());
