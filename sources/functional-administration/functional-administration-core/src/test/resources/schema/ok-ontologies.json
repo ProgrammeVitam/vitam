@@ -3501,7 +3501,8 @@
     "Origin": "INTERNAL",
     "ShortName": "OperationId",
     "Collections": [
-      "Unit"
+      "Unit",
+      "ObjectGroup"
     ]
   },
   {
@@ -4503,6 +4504,47 @@
     "ShortName": "Arborescence virtuelle",
     "Collections": [
       "Unit"
+    ]
+  },
+  {
+    "Identifier": "SourceOriginatingAgency",
+    "ApiField": "SourceOriginatingAgency",
+    "Description": "Identifiant du service producteur source avant réattribution",
+    "Type": "KEYWORD",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Service producteur source",
+    "Collections": [
+      "Unit",
+      "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "TargetOriginatingAgency",
+    "ApiField": "TargetOriginatingAgency",
+    "Description": "Identifiant du service producteur cible après réattribution",
+    "Type": "KEYWORD",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Service producteur cible",
+    "Collections": [
+      "Unit",
+      "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "ReassignmentDate",
+    "ApiField": "ReassignmentDate",
+    "Description": "Date de réattribution de service producteur",
+    "Type": "DATE",
+    "TypeDetail": "DATETIME",
+    "Origin": "INTERNAL",
+    "ShortName": "Date de réattribution de service producteur",
+    "Collections": [
+      "Unit",
+      "ObjectGroup"
     ]
   }
 ]

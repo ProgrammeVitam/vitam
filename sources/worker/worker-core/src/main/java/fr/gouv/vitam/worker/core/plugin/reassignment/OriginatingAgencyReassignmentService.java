@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
+import fr.gouv.vitam.common.database.builder.query.action.PushAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -55,6 +56,7 @@ import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.reassignment.ReassignmentOperation;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -332,6 +334,14 @@ public class OriginatingAgencyReassignmentService {
             if (shouldRemoveSourceAgency) {
                 actions.add(UpdateActionHelper.pull(VitamFieldsHelper.originatingAgencies(), sourceOriginatingAgency));
             }
+
+            actions.add(
+                generateNewReassignmentOperationHistoryAction(
+                    processId,
+                    currentOriginatingAgency,
+                    targetOriginatingAgency
+                )
+            );
         } else {
             //set Only SPS (for children units)
             if (!Objects.equals(currentOriginatingAgency, sourceOriginatingAgency) && shouldRemoveSourceAgency) {
@@ -506,6 +516,13 @@ public class OriginatingAgencyReassignmentService {
             if (shouldRemoveSourceAgency) {
                 actions.add(UpdateActionHelper.pull(VitamFieldsHelper.originatingAgencies(), sourceOriginatingAgency));
             }
+            actions.add(
+                generateNewReassignmentOperationHistoryAction(
+                    processId,
+                    currentOriginatingAgency,
+                    targetOriginatingAgency
+                )
+            );
         } else {
             //set Only SPS (for children objectGroups)
             if (!Objects.equals(currentOriginatingAgency, sourceOriginatingAgency) && shouldRemoveSourceAgency) {
@@ -520,6 +537,19 @@ public class OriginatingAgencyReassignmentService {
             updateMultiQuery.addActions(action);
         }
         return updateMultiQuery;
+    }
+
+    private static Action generateNewReassignmentOperationHistoryAction(
+        String processId,
+        String currentOriginatingAgency,
+        String targetOriginatingAgency
+    ) throws InvalidCreateOperationException, InvalidParseOperationException {
+        ReassignmentOperation reassignmentOperation = new ReassignmentOperation()
+            .setOperationId(processId)
+            .setTargetOriginatingAgency(targetOriginatingAgency)
+            .setSourceOriginatingAgency(currentOriginatingAgency)
+            .setReassignmentDate(LocalDateUtil.nowFormatted());
+        return new PushAction(VitamFieldsHelper.reassignments(), JsonHandler.toJsonNode(reassignmentOperation));
     }
 
     private List<JsonNode> buildObjectGroupsOriginatingAgencyAndOriginatingAgenciesUpdateQueries(

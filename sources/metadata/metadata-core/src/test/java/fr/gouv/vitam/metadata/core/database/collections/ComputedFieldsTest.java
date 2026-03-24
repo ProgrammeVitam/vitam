@@ -104,7 +104,8 @@ public class ComputedFieldsTest {
         VitamDocument.IMPLEMENTATIONVERSION,
         MetadataDocument.APPROXIMATE_CREATION_DATE,
         MetadataDocument.APPROXIMATE_UPDATE_DATE,
-        MetadataDocument.MANAGEMENT_CONTRACT_ID
+        MetadataDocument.MANAGEMENT_CONTRACT_ID,
+        Unit.REASSIGNMENTS
     );
 
     private static final List<String> expectedGotComputedFields = Arrays.asList(

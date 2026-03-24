@@ -2286,6 +2286,23 @@
           }
         }
       }
+    },
+    "_reassignments": {
+      "properties": {
+        "OperationId": {
+          "type": "keyword"
+        },
+        "ReassignmentDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "SourceOriginatingAgency": {
+          "type": "keyword"
+        },
+        "TargetOriginatingAgency": {
+          "type": "keyword"
+        }
+      }
     }
   }
 }

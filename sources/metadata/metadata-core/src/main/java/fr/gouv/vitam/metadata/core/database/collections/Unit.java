@@ -87,6 +87,11 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public static final String VIRTUAL_UPS = "_vups";
 
+    /**
+     * Reassignments operations
+     */
+    public static final String REASSIGNMENTS = "_reassignments";
+
     @Override
     public MetadataDocument<Unit> newInstance(JsonNode content) {
         return new Unit(content);

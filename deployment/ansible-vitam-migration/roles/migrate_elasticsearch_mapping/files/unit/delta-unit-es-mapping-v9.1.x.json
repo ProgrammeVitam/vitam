@@ -1,0 +1,21 @@
+{
+  "properties": {
+    "_reassignments": {
+      "properties": {
+        "OperationId": {
+          "type": "keyword"
+        },
+        "ReassignmentDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "TargetOriginatingAgency": {
+          "type": "keyword"
+        },
+        "SourceOriginatingAgency": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}

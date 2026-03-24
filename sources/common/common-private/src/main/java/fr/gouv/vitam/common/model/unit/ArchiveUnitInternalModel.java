@@ -95,6 +95,9 @@ public class ArchiveUnitInternalModel {
     @JsonProperty("_ogInfo")
     private ObjectGroupInfoInternalModel objectGroupInfo;
 
+    @JsonProperty("_reassignments")
+    private ReassignmentOperationsModel reassignments;
+
     /**
      * Constructor
      */
@@ -258,6 +261,15 @@ public class ArchiveUnitInternalModel {
 
     public ArchiveUnitInternalModel setObjectGroupInfo(ObjectGroupInfoInternalModel objectGroupInfo) {
         this.objectGroupInfo = objectGroupInfo;
+        return this;
+    }
+
+    public ReassignmentOperationsModel getReassignments() {
+        return reassignments;
+    }
+
+    public ArchiveUnitInternalModel setReassignments(ReassignmentOperationsModel reassignments) {
+        this.reassignments = reassignments;
         return this;
     }
 }

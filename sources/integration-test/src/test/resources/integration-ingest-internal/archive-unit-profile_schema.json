@@ -12332,5 +12332,73 @@
     "Path": "_ogInfo._errors.outMessg",
     "StringSize": "SHORT",
     "EffectiveCardinality": "ZERO"
+  },
+  {
+    "FieldName": "_reassignments",
+    "Collection": "Unit",
+    "ApiPath": "#reassignments",
+    "Category": "OTHER",
+    "Description": "Liste des opérations de réattribution",
+    "Cardinality": "MANY",
+    "Type": "OBJECT",
+    "Origin": "INTERNAL",
+    "ShortName": "Opérations de réattribution",
+    "Path": "_reassignments",
+    "EffectiveCardinality": "ZERO"
+  },
+  {
+    "FieldName": "OperationId",
+    "Collection": "Unit",
+    "ApiPath": "#reassignments.OperationId",
+    "Category": "OTHER",
+    "Description": "Mapping : unit-es-mapping.json. Identifiant de l'operation.",
+    "Cardinality": "ONE_REQUIRED",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Identifiant d'opération de réattribution",
+    "Path": "_reassignments.OperationId",
+    "StringSize": "MEDIUM",
+    "EffectiveCardinality": "ZERO"
+  },
+  {
+    "FieldName": "TargetOriginatingAgency",
+    "Collection": "Unit",
+    "ApiPath": "#reassignments.TargetOriginatingAgency",
+    "Category": "OTHER",
+    "Description": "Identifiant du service producteur cible après réattribution",
+    "Cardinality": "ONE_REQUIRED",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Service producteur après réattribution",
+    "Path": "_reassignments.TargetOriginatingAgency",
+    "StringSize": "MEDIUM",
+    "EffectiveCardinality": "ZERO"
+  },
+  {
+    "FieldName": "SourceOriginatingAgency",
+    "Collection": "Unit",
+    "ApiPath": "#reassignments.SourceOriginatingAgency",
+    "Category": "OTHER",
+    "Description": "Identifiant du service producteur source avant réattribution",
+    "Cardinality": "ONE_REQUIRED",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Service producteur avant réattribution",
+    "Path": "_reassignments.SourceOriginatingAgency",
+    "StringSize": "MEDIUM",
+    "EffectiveCardinality": "ZERO"
+  },
+  {
+    "FieldName": "ReassignmentDate",
+    "Collection": "Unit",
+    "ApiPath": "#reassignments.ReassignmentDate",
+    "Category": "OTHER",
+    "Description": "Date de réattribution de service producteur",
+    "Cardinality": "ONE_REQUIRED",
+    "Type": "DATE",
+    "Origin": "INTERNAL",
+    "ShortName": "Date de réattribution",
+    "Path": "_reassignments.ReassignmentDate",
+    "EffectiveCardinality": "ZERO"
   }
 ]
