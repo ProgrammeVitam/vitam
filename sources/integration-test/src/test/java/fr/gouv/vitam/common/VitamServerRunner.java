@@ -105,6 +105,7 @@ import org.quartz.SchedulerException;
 import javax.ws.rs.core.MultivaluedHashMap;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -191,6 +192,8 @@ public class VitamServerRunner extends ExternalResource {
     public static final String PROCESSING_CONF = "common/processing.conf";
     public static final String CONFIG_WORKER_PATH = "common/worker.conf";
     public static final String SCHEDULER_CONF = "common/scheduler.conf";
+    public static final String SCHEDULER_QUARTZ_TEMPLATE_CONF = "quartz_template.properties";
+    public static final String SCHEDULER_QUARTZ_CONF = "quartz.properties";
     public static final String FORMAT_IDENTIFIERS_CONF = "common/format-identifiers.conf";
     public static final String DEPLOYMENT_ENVIRONMENTS_ANTIVIRUS_SCAN_DEV_SH =
         "/deployment/environments/antivirus/scan-dev.sh";
@@ -459,13 +462,25 @@ public class VitamServerRunner extends ExternalResource {
                 JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
                 Integer.toString(PORT_SERVICE_SCHEDULER_ADMIN)
             );
+
+            Path quartzTemplateConfigFile = PropertiesUtils.getConfigFile(SCHEDULER_QUARTZ_TEMPLATE_CONF).toPath();
+            // Properties files use ISO_8859_1 (not UTF-8)
+            String confTemplate = Files.readString(quartzTemplateConfigFile, StandardCharsets.ISO_8859_1);
+            String newConf = confTemplate.replace(
+                "<TMP_PLACE_HOLDER>",
+                tempFolderRule.newFolder("quartz-h2-db").getAbsolutePath().toString()
+            );
+
+            Path quartzConfigFile = quartzTemplateConfigFile.resolveSibling(SCHEDULER_QUARTZ_CONF);
+            Files.writeString(quartzConfigFile, newConf, StandardCharsets.ISO_8859_1);
+
             LOGGER.warn("=== VitamServerRunner start  SchedulerMain");
             schedulerMain = new SchedulerMain(SCHEDULER_CONF);
             schedulerMain.start();
             SchedulerClientFactory.getInstance().changeServerPort(PORT_SERVICE_SCHEDULER);
             SystemPropertyUtil.clear(SchedulerMain.PARAMETER_JETTY_SERVER_PORT);
             SystemPropertyUtil.clear(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN);
-        } catch (SchedulerException e) {
+        } catch (SchedulerException | IOException e) {
             throw new VitamApplicationServerException(e);
         }
     }

@@ -303,7 +303,7 @@ public class SchedulerIT extends VitamRuleRunner {
     }
 
     @Test
-    public void test_existance_audit_job() throws Exception {
+    public void test_existence_audit_job() throws Exception {
         VitamConfiguration.setTenants(List.of(0, 1));
 
         // Ingest data to audit

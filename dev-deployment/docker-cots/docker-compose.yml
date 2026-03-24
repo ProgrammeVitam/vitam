@@ -39,6 +39,33 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: vitamdb-admin
       ME_CONFIG_MONGODB_ADMINPASSWORD: azerty
       ME_CONFIG_MONGODB_SERVER: mongo
+    depends_on:
+      mongo:
+        condition: service_healthy
+  quartz_postgres:
+    image: postgres:18.3-alpine3.22
+    restart: always
+    shm_size: 128mb
+    volumes:
+      - quartz_postgres:/var/lib/postgresql
+    environment:
+      POSTGRES_DB: scheduler
+      POSTGRES_USER: scheduler
+      POSTGRES_PASSWORD: azerty4
+    ports:
+      - 5432:5432
+    profiles:
+      - quartz-postgres
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 18080:8080
+    profiles:
+      - quartz-postgres
+
 volumes:
   elastic_data:
   mongo_data:
+  quartz_postgres:

@@ -188,8 +188,6 @@
     <swagger-maven-plugin.version>2.2.20</swagger-maven-plugin.version>
     <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
     <Saxon-HE.version>12.4</Saxon-HE.version>
-    <quartz.version>2.3.2</quartz.version>
-    <quartz-mongodb.version>2.2.0-rc2</quartz-mongodb.version>
     <jta.version>1.1</jta.version>
     <jib.skip>true</jib.skip>
   </properties>
@@ -1471,26 +1469,6 @@
         <groupId>io.reactivex.rxjava2</groupId>
         <artifactId>rxjava</artifactId>
         <version>${io.reactivex.rxjava2.version}</version>
-      </dependency>
-
-      <!-- ####################### Quartz Scheduler ####################### -->
-
-      <dependency>
-        <groupId>org.quartz-scheduler</groupId>
-        <artifactId>quartz</artifactId>
-        <version>${quartz.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.quartz-scheduler</groupId>
-        <artifactId>quartz-jobs</artifactId>
-        <version>${quartz.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>io.fluidsonic.mirror</groupId>
-        <artifactId>quartz-mongodb</artifactId>
-        <version>${quartz-mongodb.version}</version>
       </dependency>
 
       <dependency>
