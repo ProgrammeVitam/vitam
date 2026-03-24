@@ -105,11 +105,11 @@ vitam_timers:
   #    semiannually → 0 0 0 1 1/6 ?
   logbook: # all have to run on only one machine
     # Sécurisation des journaux des opérations
-    frequency_traceability_operations: "* 05 0/1 * * ?" # every hour
+    frequency_traceability_operations: "0 05 * * * ?" # every hour
     # Sécurisation des journaux du cycle de vie des groupes d'objets
-    frequency_traceability_lfc_objectgroup: "* 15 0/1 * * ?" # every hour
+    frequency_traceability_lfc_objectgroup: "0 15 * * * ?" # every hour
     # Sécurisation des journaux du cycle de vie des unités archivistiques
-    frequency_traceability_lfc_unit: "* 35 0/1 * * ?" # every hour
+    frequency_traceability_lfc_unit: "0 35 * * * ?" # every hour
     # Audit de traçabilité
     frequency_traceability_audit: "0 55 00 * * ?"
     # Reconstruction (uniquement sur site secondaire)
