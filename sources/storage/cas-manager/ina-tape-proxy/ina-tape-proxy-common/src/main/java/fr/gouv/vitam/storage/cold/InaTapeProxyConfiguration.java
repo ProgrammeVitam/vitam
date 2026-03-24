@@ -50,7 +50,7 @@ public class InaTapeProxyConfiguration extends DbConfigurationImpl {
     // ========== TAPE CAPACITY CONFIGURATION ==========
 
     @JsonProperty("tapeMaxCapacityMB")
-    private int tapeMaxCapacityMB = 1_000_000; // 1 TB default
+    private int tapeMaxCapacityMB = 10_000_000; // 10 TB default
 
     // ========== FILESYSTEM CONFIGURATION ==========
 
