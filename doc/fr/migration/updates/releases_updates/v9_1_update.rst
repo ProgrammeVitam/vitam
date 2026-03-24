@@ -151,7 +151,7 @@ Mise à jour intermédiaire des clusters ElasticSearch
 
 Ces opérations permettent de faire le saut intermédiaire entre les versions 8.18.0 et 8.19.8 des clusters ElasticSearch (data & log).
 
-Le saut final vers la version 9.2.2 sera effectué lors de la mise à jour de Vitam via l'exécution du master playbook.
+Le saut final vers la version 9.3.2 sera effectué lors de la mise à jour de Vitam via l'exécution du master playbook.
 
 Exécutez les playbooks suivants sur **tous les sites** :
 

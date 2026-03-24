@@ -5,10 +5,10 @@ https://repo.mongodb.org/yum/redhat/9/mongodb-org/8.0/x86_64/RPMS/mongodb-org-mo
 https://repo.mongodb.org/yum/redhat/9/mongodb-org/8.0/x86_64/RPMS/mongodb-org-server-8.0.20-1.el9.x86_64.rpm
 
 https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.19.8-x86_64.rpm
-https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-9.2.2-x86_64.rpm
-https://artifacts.elastic.co/downloads/logstash/logstash-9.2.2-x86_64.rpm
-https://artifacts.elastic.co/downloads/kibana/kibana-9.2.2-x86_64.rpm
-https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-9.2.2-x86_64.rpm
+https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-9.3.2-x86_64.rpm
+https://artifacts.elastic.co/downloads/logstash/logstash-9.3.2-x86_64.rpm
+https://artifacts.elastic.co/downloads/kibana/kibana-9.3.2-x86_64.rpm
+https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-9.3.2-x86_64.rpm
 
 https://dl.grafana.com/oss/release/grafana-12.3.1-1.x86_64.rpm
 https://download.copr.fedorainfracloud.org/results/copart/restic/epel-7-x86_64/03257215-restic/restic-0.12.1-1.el7.x86_64.rpm
