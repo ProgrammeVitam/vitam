@@ -234,7 +234,11 @@
         <jaxb2-basics.version>4.0.9</jaxb2-basics.version>
         <Saxon-HE.version>12.4</Saxon-HE.version>
         <quartz.version>2.4.0</quartz.version>
-        <quartz-mongodb.version>2.2.0-rc2</quartz-mongodb.version>
+        <h2.version>2.4.240</h2.version>
+        <postgresql.version>42.7.10</postgresql.version>
+        <flyway.version>12.0.2</flyway.version>
+        <flyway-postgresql.version>12.0.2</flyway-postgresql.version>
+        <hikaricp>7.0.2</hikaricp>
         <lombok.version>1.18.34</lombok.version>
         <jib.skip>true</jib.skip>
         <maven.jaxb2.version>0.15.3</maven.jaxb2.version>
@@ -1616,17 +1620,30 @@
                 <artifactId>quartz</artifactId>
                 <version>${quartz.version}</version>
             </dependency>
-
             <dependency>
-                <groupId>org.quartz-scheduler</groupId>
-                <artifactId>quartz-jobs</artifactId>
-                <version>${quartz.version}</version>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>${h2.version}</version>
             </dependency>
-
             <dependency>
-                <groupId>io.fluidsonic.mirror</groupId>
-                <artifactId>quartz-mongodb</artifactId>
-                <version>${quartz-mongodb.version}</version>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>${flyway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-database-postgresql</artifactId>
+                <version>${flyway-postgresql.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.zaxxer</groupId>
+                <artifactId>HikariCP</artifactId>
+                <version>${hikaricp}</version>
             </dependency>
 
             <!-- ####################### Tests ####################### -->

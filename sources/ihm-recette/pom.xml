@@ -175,8 +175,6 @@
     <jdeb.vafer.version>1.10</jdeb.vafer.version>
     <swagger-core.version>2.2.30</swagger-core.version>
     <Saxon-HE.version>12.4</Saxon-HE.version>
-    <quartz.version>2.4.0</quartz.version>
-    <quartz-mongodb.version>2.2.0-rc2</quartz-mongodb.version>
     <jib.skip>true</jib.skip>
     <jetty-maven-plugin.version>11.0.25</jetty-maven-plugin.version>
     <jakarta-validation.version>3.1.1</jakarta-validation.version>
@@ -1451,26 +1449,6 @@
             <artifactId>reactive-streams</artifactId>
           </exclusion>
         </exclusions>
-      </dependency>
-
-      <!-- ####################### Quartz Scheduler ####################### -->
-
-      <dependency>
-        <groupId>org.quartz-scheduler</groupId>
-        <artifactId>quartz</artifactId>
-        <version>${quartz.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.quartz-scheduler</groupId>
-        <artifactId>quartz-jobs</artifactId>
-        <version>${quartz.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>io.fluidsonic.mirror</groupId>
-        <artifactId>quartz-mongodb</artifactId>
-        <version>${quartz-mongodb.version}</version>
       </dependency>
 
       <!-- ####################### Tests ####################### -->
