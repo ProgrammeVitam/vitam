@@ -69,10 +69,8 @@ public class AdminSchedulerResource {
             scheduler.pauseAll();
         }
         // Delete all exising jobs & triggers
-        for (JobKey jobKey : jobKeys) {
-            LOGGER.warn("DELETING existing job " + jobKey);
-            scheduler.deleteJob(jobKey);
-        }
+        LOGGER.warn("DELETING existing jobs and triggers");
+        scheduler.clear();
 
         // Reinit jobs
         LOGGER.warn("RELOADING job configuration...");
@@ -88,11 +86,13 @@ public class AdminSchedulerResource {
     public Response pauseScheduling(@PathParam("group") String group) throws SchedulerException {
         final Scheduler scheduler = SchedulerListener.getInstance().getScheduler();
         if (group.equals("ALL")) {
+            LOGGER.warn("PAUSING all jobs...");
             final Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.anyGroup());
             if (!jobKeys.isEmpty()) {
                 scheduler.pauseAll();
             }
         } else {
+            LOGGER.warn("PAUSING jobs for " + group);
             final Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.groupEquals(group));
             if (!jobKeys.isEmpty()) {
                 scheduler.pauseJobs(GroupMatcher.groupEquals(group));
@@ -108,8 +108,10 @@ public class AdminSchedulerResource {
     public Response resumeScheduling(@PathParam("group") String group) throws SchedulerException {
         final Scheduler scheduler = SchedulerListener.getInstance().getScheduler();
         if (group.equals("ALL")) {
+            LOGGER.warn("RESUMING all jobs");
             scheduler.resumeAll();
         } else {
+            LOGGER.warn("RESUMING jobs for " + group);
             scheduler.resumeJobs(GroupMatcher.groupEquals(group));
             scheduler.resumeTriggers(GroupMatcher.groupEquals(group));
         }
