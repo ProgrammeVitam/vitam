@@ -58,12 +58,12 @@ import fr.gouv.vitam.batch.report.rest.repository.DeleteGotVersionsReportReposit
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.ExtractedMetadataRepository;
-import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentObjectGroupAgenciesComputeRepository;
-import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository;
-import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentUnitAgenciesUpdateRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.ReassignmentChildObjectGroupRepository;
+import fr.gouv.vitam.batch.report.rest.repository.ReassignmentChildUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.ReassignmentObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.TraceabilityReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.TransferReplyUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UnitComputedInheritedRulesInvalidationRepository;
@@ -200,13 +200,13 @@ public class BatchReportServiceImplTest {
     private DeleteGotVersionsReportRepository deleteGotVersionsReportRepository;
 
     @Mock
-    private OriginatingAgencyReassignmentUnitAgenciesUpdateRepository originatingAgencyReassignmentUnitAgenciesUpdateRepository;
+    private ReassignmentChildUnitRepository reassignmentChildUnitRepository;
 
     @Mock
-    private OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository originatingAgencyReassignmentObjectGroupAgenciesUpdateRepository;
+    private ReassignmentObjectGroupRepository reassignmentObjectGroupRepository;
 
     @Mock
-    private OriginatingAgencyReassignmentObjectGroupAgenciesComputeRepository objectGroupReassignmentOriginatingAgenciesComputeRepository;
+    private ReassignmentChildObjectGroupRepository reassignmentChildObjectGroupRepository;
 
     private BatchReportServiceImpl batchReportServiceImpl;
 
@@ -232,9 +232,9 @@ public class BatchReportServiceImplTest {
             extractedMetadataRepository,
             deleteGotVersionsReportRepository,
             workspaceClientFactory,
-            originatingAgencyReassignmentUnitAgenciesUpdateRepository,
-            originatingAgencyReassignmentObjectGroupAgenciesUpdateRepository,
-            objectGroupReassignmentOriginatingAgenciesComputeRepository
+            reassignmentChildUnitRepository,
+            reassignmentObjectGroupRepository,
+            reassignmentChildObjectGroupRepository
         );
     }
 

@@ -72,17 +72,8 @@ public class OriginatingAgencyReassignmentFinalizationPluginTest {
         originatingAgencyReassignmentFinalizationPlugin.execute(workerParameters, handlerIO);
 
         // Then
-        verify(batchReportClient).cleanupReport(
-            "container",
-            ReportType.REASSIGNMENT_UNITS_ORIGINATING_AGENCIES_COMPUTE
-        );
-        verify(batchReportClient).cleanupReport(
-            "container",
-            ReportType.REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCY_UPDATE
-        );
-        verify(batchReportClient).cleanupReport(
-            "container",
-            ReportType.REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCIES_COMPUTE
-        );
+        verify(batchReportClient).cleanupReport("container", ReportType.REASSIGNMENT_CHILD_UNITS);
+        verify(batchReportClient).cleanupReport("container", ReportType.REASSIGNMENT_OBJECT_GROUPS);
+        verify(batchReportClient).cleanupReport("container", ReportType.REASSIGNMENT_CHILD_OBJECT_GROUPS);
     }
 }

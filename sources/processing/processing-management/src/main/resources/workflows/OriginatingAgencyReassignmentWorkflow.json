@@ -157,8 +157,8 @@
             ],
             "out": [
               {
-                "name": "unitsChildrenToUpdateSps.jsonl",
-                "uri": "WORKSPACE:unitsChildrenToUpdateSps.jsonl"
+                "name": "child_units_to_update.jsonl",
+                "uri": "WORKSPACE:child_units_to_update.jsonl"
               },
               {
                 "name": "object_groups_to_update_sps.jsonl",
@@ -176,7 +176,7 @@
       "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
-        "element": "unitsChildrenToUpdateSps.jsonl",
+        "element": "child_units_to_update.jsonl",
         "type": "Units",
         "statusOnEmptyDistribution": "OK",
         "bulkSize": 1000

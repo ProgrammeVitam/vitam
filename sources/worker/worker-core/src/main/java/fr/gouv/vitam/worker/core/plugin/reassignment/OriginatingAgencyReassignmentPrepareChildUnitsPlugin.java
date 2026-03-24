@@ -33,7 +33,7 @@ import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
-import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentUnitUpdateReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.ReassignmentChildUnitReportEntry;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
@@ -95,15 +95,15 @@ public class OriginatingAgencyReassignmentPrepareChildUnitsPlugin extends Action
     private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {};
     private static final String UNITS_TO_UPDATE_FILE_NAME = "units_to_update.jsonl";
 
-    private static final String INTERMEDIATE_GOTS_CHILDREN_IDS_FILE_NAME = "intermediate_gots_children_ids.jsonl";
+    private static final String INTERMEDIATE_CHILD_OG_IDS_FILE_NAME = "intermediate_og_ids.jsonl";
 
     private static final String INTERMEDIATE_UNITS_IDS_FILE_NAME = "intermediate_units_ids.jsonl";
 
     private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_PREPARE_CHILD_UNITS";
 
-    private static final String UNITS_CHILDREN_SPS_TO_UPDATE_JSONL_FILE_NAME = "unitsChildrenToUpdateSps.jsonl";
+    private static final String UNITS_CHILDREN_SPS_TO_UPDATE_JSONL_FILE_NAME = "child_units_to_update.jsonl";
 
-    private static final String GOTS_IDS_TO_UPDATE_JSONL_FILE_NAME = "object_groups_to_update_sps.jsonl";
+    private static final String OG_IDS_TO_UPDATE_JSONL_FILE_NAME = "object_groups_to_update_sps.jsonl";
 
     private final OriginatingAgencyReassignmentService originatingAgencyReassignmentService;
 
@@ -138,11 +138,11 @@ public class OriginatingAgencyReassignmentPrepareChildUnitsPlugin extends Action
         );
         File gotIdsToFillInIntermediateFile = handler.getNewLocalFile(
             WorkFlowExecutionContext.VITAM,
-            INTERMEDIATE_GOTS_CHILDREN_IDS_FILE_NAME
+            INTERMEDIATE_CHILD_OG_IDS_FILE_NAME
         );
         try (BatchReportClient batchReportClient = handler.getBatchReportClient()) {
             deleteDistributionFileIfExists(handler, UNITS_CHILDREN_SPS_TO_UPDATE_JSONL_FILE_NAME);
-            deleteDistributionFileIfExists(handler, GOTS_IDS_TO_UPDATE_JSONL_FILE_NAME);
+            deleteDistributionFileIfExists(handler, OG_IDS_TO_UPDATE_JSONL_FILE_NAME);
 
             generateMainUnitChildrenIdsInIntermediateFile(
                 handler,
@@ -162,15 +162,15 @@ public class OriginatingAgencyReassignmentPrepareChildUnitsPlugin extends Action
                 processId
             );
 
-            batchReportClient.exportUnitsToComputeOriginatingAgencies(
+            batchReportClient.exportReassignmentChildUnits(
                 processId,
                 new ReportExportRequest(UNITS_CHILDREN_SPS_TO_UPDATE_JSONL_FILE_NAME),
                 params.getExecutionContext()
             );
 
-            batchReportClient.exportObjectGroupsReassignmentToComputeOriginatingAgencies(
+            batchReportClient.exportReassignmentChildObjectGroups(
                 handler.getContainerName(),
-                new ReportExportRequest(GOTS_IDS_TO_UPDATE_JSONL_FILE_NAME),
+                new ReportExportRequest(OG_IDS_TO_UPDATE_JSONL_FILE_NAME),
                 params.getExecutionContext()
             );
 
@@ -440,13 +440,13 @@ public class OriginatingAgencyReassignmentPrepareChildUnitsPlugin extends Action
             if (CollectionUtils.isEmpty(unitIds)) {
                 return;
             }
-            List<OriginatingAgencyReassignmentUnitUpdateReportEntry> entries = unitIds
+            List<ReassignmentChildUnitReportEntry> entries = unitIds
                 .stream()
-                .map(OriginatingAgencyReassignmentUnitUpdateReportEntry::new)
+                .map(ReassignmentChildUnitReportEntry::new)
                 .toList();
-            ReportBody<OriginatingAgencyReassignmentUnitUpdateReportEntry> report = new ReportBody<>(
+            ReportBody<ReassignmentChildUnitReportEntry> report = new ReportBody<>(
                 operationId,
-                ReportType.REASSIGNMENT_UNITS_ORIGINATING_AGENCIES_COMPUTE,
+                ReportType.REASSIGNMENT_CHILD_UNITS,
                 entries
             );
             batchReportClient.appendReportEntries(report);

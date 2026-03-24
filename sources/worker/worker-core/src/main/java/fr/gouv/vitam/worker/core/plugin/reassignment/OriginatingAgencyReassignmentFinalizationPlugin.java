@@ -62,12 +62,9 @@ public class OriginatingAgencyReassignmentFinalizationPlugin extends ActionHandl
         // Cleanup units
         try (BatchReportClient batchReportClient = handler.getBatchReportClient()) {
             String processId = handler.getContainerName();
-            batchReportClient.cleanupReport(processId, ReportType.REASSIGNMENT_UNITS_ORIGINATING_AGENCIES_COMPUTE);
-            batchReportClient.cleanupReport(processId, ReportType.REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCY_UPDATE);
-            batchReportClient.cleanupReport(
-                processId,
-                ReportType.REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCIES_COMPUTE
-            );
+            batchReportClient.cleanupReport(processId, ReportType.REASSIGNMENT_CHILD_UNITS);
+            batchReportClient.cleanupReport(processId, ReportType.REASSIGNMENT_OBJECT_GROUPS);
+            batchReportClient.cleanupReport(processId, ReportType.REASSIGNMENT_CHILD_OBJECT_GROUPS);
 
             LOGGER.info("Originating agency reassignment finalization succeeded");
             return buildItemStatus(PLUGIN_NAME, StatusCode.OK, null);

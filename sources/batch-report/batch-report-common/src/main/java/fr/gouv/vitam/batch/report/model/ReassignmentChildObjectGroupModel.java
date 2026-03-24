@@ -27,12 +27,12 @@
 package fr.gouv.vitam.batch.report.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentUnitUpdateReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.ReassignmentChildObjectGroupReportEntry;
 
 /**
- * OriginatingAgencyReassignmentUpdate Report model
+ * ReassignmentChildObjectGroupModel Report model
  */
-public class OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel {
+public class ReassignmentChildObjectGroupModel {
 
     public static final String PROCESS_ID = "processId";
     public static final String TENANT = "_tenant";
@@ -46,20 +46,20 @@ public class OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel {
     private String creationDateTime;
 
     @JsonProperty(METADATA)
-    private OriginatingAgencyReassignmentUnitUpdateReportEntry metadata;
+    private ReassignmentChildObjectGroupReportEntry metadata;
 
     @JsonProperty(TENANT)
     private int tenant;
 
-    public OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel() {
+    public ReassignmentChildObjectGroupModel() {
         // Empty constructor for deserialization
     }
 
-    public OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel(
+    public ReassignmentChildObjectGroupModel(
         String processId,
         int tenant,
         String creationDateTime,
-        OriginatingAgencyReassignmentUnitUpdateReportEntry metadata
+        ReassignmentChildObjectGroupReportEntry metadata
     ) {
         this.processId = processId;
         this.creationDateTime = creationDateTime;
@@ -83,11 +83,11 @@ public class OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel {
         this.creationDateTime = creationDateTime;
     }
 
-    public OriginatingAgencyReassignmentUnitUpdateReportEntry getMetadata() {
+    public ReassignmentChildObjectGroupReportEntry getMetadata() {
         return metadata;
     }
 
-    public void setMetadata(OriginatingAgencyReassignmentUnitUpdateReportEntry metadata) {
+    public void setMetadata(ReassignmentChildObjectGroupReportEntry metadata) {
         this.metadata = metadata;
     }
 

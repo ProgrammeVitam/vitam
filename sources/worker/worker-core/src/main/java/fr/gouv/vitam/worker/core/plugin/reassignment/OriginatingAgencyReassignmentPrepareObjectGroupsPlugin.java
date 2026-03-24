@@ -84,7 +84,7 @@ public class OriginatingAgencyReassignmentPrepareObjectGroupsPlugin extends Acti
 
     private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_PREPARE_OBJECT_GROUPS";
 
-    static final String GOTS_IDS_TO_UPDATE_JSONL_FILE_NAME = "object_groups_to_update_sp.jsonl";
+    static final String OBJECT_GROUPS_TO_UPDATE_JSONL_FILE = "object_groups_to_update_sp.jsonl";
 
     private static final int INTERMEDIATE_OG_FILE_OUT_RANK = 0;
 
@@ -128,26 +128,26 @@ public class OriginatingAgencyReassignmentPrepareObjectGroupsPlugin extends Acti
     private void handleObjectGroupReassignmentGenerationDistributions(
         HandlerIO handler,
         WorkerParameters param,
-        File gotIdsToFillInIntermediateFile,
+        File ogIdsToFillInIntermediateFile,
         OriginatingAgencyReassignmentRequest reassignmentRequest
     ) throws ProcessingStatusException {
         try {
             if (!reassignmentRequest.isPropagateToObjectGroups()) {
-                //create an empty distribution file for GOts update step
+                //create an empty distribution file for OGs update step
                 createEmptyDistributionFile(handler);
                 return;
             }
 
             exportIntermediateObjectGroupIdToUpdateOriginatingAgenciesFileToBatchReport(
                 handler,
-                gotIdsToFillInIntermediateFile,
+                ogIdsToFillInIntermediateFile,
                 reassignmentRequest
             );
 
             try (BatchReportClient batchReportClient = handler.getBatchReportClient()) {
-                batchReportClient.exportObjectGroupsReassignmentToUpdateOriginatingAgency(
+                batchReportClient.exportReassignmentObjectGroups(
                     handler.getContainerName(),
-                    new ReportExportRequest(GOTS_IDS_TO_UPDATE_JSONL_FILE_NAME),
+                    new ReportExportRequest(OBJECT_GROUPS_TO_UPDATE_JSONL_FILE),
                     param.getExecutionContext()
                 );
             }
@@ -160,7 +160,7 @@ public class OriginatingAgencyReassignmentPrepareObjectGroupsPlugin extends Acti
         throws IOException, ProcessingStatusException, ProcessingException {
         File gotToUpdateDistributionFile = handler.getNewLocalFile(
             handler.getWorkFlowExecutionContext(),
-            GOTS_IDS_TO_UPDATE_JSONL_FILE_NAME
+            OBJECT_GROUPS_TO_UPDATE_JSONL_FILE
         );
         boolean newFileCreated = gotToUpdateDistributionFile.createNewFile();
 
@@ -170,7 +170,7 @@ public class OriginatingAgencyReassignmentPrepareObjectGroupsPlugin extends Acti
                 "Could not create an empty file for step distribution"
             );
         }
-        handler.transferFileToWorkspace(GOTS_IDS_TO_UPDATE_JSONL_FILE_NAME, gotToUpdateDistributionFile, true, false);
+        handler.transferFileToWorkspace(OBJECT_GROUPS_TO_UPDATE_JSONL_FILE, gotToUpdateDistributionFile, true, false);
     }
 
     public void exportIntermediateObjectGroupIdToUpdateOriginatingAgenciesFileToBatchReport(
@@ -194,7 +194,7 @@ public class OriginatingAgencyReassignmentPrepareObjectGroupsPlugin extends Acti
                     .map(JsonLineModel::getId)
                     .collect(Collectors.toSet());
 
-                Set<String> updatableOriginatingAgencies = filterObjectGroupsIdHavingOriginatingAgency(
+                Set<String> updatableObjectGroups = filterObjectGroupsIdHavingOriginatingAgency(
                     handler,
                     objectGroupIds,
                     reassignmentRequest.getSourceOriginatingAgency()
@@ -202,7 +202,7 @@ public class OriginatingAgencyReassignmentPrepareObjectGroupsPlugin extends Acti
 
                 originatingAgencyReassignmentService.appendReassignmentObjectGroupIdToUpdateOriginatingAgencyToBatchReport(
                     handler,
-                    updatableOriginatingAgencies,
+                    updatableObjectGroups,
                     batchReportClient
                 );
             }

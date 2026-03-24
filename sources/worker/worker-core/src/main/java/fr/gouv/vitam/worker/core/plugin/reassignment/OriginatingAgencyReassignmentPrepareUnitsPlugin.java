@@ -159,11 +159,11 @@ public class OriginatingAgencyReassignmentPrepareUnitsPlugin extends ActionHandl
             UNITS_TO_UPDATE_FILE
         );
 
-        File gotIdsToFillInIntermediateFile = handler.getNewLocalFile(
+        File ogIdsIntermediateFile = handler.getNewLocalFile(
             handler.getWorkFlowExecutionContext(),
             INTERMEDIATE_OG_IDS_FILE_NAME
         );
-        try (MetaDataClient metadataClient = handler.getMetaDataClient();) {
+        try (MetaDataClient metadataClient = handler.getMetaDataClient()) {
             SelectMultiQuery selectMultiQuery = createSelectMultiple(reassignmentRequest.getDslRequest());
             ScrollSpliterator<JsonNode> unitScrollSpliterator = ScrollSpliteratorHelper.createUnitScrollSplitIterator(
                 metadataClient,
@@ -175,8 +175,8 @@ public class OriginatingAgencyReassignmentPrepareUnitsPlugin extends ActionHandl
             try (
                 final FileOutputStream exportUnitsFileOutputStream = new FileOutputStream(unitToUpdateDistributionFile);
                 JsonLineWriter<JsonLineModel> unitsToUpdateWriter = new JsonLineWriter<>(exportUnitsFileOutputStream);
-                final OutputStream exportGotIdsOutputStream = new FileOutputStream(gotIdsToFillInIntermediateFile);
-                JsonLineWriter<JsonLineModel> exportGotFileWriter = new JsonLineWriter<>(exportGotIdsOutputStream)
+                final OutputStream exportOgIdsOutputStream = new FileOutputStream(ogIdsIntermediateFile);
+                JsonLineWriter<JsonLineModel> exportOgFileWriter = new JsonLineWriter<>(exportOgIdsOutputStream)
             ) {
                 while (unitIterator.hasNext()) {
                     JsonNode unit = unitIterator.next();
@@ -196,7 +196,7 @@ public class OriginatingAgencyReassignmentPrepareUnitsPlugin extends ActionHandl
                     }
 
                     if (reassignmentRequest.isPropagateToObjectGroups() && unit.has(VitamFieldsHelper.object())) {
-                        exportGotFileWriter.addEntry(
+                        exportOgFileWriter.addEntry(
                             new JsonLineModel(unit.get(VitamFieldsHelper.object()).asText(), null, null)
                         );
                     }
@@ -204,7 +204,7 @@ public class OriginatingAgencyReassignmentPrepareUnitsPlugin extends ActionHandl
             }
             handler.transferFileToWorkspace(UNITS_TO_UPDATE_FILE, unitToUpdateDistributionFile, true, false);
 
-            handler.addOutputResult(INTERMEDIATE_OG_FILE_OUT_RANK, gotIdsToFillInIntermediateFile, false, false);
+            handler.addOutputResult(INTERMEDIATE_OG_FILE_OUT_RANK, ogIdsIntermediateFile, false, false);
         } catch (IOException | InvalidParseOperationException | ProcessingException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not generate unit distributions", e);
         }

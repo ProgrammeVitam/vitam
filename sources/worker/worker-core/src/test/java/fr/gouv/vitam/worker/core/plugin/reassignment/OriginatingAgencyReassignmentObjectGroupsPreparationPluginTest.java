@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
-import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.ReassignmentObjectGroupReportEntry;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -131,7 +131,7 @@ public class OriginatingAgencyReassignmentObjectGroupsPreparationPluginTest {
         File objectGroupListFile = PropertiesUtils.getResourceFile("reassignment/object_group_list.jsonl");
         when(handlerIO.getInput(0)).thenReturn(objectGroupListFile);
 
-        ArgumentCaptor<ReportBody<OriginatingAgencyReassignmentObjectGroupReportEntry>> reportBodyArgumentCaptor =
+        ArgumentCaptor<ReportBody<ReassignmentObjectGroupReportEntry>> reportBodyArgumentCaptor =
             ArgumentCaptor.forClass(ReportBody.class);
 
         doNothing().when(batchReportClient).appendReportEntries(any());
@@ -148,16 +148,16 @@ public class OriginatingAgencyReassignmentObjectGroupsPreparationPluginTest {
         // Then
         verify(batchReportClient).appendReportEntries(reportBodyArgumentCaptor.capture());
 
-        ReportBody<OriginatingAgencyReassignmentObjectGroupReportEntry> reportBody =
+        ReportBody<ReassignmentObjectGroupReportEntry> reportBody =
             reportBodyArgumentCaptor.getValue();
 
         assertThat(reportBody.getProcessId()).isEqualTo("processId");
         assertThat(reportBody.getReportType()).isEqualTo(
-            ReportType.REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCY_UPDATE
+            ReportType.REASSIGNMENT_OBJECT_GROUPS
         );
 
         assertThat(reportBody.getEntries()).extracting("objectGroupId").containsAll(objectGroupsIdsToUpdateSp);
-        verify((batchReportClient)).exportObjectGroupsReassignmentToUpdateOriginatingAgency(anyString(), any(), any());
+        verify((batchReportClient)).exportReassignmentObjectGroups(anyString(), any(), any());
     }
 
     @Test

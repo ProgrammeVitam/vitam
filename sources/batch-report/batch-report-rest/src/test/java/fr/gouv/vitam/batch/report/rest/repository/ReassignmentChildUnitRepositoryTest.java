@@ -26,15 +26,13 @@
  */
 package fr.gouv.vitam.batch.report.rest.repository;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import fr.gouv.vitam.batch.report.model.OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel;
-import fr.gouv.vitam.batch.report.model.ReportBody;
+import fr.gouv.vitam.batch.report.model.ReassignmentChildUnitModel;
 import fr.gouv.vitam.batch.report.model.TransferReplyUnitModel;
-import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentUnitUpdateReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.ReassignmentChildUnitReportEntry;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
@@ -43,6 +41,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import org.assertj.core.api.Assertions;
 import org.bson.Document;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,47 +53,42 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class OriginatingAgencyReassignmentUnitRepositoryTest {
+public class ReassignmentChildUnitRepositoryTest {
 
-    private static final String ORIGINATING_AGENCY_REASSIGNMENT_UNIT_AGENCIES_COMPUTING =
-        "OriginatingAgencyReassignmentUnit" + GUIDFactory.newGUID().getId();
+    private static final String TEST_COLLECTION_NAME =
+        ReassignmentChildUnitRepository.COLLECTION_NAME + GUIDFactory.newGUID().getId();
     private static final int TENANT_ID = 0;
     private static final String PROCESS_ID = "123456789";
-    private static final TypeReference<ReportBody<OriginatingAgencyReassignmentUnitUpdateReportEntry>> TYPE_REFERENCE =
-        new TypeReference<>() {};
 
     @Rule
-    public MongoRule mongoRule = new MongoRule(
-        MongoDbAccess.getMongoClientSettingsBuilder(),
-        ORIGINATING_AGENCY_REASSIGNMENT_UNIT_AGENCIES_COMPUTING
-    );
+    public MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), TEST_COLLECTION_NAME);
 
-    private OriginatingAgencyReassignmentUnitAgenciesUpdateRepository repository;
+    private ReassignmentChildUnitRepository repository;
 
-    private MongoCollection<Document> originatingAgencyReassignmentUnitCollection;
+    private MongoCollection<Document> reassignmentChildUnitCollection;
 
     @Before
     public void setUp() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
-        repository = new OriginatingAgencyReassignmentUnitAgenciesUpdateRepository(
-            mongoDbAccess,
-            ORIGINATING_AGENCY_REASSIGNMENT_UNIT_AGENCIES_COMPUTING
-        );
-        originatingAgencyReassignmentUnitCollection = mongoRule.getMongoCollection(
-            ORIGINATING_AGENCY_REASSIGNMENT_UNIT_AGENCIES_COMPUTING
-        );
+        repository = new ReassignmentChildUnitRepository(mongoDbAccess, TEST_COLLECTION_NAME);
+        reassignmentChildUnitCollection = mongoRule.getMongoCollection(TEST_COLLECTION_NAME);
+    }
+
+    @After
+    public void tearDown() {
+        reassignmentChildUnitCollection.drop();
     }
 
     @Test
     public void should_bulk_append_unit_report_and_check_metadata_id_unicity() throws Exception {
         // Given
-        List<OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel> originatingAgencyReassignmentUnitModels =
-            generateData(List.of("unitId1", "unitId4", "unitId4"));
+        List<ReassignmentChildUnitModel> models = generateData(List.of("unitId1", "unitId4", "unitId4"));
 
         // When
-        repository.bulkAppendReport(originatingAgencyReassignmentUnitModels);
+        repository.bulkAppendReport(models);
+
         // Then
-        Document first = originatingAgencyReassignmentUnitCollection
+        Document first = reassignmentChildUnitCollection
             .find(
                 and(eq(TransferReplyUnitModel.METADATA + "." + "id", "unitId1"), eq(TransferReplyUnitModel.TENANT, 0))
             )
@@ -108,17 +102,13 @@ public class OriginatingAgencyReassignmentUnitRepositoryTest {
         JsonNode metadataNode = JsonHandler.toJsonNode(metadata);
         JsonNode expected = JsonHandler.getFromString("{\"id\":\"unitId1\"}");
         assertThat(metadataNode).isNotNull().isEqualTo(expected);
-        repository.bulkAppendReport(originatingAgencyReassignmentUnitModels);
-        assertThat(originatingAgencyReassignmentUnitCollection.countDocuments()).isEqualTo(2);
+        assertThat(reassignmentChildUnitCollection.countDocuments()).isEqualTo(2);
     }
 
     @Test
     public void should_bulk_append_unit_report_and_check_no_duplicate() {
         // Given
-
-        List<
-            OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel
-        > originatingAgencyReassignmentUnitChildrenAgencyUpdateModels1 = generateData(
+        List<ReassignmentChildUnitModel> models1 = generateData(
             List.of(
                 "unitId2",
                 "unitId4",
@@ -133,9 +123,7 @@ public class OriginatingAgencyReassignmentUnitRepositoryTest {
             )
         );
 
-        List<
-            OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel
-        > originatingAgencyReassignmentUnitChildrenAgencyUpdateModels2 = generateData(
+        List<ReassignmentChildUnitModel> models2 = generateData(
             List.of(
                 "unitId2",
                 "unitId4",
@@ -151,10 +139,11 @@ public class OriginatingAgencyReassignmentUnitRepositoryTest {
         );
 
         // When
-        repository.bulkAppendReport(originatingAgencyReassignmentUnitChildrenAgencyUpdateModels1);
-        repository.bulkAppendReport(originatingAgencyReassignmentUnitChildrenAgencyUpdateModels2);
+        repository.bulkAppendReport(models1);
+        repository.bulkAppendReport(models2);
+
         // Then
-        FindIterable<Document> iterable = originatingAgencyReassignmentUnitCollection.find();
+        FindIterable<Document> iterable = reassignmentChildUnitCollection.find();
         MongoCursor<Document> iterator = iterable.iterator();
         List<Document> documents = new ArrayList<>();
         while (iterator.hasNext()) {
@@ -166,10 +155,9 @@ public class OriginatingAgencyReassignmentUnitRepositoryTest {
     @Test
     public void should_find_originating_agencies_reassignment_by_process_tenant() {
         // Given
-        List<OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel> originatingAgencyReassignmentUnitModels =
-            generateData(List.of("unitId1", "unitId4", "unitId4"));
+        List<ReassignmentChildUnitModel> models = generateData(List.of("unitId1", "unitId4", "unitId4"));
+        repository.bulkAppendReport(models);
 
-        repository.bulkAppendReport(originatingAgencyReassignmentUnitModels);
         // When
         List<Document> documents;
         try (MongoCursor<Document> iterator = repository.findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID)) {
@@ -183,41 +171,36 @@ public class OriginatingAgencyReassignmentUnitRepositoryTest {
         assertThat(documents.size()).isEqualTo(2);
     }
 
-    private List<OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel> generateData(List<String> unitIds) {
-        List<
-            OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel
-        > originatingAgencyReassignmentUnitChildrenAgencyUpdateModels = new ArrayList<>();
-
-        for (String unitId : unitIds) {
-            OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel reassignmentUpdateModel =
-                new OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel();
-            reassignmentUpdateModel.setProcessId(PROCESS_ID);
-            reassignmentUpdateModel.setTenant(TENANT_ID);
-            reassignmentUpdateModel.setCreationDateTime(LocalDateUtil.nowFormatted());
-            reassignmentUpdateModel.setMetadata(new OriginatingAgencyReassignmentUnitUpdateReportEntry(unitId));
-            originatingAgencyReassignmentUnitChildrenAgencyUpdateModels.add(reassignmentUpdateModel);
-        }
-        return originatingAgencyReassignmentUnitChildrenAgencyUpdateModels;
-    }
-
     @Test
     public void should_delete_originating_agencies_reassignment_unit_by_processId_and_tenant() {
         // Given
+        List<ReassignmentChildUnitModel> models = generateData(List.of("unit1", "unit4", "unit4"));
+        repository.bulkAppendReport(models);
 
-        List<OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel> originatingAgencyReassignmentUnitModels =
-            generateData(List.of("unit1", "unit4", "unit4"));
-
-        repository.bulkAppendReport(originatingAgencyReassignmentUnitModels);
         // When
         repository.deleteReportByIdAndTenant(PROCESS_ID, TENANT_ID);
+
         // Then
-        FindIterable<Document> iterable = originatingAgencyReassignmentUnitCollection.find();
+        FindIterable<Document> iterable = reassignmentChildUnitCollection.find();
         MongoCursor<Document> iterator = iterable.iterator();
         List<Document> documents = new ArrayList<>();
         while (iterator.hasNext()) {
             documents.add(iterator.next());
         }
         assertThat(documents).isEmpty();
-        assertThat(documents.size()).isEqualTo(0);
+    }
+
+    private List<ReassignmentChildUnitModel> generateData(List<String> unitIds) {
+        List<ReassignmentChildUnitModel> models = new ArrayList<>();
+
+        for (String unitId : unitIds) {
+            ReassignmentChildUnitModel reassignmentUpdateModel = new ReassignmentChildUnitModel();
+            reassignmentUpdateModel.setProcessId(PROCESS_ID);
+            reassignmentUpdateModel.setTenant(TENANT_ID);
+            reassignmentUpdateModel.setCreationDateTime(LocalDateUtil.nowFormatted());
+            reassignmentUpdateModel.setMetadata(new ReassignmentChildUnitReportEntry(unitId));
+            models.add(reassignmentUpdateModel);
+        }
+        return models;
     }
 }

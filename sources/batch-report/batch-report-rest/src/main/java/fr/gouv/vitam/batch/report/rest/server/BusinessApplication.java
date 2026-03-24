@@ -34,12 +34,12 @@ import fr.gouv.vitam.batch.report.rest.repository.DeleteGotVersionsReportReposit
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.ExtractedMetadataRepository;
-import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentObjectGroupAgenciesComputeRepository;
-import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository;
-import fr.gouv.vitam.batch.report.rest.repository.OriginatingAgencyReassignmentUnitAgenciesUpdateRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.ReassignmentChildObjectGroupRepository;
+import fr.gouv.vitam.batch.report.rest.repository.ReassignmentChildUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.ReassignmentObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.TraceabilityReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.TransferReplyUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UnitComputedInheritedRulesInvalidationRepository;
@@ -95,18 +95,20 @@ public class BusinessApplication extends ConfigurationApplication {
             AuditReportRepository auditReportRepository = new AuditReportRepository(mongoDbAccess);
             UnitComputedInheritedRulesInvalidationRepository unitComputedInheritedRulesInvalidationRepository =
                 new UnitComputedInheritedRulesInvalidationRepository(mongoDbAccess);
-            OriginatingAgencyReassignmentUnitAgenciesUpdateRepository originatingAgencyReassignmentUnitAgenciesUpdateRepository =
-                new OriginatingAgencyReassignmentUnitAgenciesUpdateRepository(mongoDbAccess);
+            ReassignmentChildUnitRepository reassignmentChildUnitRepository = new ReassignmentChildUnitRepository(
+                mongoDbAccess
+            );
             WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace(), WorkFlowExecutionContext.VITAM);
             WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance(
                 WorkFlowExecutionContext.VITAM
             );
 
-            OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository originatingAgencyReassignmentObjectGroupAgenciesUpdateRepository =
-                new OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository(mongoDbAccess);
+            ReassignmentObjectGroupRepository reassignmentObjectGroupRepository = new ReassignmentObjectGroupRepository(
+                mongoDbAccess
+            );
 
-            OriginatingAgencyReassignmentObjectGroupAgenciesComputeRepository objectGroupReassignmentOriginatingAgenciesComputeRepository =
-                new OriginatingAgencyReassignmentObjectGroupAgenciesComputeRepository(mongoDbAccess);
+            ReassignmentChildObjectGroupRepository reassignmentChildObjectGroupRepository =
+                new ReassignmentChildObjectGroupRepository(mongoDbAccess);
 
             UpdateUnitReportRepository updateUnitReportRepository = new UpdateUnitReportRepository(mongoDbAccess);
             BulkUpdateUnitMetadataReportRepository bulkUpdateUnitMetadataReportRepository =
@@ -136,9 +138,9 @@ public class BusinessApplication extends ConfigurationApplication {
                 traceabilityReportRepository,
                 extractedMetadataRepository,
                 deleteGotVersionsReportRepository,
-                originatingAgencyReassignmentUnitAgenciesUpdateRepository,
-                originatingAgencyReassignmentObjectGroupAgenciesUpdateRepository,
-                objectGroupReassignmentOriginatingAgenciesComputeRepository
+                reassignmentChildUnitRepository,
+                reassignmentObjectGroupRepository,
+                reassignmentChildObjectGroupRepository
             );
 
             commonBusinessApplication = new CommonBusinessApplication();

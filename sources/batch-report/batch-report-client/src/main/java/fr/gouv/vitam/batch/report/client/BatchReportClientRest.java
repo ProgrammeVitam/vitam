@@ -66,12 +66,9 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     private static final String UNITS_AND_PROGENY_INVALIDATION = "/computedInheritedRulesInvalidation/";
     private static final String STORE_EXTRACTED_METADATA_FOR_AU = "/storeExtractedMetadataForAu/";
     private static final String CREATE_DISTRIBUTION_FILE_FOR_AU = "/createExtractedMetadataDistributionFileForAu/";
-    private static final String UNITS_CHILDREN_REASSIGNMENT_ORIGINATING_AGENCIES_UPDATE =
-        "/reassignmentUnitChildrenAgenciesUpdate/";
-    private static final String OBJECT_GROUPS_REASSIGNMENT_ORIGINATING_AGENCY_UPDATE =
-        "/reassignmentObjectGroupAgencyUpdate/";
-    private static final String OBJECT_GROUPS_REASSIGNMENT_ORIGINATING_AGENCIES_COMPUTE =
-        "/reassignmentObjectGroupAgenciesCompute/";
+    private static final String REASSIGNMENT_CHILD_UNITS = "/reassignmentChildUnits/";
+    private static final String REASSIGNMENT_OBJECT_GROUPS = "/reassignmentObjectGroups/";
+    private static final String REASSIGNMENT_CHILD_OBJECT_GROUPS = "/reassignmentChildObjectGroups/";
 
     @VisibleForTesting
     BatchReportClientRest(VitamClientFactoryInterface<?> factory) {
@@ -214,7 +211,7 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public void exportUnitsToComputeOriginatingAgencies(
+    public void exportReassignmentChildUnits(
         String processId,
         ReportExportRequest reportExportRequest,
         WorkFlowExecutionContext executionContext
@@ -222,7 +219,7 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
         ParametersChecker.checkParameter("processId parameter should be filled", processId);
 
         VitamRequestBuilder request = post()
-            .withPath(UNITS_CHILDREN_REASSIGNMENT_ORIGINATING_AGENCIES_UPDATE + processId)
+            .withPath(REASSIGNMENT_CHILD_UNITS + processId)
             .withBody(new ReportRequestWrapper<>(reportExportRequest, executionContext))
             .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
             .withJson();
@@ -232,7 +229,7 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public void exportObjectGroupsReassignmentToUpdateOriginatingAgency(
+    public void exportReassignmentObjectGroups(
         String processId,
         ReportExportRequest reportExportRequest,
         WorkFlowExecutionContext executionContext
@@ -240,7 +237,7 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
         ParametersChecker.checkParameter("processId parameter should be filled", processId);
 
         VitamRequestBuilder request = post()
-            .withPath(OBJECT_GROUPS_REASSIGNMENT_ORIGINATING_AGENCY_UPDATE + processId)
+            .withPath(REASSIGNMENT_OBJECT_GROUPS + processId)
             .withBody(new ReportRequestWrapper<>(reportExportRequest, executionContext))
             .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
             .withJson();
@@ -250,7 +247,7 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public void exportObjectGroupsReassignmentToComputeOriginatingAgencies(
+    public void exportReassignmentChildObjectGroups(
         String processId,
         ReportExportRequest reportExportRequest,
         WorkFlowExecutionContext executionContext
@@ -258,7 +255,7 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
         ParametersChecker.checkParameter("processId parameter should be filled", processId);
 
         VitamRequestBuilder request = post()
-            .withPath(OBJECT_GROUPS_REASSIGNMENT_ORIGINATING_AGENCIES_COMPUTE + processId)
+            .withPath(REASSIGNMENT_CHILD_OBJECT_GROUPS + processId)
             .withBody(new ReportRequestWrapper<>(reportExportRequest, executionContext))
             .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
             .withJson();

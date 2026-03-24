@@ -81,7 +81,7 @@ public interface BatchReportClient extends BasicClient {
      * Generate units to compute and update SPS by process Id.
      * Report is stored in JSONL format without duplicates.
      */
-    void exportUnitsToComputeOriginatingAgencies(
+    void exportReassignmentChildUnits(
         String processId,
         ReportExportRequest reportExportRequest,
         WorkFlowExecutionContext executionContext
@@ -91,7 +91,7 @@ public interface BatchReportClient extends BasicClient {
      * Generate object group to compute and update SP by process Id.
      * Report is stored in JSONL format without duplicates.
      */
-    void exportObjectGroupsReassignmentToUpdateOriginatingAgency(
+    void exportReassignmentObjectGroups(
         String processId,
         ReportExportRequest reportExportRequest,
         WorkFlowExecutionContext executionContext
@@ -127,7 +127,7 @@ public interface BatchReportClient extends BasicClient {
 
     JsonNode readComputedDetailsFromReport(ReportType deleteGotVersions, String processId);
 
-    void exportObjectGroupsReassignmentToComputeOriginatingAgencies(
+    void exportReassignmentChildObjectGroups(
         String processId,
         ReportExportRequest reportExportRequest,
         WorkFlowExecutionContext executionContext
