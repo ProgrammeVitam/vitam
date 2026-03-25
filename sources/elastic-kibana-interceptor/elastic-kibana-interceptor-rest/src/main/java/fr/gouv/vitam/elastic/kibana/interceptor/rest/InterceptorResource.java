@@ -70,6 +70,7 @@ public class InterceptorResource {
     private static final String CONNECTION = "Connection";
     private static final String TRANSFER_ENCODING = "Transfer-encoding";
     private InterceptorConfiguration interceptorConfiguration;
+    private final jakarta.ws.rs.client.Client client;
 
     /**
      * Constructor
@@ -77,6 +78,7 @@ public class InterceptorResource {
     public InterceptorResource(InterceptorConfiguration interceptorConfiguration) {
         LOGGER.info("InterceptorResource initialized");
         this.interceptorConfiguration = interceptorConfiguration;
+        this.client = ((ResteasyClientBuilder) ClientBuilder.newBuilder()).build();
     }
 
     /**
@@ -99,7 +101,7 @@ public class InterceptorResource {
         LOGGER.debug("Head sur " + req.getRequestURL());
 
         String urlEs = getUrlEs(req);
-        ResteasyWebTarget target = ((ResteasyClientBuilder) ClientBuilder.newBuilder()).build().target(urlEs);
+        ResteasyWebTarget target = (ResteasyWebTarget) client.target(urlEs);
 
         // Add Query Params to the request
         for (Map.Entry<String, List<String>> entry : info.getQueryParameters().entrySet()) {
@@ -168,7 +170,7 @@ public class InterceptorResource {
         LOGGER.debug(req.getMethod() + " sur " + req.getRequestURL());
         ReplacePatternUtils replacePatternUtils = new ReplacePatternUtils(interceptorConfiguration.getWhitelist());
         String urlEs = getUrlEs(req);
-        ResteasyWebTarget target = ((ResteasyClientBuilder) ClientBuilder.newBuilder()).build().target(urlEs);
+        ResteasyWebTarget target = (ResteasyWebTarget) client.target(urlEs);
         // Query Params
         for (Map.Entry<String, List<String>> entry : info.getQueryParameters().entrySet()) {
             for (String value : entry.getValue()) {
@@ -181,19 +183,30 @@ public class InterceptorResource {
         setHeaderAndSuppressUndesiredOne(headers, request);
 
         Response response;
+        boolean hasEntity = false;
+        String requestBodyWithoutSharp = null;
         if (headers.getMediaType() != null) {
             ServletInputStream inputStream = req.getInputStream();
-            String requestBodyWithoutSharp = replacePatternUtils.replaceSharpByUnderscore(
-                IOUtils.toString(inputStream, UTF_8)
-            );
+            String body = IOUtils.toString(inputStream, UTF_8);
+            if (body != null && !body.isEmpty()) {
+                requestBodyWithoutSharp = replacePatternUtils.replaceSharpByUnderscore(body);
+                hasEntity = true;
+            }
+        }
+
+        String method = req.getMethod();
+        if (hasEntity) {
+            if (HttpMethod.GET.equals(method)) {
+                method = HttpMethod.POST;
+            }
             response = request
                 .build(
-                    req.getMethod(),
+                    method,
                     Entity.entity(IOUtils.toInputStream(requestBodyWithoutSharp, UTF_8), headers.getMediaType())
                 )
                 .invoke();
         } else {
-            response = request.build(req.getMethod()).invoke();
+            response = request.build(method).invoke();
         }
 
         Map<String, Object> responseHeader = new HashMap<>();
