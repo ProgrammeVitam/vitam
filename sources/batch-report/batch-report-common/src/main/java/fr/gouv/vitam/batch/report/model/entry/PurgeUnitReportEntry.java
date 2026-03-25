@@ -37,6 +37,7 @@ public class PurgeUnitReportEntry {
 
     private static final String ID = "id";
     private static final String ORIGINATING_AGENCY = "originatingAgency";
+    private static final String FORMER_ORIGINATING_AGENCIES = "formerOriginatingAgencies";
     private static final String OPI = "opi";
     private static final String OBJECT_GROUP = "objectGroupId";
     private static final String EXTRA_INFO = "extraInfo";
@@ -47,11 +48,13 @@ public class PurgeUnitReportEntry {
 
     private final String id;
     private final String originatingAgency;
+    private final List<String> formerOriginatingAgencies;
     private final String initialOperation;
     private final String objectGroupId;
     private final String archivalAgencyIdentifier;
     private final JsonNode extraInfo;
     private final List<PersistentIdentifierModel> persistentIdentifier;
+
     private final String status;
     private final String type;
 
@@ -59,6 +62,7 @@ public class PurgeUnitReportEntry {
     public PurgeUnitReportEntry(
         @JsonProperty(ID) String id,
         @JsonProperty(ORIGINATING_AGENCY) String originatingAgency,
+        @JsonProperty(FORMER_ORIGINATING_AGENCIES) List<String> formerOriginatingAgencies,
         @JsonProperty(OPI) String initialOperation,
         @JsonProperty(OBJECT_GROUP) String objectGroupId,
         @JsonProperty(STATUS) String status,
@@ -69,6 +73,7 @@ public class PurgeUnitReportEntry {
     ) {
         this.id = id;
         this.originatingAgency = originatingAgency;
+        this.formerOriginatingAgencies = formerOriginatingAgencies;
         this.initialOperation = initialOperation;
         this.objectGroupId = objectGroupId;
         this.status = status;
@@ -121,5 +126,10 @@ public class PurgeUnitReportEntry {
     @JsonProperty(ARCHIVAL_AGENCY_IDENTIFIER)
     public String getArchivalAgencyIdentifier() {
         return archivalAgencyIdentifier;
+    }
+
+    @JsonProperty(FORMER_ORIGINATING_AGENCIES)
+    public List<String> getFormerOriginatingAgencies() {
+        return formerOriginatingAgencies;
     }
 }

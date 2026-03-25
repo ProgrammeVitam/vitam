@@ -29,6 +29,8 @@ package fr.gouv.vitam.batch.report.model.entry;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 public class EliminationActionUnitReportEntry {
 
     private static final String ID = "id";
@@ -36,12 +38,14 @@ public class EliminationActionUnitReportEntry {
     private static final String OPI = "opi";
     private static final String OBJECT_GROUP = "objectGroupId";
     private static final String STATUS = "status";
+    private static final String FORMER_ORIGINATING_AGENCIES = "formerOriginatingAgencies";
 
     private final String id;
     private final String originatingAgency;
     private final String initialOperation;
     private final String objectGroupId;
     private final String status;
+    private final List<String> formerOriginatingAgencies;
 
     @JsonCreator
     public EliminationActionUnitReportEntry(
@@ -49,13 +53,15 @@ public class EliminationActionUnitReportEntry {
         @JsonProperty(ORIGINATING_AGENCY) String originatingAgency,
         @JsonProperty(OPI) String initialOperation,
         @JsonProperty(OBJECT_GROUP) String objectGroupId,
-        @JsonProperty(STATUS) String status
+        @JsonProperty(STATUS) String status,
+        @JsonProperty(FORMER_ORIGINATING_AGENCIES) List<String> formerOriginatingAgencies
     ) {
         this.id = id;
         this.originatingAgency = originatingAgency;
         this.initialOperation = initialOperation;
         this.objectGroupId = objectGroupId;
         this.status = status;
+        this.formerOriginatingAgencies = formerOriginatingAgencies;
     }
 
     @JsonProperty(ID)
@@ -81,5 +87,9 @@ public class EliminationActionUnitReportEntry {
     @JsonProperty(STATUS)
     public String getStatus() {
         return status;
+    }
+
+    public List<String> getFormerOriginatingAgencies() {
+        return formerOriginatingAgencies;
     }
 }

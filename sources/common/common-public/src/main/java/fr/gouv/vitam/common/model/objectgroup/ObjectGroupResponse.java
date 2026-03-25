@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.model.objectgroup;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.reassignment.ReassignmentOperation;
 import fr.gouv.vitam.common.model.validations.ValidationError;
 
 import java.util.List;
@@ -57,6 +58,7 @@ public class ObjectGroupResponse {
     public static final String TYPE = "#type";
     public static final String STORAGE = "#storage";
     public static final String ERRORS = "#errors";
+    public static final String REASSIGNMENTS = "#reassignments";
 
     @JsonProperty(QUALIFIERS)
     private List<QualifiersModel> qualifiers;
@@ -96,6 +98,9 @@ public class ObjectGroupResponse {
 
     @JsonProperty(ERRORS)
     private List<ValidationError> errors;
+
+    @JsonProperty(REASSIGNMENTS)
+    private List<ReassignmentOperation> reassignments;
 
     @JsonProperty(VERSION)
     private String version;
@@ -256,6 +261,15 @@ public class ObjectGroupResponse {
 
     public ObjectGroupResponse setErrors(List<ValidationError> errors) {
         this.errors = errors;
+        return this;
+    }
+
+    public List<ReassignmentOperation> getReassignments() {
+        return reassignments;
+    }
+
+    public ObjectGroupResponse setReassignments(List<ReassignmentOperation> reassignments) {
+        this.reassignments = reassignments;
         return this;
     }
 }

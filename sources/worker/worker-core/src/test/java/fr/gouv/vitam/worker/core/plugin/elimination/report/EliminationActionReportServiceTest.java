@@ -118,14 +118,16 @@ public class EliminationActionReportServiceTest {
                 "sp1",
                 "opi1",
                 "got1",
-                EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT.name()
+                EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT.name(),
+                List.of("sp2", "sp3")
             ),
             new EliminationActionUnitReportEntry(
                 "unit2",
                 "sp2",
                 "opi2",
                 "got2",
-                EliminationActionUnitStatus.GLOBAL_STATUS_KEEP.name()
+                EliminationActionUnitStatus.GLOBAL_STATUS_KEEP.name(),
+                null
             )
         );
 
@@ -145,6 +147,7 @@ public class EliminationActionReportServiceTest {
         assertThat(unitEntry.getInitialOperation()).isEqualTo("opi1");
         assertThat(unitEntry.getOriginatingAgency()).isEqualTo("sp1");
         assertThat(unitEntry.getObjectGroupId()).isEqualTo("got1");
+        assertThat(unitEntry.getFormerOriginatingAgencies()).isEqualTo(List.of("sp2", "sp3"));
         assertThat(unitEntry.getStatus()).isEqualTo(EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT.name());
     }
 

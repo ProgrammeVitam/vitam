@@ -34,8 +34,11 @@ import java.util.Set;
 
 public class PurgeObjectGroupReportEntry {
 
+    private static final String FORMER_ORIGINATING_AGENCIES = "formerOriginatingAgencies";
+
     private final String id;
     private final String originatingAgency;
+    private final List<String> formerOriginatingAgencies;
     private final String initialOperation;
     private final Set<String> deletedParentUnitIds;
     private final Set<String> objectIds;
@@ -47,6 +50,7 @@ public class PurgeObjectGroupReportEntry {
     public PurgeObjectGroupReportEntry(
         @JsonProperty("id") String id,
         @JsonProperty("originatingAgency") String originatingAgency,
+        @JsonProperty(FORMER_ORIGINATING_AGENCIES) List<String> formerOriginatingAgencies,
         @JsonProperty("opi") String initialOperation,
         @JsonProperty("deletedParentUnitIds") Set<String> deletedParentUnitIds,
         @JsonProperty("objectIds") Set<String> objectIds,
@@ -56,6 +60,7 @@ public class PurgeObjectGroupReportEntry {
     ) {
         this.id = id;
         this.originatingAgency = originatingAgency;
+        this.formerOriginatingAgencies = formerOriginatingAgencies;
         this.initialOperation = initialOperation;
         this.deletedParentUnitIds = deletedParentUnitIds;
         this.objectIds = objectIds;
@@ -102,5 +107,10 @@ public class PurgeObjectGroupReportEntry {
     @JsonProperty("archivalAgencyIdentifier")
     public String getArchivalAgencyIdentifier() {
         return archivalAgencyIdentifier;
+    }
+
+    @JsonProperty(FORMER_ORIGINATING_AGENCIES)
+    public List<String> getFormerOriginatingAgencies() {
+        return formerOriginatingAgencies;
     }
 }

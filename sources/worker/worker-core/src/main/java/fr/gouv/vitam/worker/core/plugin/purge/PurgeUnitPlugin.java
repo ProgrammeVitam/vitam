@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin.purge;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
@@ -93,6 +94,7 @@ public abstract class PurgeUnitPlugin extends ActionHandler {
     private static final String UNIT_DELETION_ABORT = "UNIT_DELETION_ABORT";
     private static final String REPORT_PERSISTENT_IDENTIFIER_FIELD = "PersistentIdentifier";
     public static final String ARCHIVAL_AGENCY_IDENTIFIER = "#archivalAgencyIdentifier";
+    public static final String REASSIGNMENT_SOURCE_ORIGINATING_AGENCY = "SourceOriginatingAgency";
 
     private final String actionId;
     private final PurgeReportService purgeReportService;
@@ -210,6 +212,9 @@ public abstract class PurgeUnitPlugin extends ActionHandler {
         String unitType = unit.has(VitamFieldsHelper.unitType())
             ? unit.get(VitamFieldsHelper.unitType()).asText()
             : null;
+
+        List<String> formerOriginatingAgencies = retrieveFormerOriginatingAgenciesPostReassignments(unit);
+
         String archivalAgencyIdentifier = null;
         if (TRANSFER_REPLY_DELETE_UNIT.equals(actionId)) {
             archivalAgencyIdentifier = unit.has(ARCHIVAL_AGENCY_IDENTIFIER)
@@ -222,6 +227,7 @@ public abstract class PurgeUnitPlugin extends ActionHandler {
             return new PurgeUnitReportEntry(
                 unitId,
                 originatingAgency,
+                formerOriginatingAgencies,
                 initialOperation,
                 objectGroupId,
                 purgeUnitStatus.name(),
@@ -234,6 +240,7 @@ public abstract class PurgeUnitPlugin extends ActionHandler {
             return new PurgeUnitReportEntry(
                 unitId,
                 originatingAgency,
+                formerOriginatingAgencies,
                 initialOperation,
                 objectGroupId,
                 purgeUnitStatus.name(),
@@ -364,5 +371,17 @@ public abstract class PurgeUnitPlugin extends ActionHandler {
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // NOP.
+    }
+
+    private static List<String> retrieveFormerOriginatingAgenciesPostReassignments(JsonNode unit) {
+        if (!unit.has(VitamFieldsHelper.reassignments())) {
+            return null;
+        }
+        ArrayNode reassignments = (ArrayNode) unit.get(VitamFieldsHelper.reassignments());
+        List<String> originatingAgencies = new ArrayList<>();
+        for (JsonNode reassignmentNode : reassignments) {
+            originatingAgencies.add(reassignmentNode.get(REASSIGNMENT_SOURCE_ORIGINATING_AGENCY).asText());
+        }
+        return originatingAgencies;
     }
 }

@@ -136,6 +136,7 @@ public class PurgeReportServiceTest {
             new PurgeUnitReportEntry(
                 "unit1",
                 "sp1",
+                null,
                 "opi1",
                 "got1",
                 PurgeUnitStatus.DELETED.name(),
@@ -147,6 +148,7 @@ public class PurgeReportServiceTest {
             new PurgeUnitReportEntry(
                 "unit2",
                 "sp2",
+                null,
                 "opi2",
                 "got2",
                 PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name(),
@@ -194,6 +196,7 @@ public class PurgeReportServiceTest {
             new PurgeObjectGroupReportEntry(
                 "got1",
                 "sp1",
+                null,
                 "opi1",
                 null,
                 new HashSet<>(Arrays.asList("o1", "o2")),
@@ -221,6 +224,7 @@ public class PurgeReportServiceTest {
             new PurgeObjectGroupReportEntry(
                 "got2",
                 "sp2",
+                null,
                 "opi2",
                 new HashSet<>(Collections.singletonList("unit3")),
                 null,

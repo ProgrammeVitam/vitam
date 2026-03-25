@@ -37,9 +37,13 @@ public class TransferReplyUnitReportEntry {
     private static final String ID = "id";
     private static final String STATUS = "status";
     public static final String PERSISTENT_IDENTIFIER = "persistentIdentifier";
+    private static final String FORMER_ORIGINATING_AGENCIES = "formerOriginatingAgencies";
 
     private final String id;
     private final String status;
+
+    @JsonProperty(FORMER_ORIGINATING_AGENCIES)
+    private final List<String> formerOriginatingAgencies;
 
     private final List<PersistentIdentifierModel> persistentIdentifier;
 
@@ -47,10 +51,12 @@ public class TransferReplyUnitReportEntry {
     public TransferReplyUnitReportEntry(
         @JsonProperty(ID) String id,
         @JsonProperty(STATUS) String status,
+        @JsonProperty(FORMER_ORIGINATING_AGENCIES) List<String> formerOriginatingAgencies,
         @JsonProperty(PERSISTENT_IDENTIFIER) List<PersistentIdentifierModel> persistentIdentifier
     ) {
         this.id = id;
         this.status = status;
+        this.formerOriginatingAgencies = formerOriginatingAgencies;
         this.persistentIdentifier = persistentIdentifier;
     }
 
@@ -67,5 +73,9 @@ public class TransferReplyUnitReportEntry {
     @JsonProperty(PERSISTENT_IDENTIFIER)
     public List<PersistentIdentifierModel> getPersistentIdentifiers() {
         return persistentIdentifier;
+    }
+
+    public List<String> getFormerOriginatingAgencies() {
+        return formerOriginatingAgencies;
     }
 }

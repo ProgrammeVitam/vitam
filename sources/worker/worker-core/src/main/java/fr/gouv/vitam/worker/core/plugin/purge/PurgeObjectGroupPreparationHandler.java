@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
+import fr.gouv.vitam.common.model.reassignment.ReassignmentOperation;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -53,6 +54,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 
@@ -206,6 +208,15 @@ public class PurgeObjectGroupPreparationHandler extends ActionHandler {
             Set<String> objectGroupParentUnits = new HashSet<>(objectGroup.getUp());
             Set<String> removedParentUnits = SetUtils.difference(objectGroupParentUnits, existingParentUnits);
 
+            List<String> formerOriginatingAgencies = null;
+            if (CollectionUtils.isNotEmpty(objectGroup.getReassignments())) {
+                formerOriginatingAgencies = objectGroup
+                    .getReassignments()
+                    .stream()
+                    .map(ReassignmentOperation::getSourceOriginatingAgency)
+                    .toList();
+            }
+
             if (removedParentUnits.size() == objectGroupParentUnits.size()) {
                 LOGGER.debug("Object group " + objectGroup.getId() + " will be deleted");
 
@@ -227,6 +238,7 @@ public class PurgeObjectGroupPreparationHandler extends ActionHandler {
                     new PurgeObjectGroupReportEntry(
                         objectGroup.getId(),
                         objectGroup.getOriginatingAgency(),
+                        formerOriginatingAgencies,
                         objectGroup.getOpi(),
                         null,
                         objectIds,
@@ -256,6 +268,7 @@ public class PurgeObjectGroupPreparationHandler extends ActionHandler {
                     new PurgeObjectGroupReportEntry(
                         objectGroup.getId(),
                         objectGroup.getOriginatingAgency(),
+                        formerOriginatingAgencies,
                         objectGroup.getOpi(),
                         removedParentUnits,
                         null,

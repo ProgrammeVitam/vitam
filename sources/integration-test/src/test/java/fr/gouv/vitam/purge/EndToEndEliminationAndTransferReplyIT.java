@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
@@ -229,6 +230,7 @@ import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
+import static fr.gouv.vitam.processing.integration.test.IntegrationTestUtils.launchOriginatingAgencyReassignmentOperation;
 import static fr.gouv.vitam.worker.core.plugin.dip.StoreExports.TRANSFER_CONTAINER;
 import static io.restassured.RestAssured.get;
 import static java.util.Collections.emptyMap;
@@ -448,6 +450,85 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         RestAssured.port = VitamServerRunner.PORT_SERVICE_BATCH_REPORT;
         RestAssured.basePath = BATCH_REPORT_PATH;
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testEliminationActionAfterReassignments() throws Exception {
+        // GIVEN
+        prepareVitamSession();
+        final String ingestOperationGuid = VitamTestHelper.doIngest(tenantId, TEST_ELIMINATION_V2_SIP);
+        verifyOperation(ingestOperationGuid, OK);
+
+        // Check ingested units
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+
+        assertThat(ingestedUnits.getResults()).hasSize(8);
+        assertThat(ingestedGots.getResults()).hasSize(3);
+
+        // When
+        SelectMultiQuery ingestSelect = new SelectMultiQuery();
+        CompareQuery operationQuery = QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid);
+        ingestSelect.setQuery(operationQuery);
+        launchOriginatingAgencyReassignmentOperation("RATP", "FRAN_NP_009913", true, ingestSelect);
+
+        // When another reassignment
+        launchOriginatingAgencyReassignmentOperation("FRAN_NP_009913", "RATP", true, ingestSelect);
+
+        Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
+        assertThat(ingestedObjectIds).hasSize(3);
+
+        // elimination action
+        final String eliminationActionOperationGuid = newOperationLogbookGUID(tenantId).toString();
+        VitamThreadUtils.getVitamSession().setRequestId(eliminationActionOperationGuid);
+
+        SelectMultiQuery analysisDslRequest = new SelectMultiQuery();
+        analysisDslRequest.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid));
+
+        EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
+            "2026-03-21",
+            analysisDslRequest.getFinalSelect()
+        );
+
+        final RequestResponse<JsonNode> actionResult = accessInternalClient.startEliminationAction(
+            eliminationRequestBody
+        );
+
+        OperationContextMonitor operationContextMonitor = new OperationContextMonitor();
+        assertThat(actionResult.isOk()).isTrue();
+
+        JsonNode info = operationContextMonitor.getInformation(
+            VitamConfiguration.getDefaultStrategy(),
+            eliminationActionOperationGuid,
+            LogbookTypeProcess.ELIMINATION
+        );
+
+        assertThat(info).isNotNull();
+        assertThat(JsonHandler.unprettyPrint(info)).contains("ELIMINATION_" + eliminationActionOperationGuid + ".zip");
+
+        awaitForWorkflowTerminationWithStatus(eliminationActionOperationGuid, StatusCode.WARNING);
+
+        TimeUnit.SECONDS.sleep(1); // wait until cleanup is finished
+
+        info = operationContextMonitor.getInformation(
+            VitamConfiguration.getDefaultStrategy(),
+            eliminationActionOperationGuid,
+            LogbookTypeProcess.ELIMINATION
+        );
+
+        assertThat(info).isNotNull();
+        assertThat(JsonHandler.unprettyPrint(info)).doesNotContain(
+            "ELIMINATION_" + eliminationActionOperationGuid + ".zip"
+        );
+
+        Map<String, JsonNode> ingestedUnitsByTitle = mapByField(ingestedUnits, "Title");
+
+        // Check report
+        try (InputStream reportInputStream = readStoredReport(eliminationActionOperationGuid + JSONL)) {
+            checkEliminationReportOnReassignments(reportInputStream, ingestedUnits, ingestOperationGuid);
+        }
     }
 
     @RunWithCustomExecutor
@@ -763,6 +844,66 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             ),
             excludeFields
         );
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testTransferReplyPostReassignments() throws Exception {
+        // GIVEN
+        prepareVitamSession();
+        final String ingestOperationGuid = VitamTestHelper.doIngest(tenantId, TEST_ELIMINATION_V2_SIP);
+        verifyOperation(ingestOperationGuid, OK);
+
+        // Check ingested units
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> ingestedObjectGroups = selectGotsByOpi(
+            ingestOperationGuid,
+            accessInternalClient
+        );
+        Set<String> ingestedUnitIds = getIds(ingestedUnits);
+
+        assertThat(ingestedUnits.getResults()).hasSize(8);
+        assertThat(ingestedObjectGroups.getResults()).hasSize(3);
+
+        Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedObjectGroups);
+        assertThat(ingestedObjectIds).hasSize(3);
+
+        // When
+        SelectMultiQuery ingestSelect = new SelectMultiQuery();
+        CompareQuery operationQuery = QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid);
+        ingestSelect.setQuery(operationQuery);
+
+        launchOriginatingAgencyReassignmentOperation("RATP", "FRAN_NP_009913", true, ingestSelect);
+
+        // When another reassignment
+        launchOriginatingAgencyReassignmentOperation("FRAN_NP_009913", "RATP", true, ingestSelect);
+
+        // Export transfer archive
+        String transferOperation = transfer(ingestedUnitIds, OK, SupportedSedaVersions.SEDA_2_3);
+
+        // Get exported SIP from transfer request and ingest it
+        String transferredSipIngestOperationId;
+        try (InputStream sipInputStream = getTransferSip(transferOperation)) {
+            transferredSipIngestOperationId = doIngest(sipInputStream, OK);
+        }
+
+        // Check ingested transferred metadata match initial exported ones
+        RequestResponseOK<JsonNode> ingestedTransferredUnits = selectUnitsByOpi(
+            transferredSipIngestOperationId,
+            accessInternalClient
+        );
+        RequestResponseOK<JsonNode> ingestedTransferredObjectGroups = selectGotsByOpi(
+            transferredSipIngestOperationId,
+            accessInternalClient
+        );
+
+        // Send ATR back for transfer reply workflow and check reassignments history
+        String transferReplyOperationId;
+        try (InputStream atrInputStream = readStoredReport(transferredSipIngestOperationId + XML)) {
+            transferReplyOperationId = startTransferReplyWorkflow(atrInputStream, OK);
+            checkOriginatingAgenciesReassignmentsInTransferReport(transferReplyOperationId);
+        }
     }
 
     @RunWithCustomExecutor
@@ -2385,6 +2526,36 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         }
     }
 
+    private void checkOriginatingAgenciesReassignmentsInTransferReport(String transferReplyOperationId)
+        throws StorageServerClientException, StorageUnavailableDataFromAsyncOfferClientException, StorageNotFoundException, IOException {
+        try (
+            InputStream reportInputStream = readStoredReport(transferReplyOperationId + JSONL);
+            JsonLineIterator<JsonNode> reportIterator = new JsonLineIterator<>(
+                reportInputStream,
+                JSON_NODE_TYPE_REFERENCE
+            )
+        ) {
+            IntStream.rangeClosed(1, 3).forEach(index -> reportIterator.skip());
+            while (reportIterator.hasNext()) {
+                JsonNode element = reportIterator.next();
+                ObjectNode paramsNode = (ObjectNode) element.get("params");
+                if ("Unit".equals(paramsNode.get("type").asText())) {
+                    UnitReportEntry unitReportEntry = asTypeReference(element, UNIT_REPORT_TYPE_REFERENCE);
+                    assertThat(unitReportEntry.params.formerOriginatingAgencies).containsExactly(
+                        "RATP",
+                        "FRAN_NP_009913"
+                    );
+                } else if ("ObjectGroup".equals(paramsNode.get("type").asText())) {
+                    ObjectGroupReportEntry ogReportEntry = asTypeReference(element, OG_REPORT_TYPE_REFERENCE);
+                    assertThat(ogReportEntry.params.formerOriginatingAgencies).containsExactly(
+                        "RATP",
+                        "FRAN_NP_009913"
+                    );
+                }
+            }
+        }
+    }
+
     private void checkPersistentIdentifierInTransferReport(String transferReplyOperationId)
         throws StorageServerClientException, StorageUnavailableDataFromAsyncOfferClientException, StorageNotFoundException, IOException {
         try (
@@ -2912,7 +3083,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     private void checkTransferRequestReport(
         String transferOperationId,
         Collection<String> okUnitIds,
-        Collection<String> alredyTransferedUnitIds
+        Collection<String> alreadyTransferedUnitIds
     )
         throws IOException, StorageNotFoundException, StorageServerClientException, StorageUnavailableDataFromAsyncOfferClientException {
         try (
@@ -2929,7 +3100,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
                 toMap(entry -> entry.get("id").asText(), entry -> entry.get("status").asText())
             );
 
-            assertThat(exportedUnitReportStatus).hasSize(okUnitIds.size() + alredyTransferedUnitIds.size());
+            assertThat(exportedUnitReportStatus).hasSize(okUnitIds.size() + alreadyTransferedUnitIds.size());
             assertThat(exportedUnitReportStatus.entrySet()).allMatch(
                 entry -> entry.getValue().equals(okUnitIds.contains(entry.getKey()) ? "OK" : "ALREADY_IN_TRANSFER")
             );
@@ -3198,6 +3369,64 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     private InputStream getTransferSip(String operationId) throws Exception {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             return client.findTransferSIPByID(operationId).readEntity(InputStream.class);
+        }
+    }
+
+    private void checkEliminationReportOnReassignments(
+        InputStream reportInputStream,
+        RequestResponseOK<JsonNode> ingestedUnits,
+        String ingestOperationGuid
+    ) {
+        try (
+            JsonLineIterator<JsonNode> reportIterator = new JsonLineIterator<>(
+                reportInputStream,
+                JSON_NODE_TYPE_REFERENCE
+            )
+        ) {
+            // Skip context headers
+            reportIterator.skip();
+            reportIterator.skip();
+            reportIterator.skip();
+
+            //Check report units
+            Map<String, UnitReportEntry> unitReportByTitle = Streams.stream(
+                Iterators.transform(
+                    Iterators.limit(reportIterator, 8),
+                    entry -> asTypeReference(entry, UNIT_REPORT_TYPE_REFERENCE)
+                )
+            ).collect(toMap(entry -> getTitle(getById(ingestedUnits, entry.id)), entry -> entry));
+
+            assertThat(unitReportByTitle).hasSize(8);
+
+            for (UnitReportEntry unitReport : unitReportByTitle.values()) {
+                JsonNode unit = getById(ingestedUnits, unitReport.id);
+
+                assertThat(unitReport.params.opi).isEqualTo(ingestOperationGuid);
+                assertThat(unitReport.params.originatingAgency).isEqualTo(ORIGINATING_AGENCY);
+                assertThat(unitReport.params.formerOriginatingAgencies).containsExactly("RATP", "FRAN_NP_009913");
+                assertThat(unitReport.params.objectGroupId).isEqualTo(getObjectGroupId(unit));
+                assertThat(unitReport.params.type).isEqualTo("Unit");
+            }
+
+            //Check report object groups
+            List<ObjectGroupReportEntry> objectGroupReports = Streams.stream(
+                Iterators.transform(
+                    Iterators.limit(reportIterator, 2),
+                    entry -> asTypeReference(entry, OG_REPORT_TYPE_REFERENCE)
+                )
+            ).collect(Collectors.toList());
+
+            assertThat(objectGroupReports).hasSize(2);
+            assertThat(objectGroupReports).allMatch(i -> "ObjectGroup".equals(i.params.type));
+
+            for (ObjectGroupReportEntry objectGroupReportEntry : objectGroupReports) {
+                assertThat(objectGroupReportEntry.params.opi).isEqualTo(ingestOperationGuid);
+                assertThat(objectGroupReportEntry.params.originatingAgency).isEqualTo(ORIGINATING_AGENCY);
+                assertThat(objectGroupReportEntry.params.formerOriginatingAgencies).containsExactly(
+                    "RATP",
+                    "FRAN_NP_009913"
+                );
+            }
         }
     }
 
@@ -3596,6 +3825,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         @JsonProperty("originatingAgency")
         String originatingAgency;
 
+        @JsonProperty("formerOriginatingAgencies")
+        List<String> formerOriginatingAgencies;
+
         @JsonProperty("objectGroupId")
         String objectGroupId;
 
@@ -3643,6 +3875,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         @JsonProperty("originatingAgency")
         String originatingAgency;
+
+        @JsonProperty("formerOriginatingAgencies")
+        List<String> formerOriginatingAgencies;
 
         @JsonProperty("archivalAgencyIdentifier")
         String archivalAgencyIdentifier;
