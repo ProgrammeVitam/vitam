@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.reassignment;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterators;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.model.ReportBody;
@@ -587,7 +588,7 @@ public class OriginatingAgencyReassignmentService {
 
     public void appendReassignmentObjectGroupIdToUpdateOriginatingAgencyToBatchReport(
         HandlerIO handler,
-        Collection<String> filteredObjectGroupIds,
+        Collection<ObjectNode> filteredObjectGroupIds,
         BatchReportClient batchReportClient
     ) {
         if (CollectionUtils.isEmpty(filteredObjectGroupIds)) return;
@@ -595,7 +596,13 @@ public class OriginatingAgencyReassignmentService {
         try {
             List<ReassignmentObjectGroupReportEntry> entries = filteredObjectGroupIds
                 .stream()
-                .map(ReassignmentObjectGroupReportEntry::new)
+                .map(
+                    (ObjectNode objectGroup) ->
+                        new ReassignmentObjectGroupReportEntry(
+                            objectGroup.get(VitamFieldsHelper.id()).asText(),
+                            objectGroup.get(VitamFieldsHelper.initialOperation()).asText()
+                        )
+                )
                 .toList();
             ReportBody<ReassignmentObjectGroupReportEntry> report = new ReportBody<>(
                 handler.getContainerName(),

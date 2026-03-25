@@ -32,16 +32,27 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ReassignmentObjectGroupReportEntry {
 
     public static final String OBJECT_GROUP_ID = "id";
+    public static final String OPI = "opi";
 
     private final String objectGroupId;
+    private final String opi;
 
     @JsonCreator
-    public ReassignmentObjectGroupReportEntry(@JsonProperty(OBJECT_GROUP_ID) String objectGroupId) {
+    public ReassignmentObjectGroupReportEntry(
+        @JsonProperty(OBJECT_GROUP_ID) String objectGroupId,
+        @JsonProperty(OPI) String opi
+    ) {
         this.objectGroupId = objectGroupId;
+        this.opi = opi;
     }
 
     @JsonProperty(OBJECT_GROUP_ID)
     public String getObjectGroupId() {
         return objectGroupId;
+    }
+
+    @JsonProperty(OPI)
+    public String getOpi() {
+        return opi;
     }
 }

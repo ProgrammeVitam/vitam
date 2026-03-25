@@ -82,7 +82,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -398,7 +399,7 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             while (partitions.hasNext()) {
                 Set<String> objectGroupIds = new HashSet<>(partitions.next());
 
-                Set<String> updatableObjectGroups = filterObjectGroupsIdHavingOriginatingAgency(
+                List<ObjectNode> updatableObjectGroups = filterObjectGroupsHavingOriginatingAgency(
                     handler,
                     objectGroupIds,
                     reassignmentRequest.getSourceOriginatingAgency()
@@ -422,16 +423,15 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
         }
     }
 
-    private Set<String> filterObjectGroupsIdHavingOriginatingAgency(
+    private List<ObjectNode> filterObjectGroupsHavingOriginatingAgency(
         HandlerIO handlerIO,
-        Collection<String> objectGroupsIds,
+        Set<String> objectGroupsIds,
         String originatingAgency
     )
         throws InvalidParseOperationException, InvalidCreateOperationException, MetaDataExecutionException, MetaDataClientServerException, MetaDataDocumentSizeException {
         if (CollectionUtils.isEmpty(objectGroupsIds)) {
-            return new HashSet<>();
+            return Collections.emptyList();
         }
-        Set<String> filteredObjectGroupsIdsByOriginatingAgency = new HashSet<>();
         try (MetaDataClient metaDataClient = handlerIO.getMetaDataClient()) {
             SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
 
@@ -444,14 +444,15 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             BooleanQuery searchQuery = QueryHelper.and().add(inQuery, originatingAgencyQuery);
             selectMultiQuery.setQuery(searchQuery);
 
-            selectMultiQuery.addUsedProjection(VitamFieldsHelper.id(), VitamFieldsHelper.originatingAgency());
+            selectMultiQuery.addUsedProjection(VitamFieldsHelper.id(), VitamFieldsHelper.initialOperation());
 
             JsonNode results = metaDataClient.selectObjectGroups(selectMultiQuery.getFinalSelect()).get("$results");
 
-            for (JsonNode result : results) {
-                filteredObjectGroupsIdsByOriginatingAgency.add(result.get(VitamFieldsHelper.id()).asText());
+            List<ObjectNode> result = new ArrayList<>();
+            for (JsonNode objectGroup : results) {
+                result.add((ObjectNode) objectGroup);
             }
-            return filteredObjectGroupsIdsByOriginatingAgency;
+            return result;
         }
     }
 

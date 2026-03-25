@@ -105,7 +105,7 @@ public class ReassignmentObjectGroupRepositoryTest {
             .containsKeys("_metadata");
         Object metadata = first.get("_metadata");
         JsonNode metadataNode = JsonHandler.toJsonNode(metadata);
-        JsonNode expected = JsonHandler.getFromString("{\"id\":\"objetGroupId1\"}");
+        JsonNode expected = JsonHandler.getFromString("{\"id\":\"objetGroupId1\",\"opi\":\"some_opi\"}");
         assertThat(metadataNode).isNotNull().isEqualTo(expected);
         assertThat(reassignmentObjectGroupCollection.countDocuments()).isEqualTo(2);
     }
@@ -206,7 +206,7 @@ public class ReassignmentObjectGroupRepositoryTest {
             reassignmentUpdateModel.setProcessId(PROCESS_ID);
             reassignmentUpdateModel.setTenant(TENANT_ID);
             reassignmentUpdateModel.setCreationDateTime(LocalDateUtil.nowFormatted());
-            reassignmentUpdateModel.setMetadata(new ReassignmentObjectGroupReportEntry(ogId));
+            reassignmentUpdateModel.setMetadata(new ReassignmentObjectGroupReportEntry(ogId, "some_opi"));
             models.add(reassignmentUpdateModel);
         }
         return models;

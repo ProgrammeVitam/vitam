@@ -113,6 +113,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -908,79 +909,58 @@ public class BatchReportServiceImpl {
         reassignmentChildObjectGroupRepository.bulkAppendReport(documents);
     }
 
-    public void exportUnitsChildrenToUpdateOriginatingAgencies(
-        String processId,
-        int tenantId,
-        ReportExportRequest reportExportRequest
-    ) throws IOException, ContentAddressableStorageServerException, IllegalPathException {
-        File file = createTemporaryFile(processId, reportExportRequest.getFilename());
-
-        try {
-            try (
-                OutputStream outputStream = new FileOutputStream(file);
-                JsonLineWriter<JsonLineModel> jsonLineWriter = new JsonLineWriter<>(outputStream);
-                MongoCursor<Document> units = reassignmentChildUnitRepository.findCollectionByProcessIdTenant(
-                    processId,
-                    tenantId
-                )
-            ) {
-                while (units.hasNext()) {
-                    Document unit = units.next();
-                    jsonLineWriter.addEntry(new JsonLineModel(unit.getString("id")));
-                }
-            }
-
-            storeFileToWorkspace(processId, reportExportRequest.getFilename(), file);
-        } finally {
-            deleteQuietly(file.getParentFile());
+    public void exportReassignmentChildUnits(String processId, int tenantId, ReportExportRequest reportExportRequest)
+        throws IOException, ContentAddressableStorageServerException, IllegalPathException {
+        try (
+            MongoCursor<Document> entries = reassignmentChildUnitRepository.findCollectionByProcessIdTenant(
+                processId,
+                tenantId
+            )
+        ) {
+            exportReportToWorkspace(processId, reportExportRequest, entries);
         }
     }
 
-    public void exportObjectGroupsIdsToUpdateOriginatingAgency(
-        String processId,
-        int tenantId,
-        ReportExportRequest reportExportRequest
-    ) throws IOException, ContentAddressableStorageServerException, IllegalPathException {
-        File file = createTemporaryFile(processId, reportExportRequest.getFilename());
-
-        try {
-            try (
-                OutputStream outputStream = new FileOutputStream(file);
-                JsonLineWriter<JsonLineModel> jsonLineWriter = new JsonLineWriter<>(outputStream);
-                MongoCursor<Document> objectGroups = reassignmentObjectGroupRepository.findCollectionByProcessIdTenant(
-                    processId,
-                    tenantId
-                )
-            ) {
-                while (objectGroups.hasNext()) {
-                    Document objectGroupData = objectGroups.next();
-                    jsonLineWriter.addEntry(new JsonLineModel(objectGroupData.getString("id")));
-                }
-            }
-
-            storeFileToWorkspace(processId, reportExportRequest.getFilename(), file);
-        } finally {
-            deleteQuietly(file.getParentFile());
+    public void exportReassignmentObjectGroups(String processId, int tenantId, ReportExportRequest reportExportRequest)
+        throws IOException, ContentAddressableStorageServerException, IllegalPathException {
+        try (
+            MongoCursor<Document> entries = reassignmentObjectGroupRepository.findCollectionByProcessIdTenant(
+                processId,
+                tenantId
+            )
+        ) {
+            exportReportToWorkspace(processId, reportExportRequest, entries);
         }
     }
 
-    public void exportObjectGroupsIdsToComputeOriginatingAgencies(
+    public void exportReassignmentChildObjectGroups(
         String processId,
         int tenantId,
         ReportExportRequest reportExportRequest
     ) throws IOException, ContentAddressableStorageServerException, IllegalPathException {
-        File file = createTemporaryFile(processId, reportExportRequest.getFilename());
+        try (
+            MongoCursor<Document> entries = reassignmentChildObjectGroupRepository.findCollectionByProcessIdTenant(
+                processId,
+                tenantId
+            )
+        ) {
+            exportReportToWorkspace(processId, reportExportRequest, entries);
+        }
+    }
 
+    private void exportReportToWorkspace(
+        String processId,
+        ReportExportRequest reportExportRequest,
+        Iterator<Document> entries
+    ) throws IOException, IllegalPathException, ContentAddressableStorageServerException {
+        File file = createTemporaryFile(processId, reportExportRequest.getFilename());
         try {
             try (
                 OutputStream outputStream = new FileOutputStream(file);
-                JsonLineWriter<JsonLineModel> jsonLineWriter = new JsonLineWriter<>(outputStream);
-                MongoCursor<Document> objectGroups =
-                    reassignmentChildObjectGroupRepository.findCollectionByProcessIdTenant(processId, tenantId)
+                JsonLineWriter<Document> jsonLineWriter = new JsonLineWriter<>(outputStream);
             ) {
-                while (objectGroups.hasNext()) {
-                    Document objectGroupData = objectGroups.next();
-                    jsonLineWriter.addEntry(new JsonLineModel(objectGroupData.getString("id")));
+                while (entries.hasNext()) {
+                    jsonLineWriter.addEntry(entries.next());
                 }
             }
 

@@ -208,7 +208,13 @@ public class OriginatingAgencyReassignmentPreparationPluginTest {
                 JsonLineWriter<JsonLineModel> ogWriter = new JsonLineWriter<>(new FileOutputStream(ogDistributionFile))
             ) {
                 for (ReassignmentObjectGroupReportEntry entry : batchReportEntries) {
-                    ogWriter.addEntry(new JsonLineModel(entry.getObjectGroupId(), null, null));
+                    ogWriter.addEntry(
+                        new JsonLineModel(
+                            entry.getObjectGroupId(),
+                            null,
+                            JsonHandler.createObjectNode().put("#opi", entry.getOpi())
+                        )
+                    );
                 }
             }
 
@@ -248,10 +254,13 @@ public class OriginatingAgencyReassignmentPreparationPluginTest {
             jsonLineModelTypeReference
         );
 
-        assertThat(ogDistributionLines.stream().map(JsonLineModel::getId).toList()).containsExactlyInAnyOrder(
-            "id_og_1",
-            "id_og_2"
-        );
+        assertThat(ogDistributionLines.stream())
+            .extracting(
+                JsonLineModel::getId,
+                JsonLineModel::getDistribGroup,
+                jsonLineModel -> jsonLineModel.getParams().get(VitamFieldsHelper.initialOperation()).asText()
+            )
+            .containsExactlyInAnyOrder(tuple("id_og_1", null, "opi_1"), tuple("id_og_2", null, "opi_2"));
     }
 
     @Test
@@ -315,7 +324,13 @@ public class OriginatingAgencyReassignmentPreparationPluginTest {
                 JsonLineWriter<JsonLineModel> ogWriter = new JsonLineWriter<>(new FileOutputStream(ogDistributionFile))
             ) {
                 for (ReassignmentObjectGroupReportEntry entry : batchReportEntries) {
-                    ogWriter.addEntry(new JsonLineModel(entry.getObjectGroupId(), null, null));
+                    ogWriter.addEntry(
+                        new JsonLineModel(
+                            entry.getObjectGroupId(),
+                            null,
+                            JsonHandler.createObjectNode().put("#opi", entry.getOpi())
+                        )
+                    );
                 }
             }
 
@@ -409,7 +424,13 @@ public class OriginatingAgencyReassignmentPreparationPluginTest {
                 JsonLineWriter<JsonLineModel> ogWriter = new JsonLineWriter<>(new FileOutputStream(ogDistributionFile))
             ) {
                 for (ReassignmentObjectGroupReportEntry entry : batchReportEntries) {
-                    ogWriter.addEntry(new JsonLineModel(entry.getObjectGroupId(), null, null));
+                    ogWriter.addEntry(
+                        new JsonLineModel(
+                            entry.getObjectGroupId(),
+                            null,
+                            JsonHandler.createObjectNode().put("#opi", entry.getOpi())
+                        )
+                    );
                 }
             }
 

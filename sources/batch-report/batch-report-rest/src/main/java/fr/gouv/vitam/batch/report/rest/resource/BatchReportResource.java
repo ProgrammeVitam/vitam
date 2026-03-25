@@ -538,11 +538,7 @@ public class BatchReportResource extends ApplicationStatusResource {
     ) throws Exception {
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-        batchReportServiceImpl.exportUnitsChildrenToUpdateOriginatingAgencies(
-            processId,
-            tenantId,
-            reportRequestWrapper.getRequest()
-        );
+        batchReportServiceImpl.exportReassignmentChildUnits(processId, tenantId, reportRequestWrapper.getRequest());
         return Response.status(Response.Status.CREATED).build();
     }
 
@@ -556,11 +552,7 @@ public class BatchReportResource extends ApplicationStatusResource {
     ) throws Exception {
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-        batchReportServiceImpl.exportObjectGroupsIdsToUpdateOriginatingAgency(
-            processId,
-            tenantId,
-            reportRequestWrapper.getRequest()
-        );
+        batchReportServiceImpl.exportReassignmentObjectGroups(processId, tenantId, reportRequestWrapper.getRequest());
         return Response.status(Response.Status.CREATED).build();
     }
 
@@ -574,7 +566,7 @@ public class BatchReportResource extends ApplicationStatusResource {
     ) throws Exception {
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-        batchReportServiceImpl.exportObjectGroupsIdsToComputeOriginatingAgencies(
+        batchReportServiceImpl.exportReassignmentChildObjectGroups(
             processId,
             tenantId,
             reportRequestWrapper.getRequest()

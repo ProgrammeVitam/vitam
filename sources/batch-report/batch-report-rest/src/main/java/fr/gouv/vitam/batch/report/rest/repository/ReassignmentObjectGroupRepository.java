@@ -76,7 +76,13 @@ public class ReassignmentObjectGroupRepository extends ReportCommonRepository {
                             eq(ReassignmentChildObjectGroupModel.TENANT, tenantId)
                         )
                     ),
-                    Aggregates.project(Projections.fields(new Document("_id", 0), new Document("id", "$_metadata.id")))
+                    Aggregates.project(
+                        Projections.fields(
+                            new Document("_id", 0),
+                            new Document("id", "$_metadata.id"),
+                            new Document("params.#opi", "$_metadata.opi")
+                        )
+                    )
                 )
             )
             // Aggregation query requires more than 100MB to proceed.
