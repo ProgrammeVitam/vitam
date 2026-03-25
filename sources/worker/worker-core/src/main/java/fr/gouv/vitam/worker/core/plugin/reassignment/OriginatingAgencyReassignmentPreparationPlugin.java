@@ -88,7 +88,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
@@ -246,7 +245,7 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
                 final FileOutputStream exportUnitsFileOutputStream = new FileOutputStream(unitToUpdateDistributionFile);
                 JsonLineWriter<JsonLineModel> unitsToUpdateWriter = new JsonLineWriter<>(exportUnitsFileOutputStream);
                 final OutputStream exportOgIdsOutputStream = new FileOutputStream(ogIdsIntermediateFile);
-                JsonLineWriter<JsonLineModel> exportOgFileWriter = new JsonLineWriter<>(exportOgIdsOutputStream)
+                JsonLineWriter<String> exportOgFileWriter = new JsonLineWriter<>(exportOgIdsOutputStream)
             ) {
                 while (unitIterator.hasNext()) {
                     JsonNode unit = unitIterator.next();
@@ -266,9 +265,7 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
 
                     // To avoid ES timeout (bug 15611), write object groups to a temp file, before writing inserting them into BatchReport
                     if (reassignmentRequest.isPropagateToObjectGroups() && unit.has(VitamFieldsHelper.object())) {
-                        exportOgFileWriter.addEntry(
-                            new JsonLineModel(unit.get(VitamFieldsHelper.object()).asText(), null, null)
-                        );
+                        exportOgFileWriter.addEntry(unit.get(VitamFieldsHelper.object()).asText());
                     }
                 }
             }
@@ -394,16 +391,12 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             BatchReportClient batchReportClient = handler.getBatchReportClient();
             InputStream inputStream = new FileInputStream(ogIdsToFillFile)
         ) {
-            Iterator<List<JsonLineModel>> partitions = Iterators.partition(
+            Iterator<List<String>> partitions = Iterators.partition(
                 new JsonLineIterator<>(inputStream, new TypeReference<>() {}),
                 VitamConfiguration.getBatchSize()
             );
             while (partitions.hasNext()) {
-                Set<String> objectGroupIds = partitions
-                    .next()
-                    .stream()
-                    .map(JsonLineModel::getId)
-                    .collect(Collectors.toSet());
+                Set<String> objectGroupIds = new HashSet<>(partitions.next());
 
                 Set<String> updatableObjectGroups = filterObjectGroupsIdHavingOriginatingAgency(
                     handler,
