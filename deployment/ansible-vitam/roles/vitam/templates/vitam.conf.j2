@@ -1,3 +1,4 @@
+#jinja2: lstrip_blocks: True
 secret: {{ plateforme_secret }}
 filterActivation: {{ vitam_struct.secret_platform | default(true) | bool | lower }}
 {% if vitam_struct.vitam_component == vitam.processing.vitam_component %}
@@ -32,15 +33,21 @@ bulkAtomicUpdateBatchSize: {{ vitam.worker.bulkAtomicUpdateBatchSize | default(1
 bulkAtomicUpdateThreadPoolSize: {{ vitam.worker.bulkAtomicUpdateThreadPoolSize | default(8) }}
 bulkAtomicUpdateThreadPoolQueueSize: {{ vitam.worker.bulkAtomicUpdateThreadPoolQueueSize | default(16) }}
 
-binarySizePlatformThreshold: # 1 Go
+# Platform Dip/transfer threshold file size
+binarySizePlatformThreshold:
   limit: {{ vitam.worker.binarySizePlatformThreshold | default(1) }}
   sizeUnit: {{ vitam.worker.binarySizePlatformThresholdSizeUnit | default('GIGABYTE') }}
 
-binarySizeTenantThreshold: # exemple for tenant 0 max dip/transfer size is 20 Mo, true means can exceed tenant threshold.
-#  - tenant: 0
-#    limit: 20
-#    sizeUnit: MEGABYTE
-#    authorize: true
+# Tenant Dip/transfer threshold file size
+binarySizeTenantThreshold:
+{% if vitam.worker.binarySizeTenantThreshold | default([]) is iterable %}
+  {% for entry in vitam.worker.binarySizeTenantThreshold | default([]) %}
+  - tenant: {{ entry.tenant }}
+    limit: {{ entry.limit }}
+    sizeUnit: {{ entry.sizeUnit | default('GIGABYTE') | upper }}
+    authorize: {{ entry.authorize | default(false) | bool | lower }}
+  {% endfor %}
+{% endif %}
 
 eliminationReportExtraFields:
 {% for tenant_id in vitam_tenant_ids %}
