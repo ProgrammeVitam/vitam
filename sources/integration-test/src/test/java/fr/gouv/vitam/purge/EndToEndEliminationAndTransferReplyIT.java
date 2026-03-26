@@ -101,6 +101,7 @@ import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
+import fr.gouv.vitam.common.model.reassignment.ReassignmentOperation;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -2541,16 +2542,33 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
                 ObjectNode paramsNode = (ObjectNode) element.get("params");
                 if ("Unit".equals(paramsNode.get("type").asText())) {
                     UnitReportEntry unitReportEntry = asTypeReference(element, UNIT_REPORT_TYPE_REFERENCE);
-                    assertThat(unitReportEntry.params.formerOriginatingAgencies).containsExactly(
-                        "RATP",
-                        "FRAN_NP_009913"
-                    );
+
+                    assertThat(unitReportEntry.params.originatingAgenciesReassignments).isNotNull();
+                    assertThat(unitReportEntry.params.originatingAgenciesReassignments).hasSize(2);
+
+                    ReassignmentOperation firstOperation =
+                        unitReportEntry.params.originatingAgenciesReassignments.getFirst();
+                    assertThat(firstOperation.getTargetOriginatingAgency()).isEqualTo("FRAN_NP_009913");
+                    assertThat(firstOperation.getSourceOriginatingAgency()).isEqualTo("RATP");
+
+                    ReassignmentOperation secondOperation =
+                        unitReportEntry.params.originatingAgenciesReassignments.getLast();
+                    assertThat(secondOperation.getTargetOriginatingAgency()).isEqualTo("RATP");
+                    assertThat(secondOperation.getSourceOriginatingAgency()).isEqualTo("FRAN_NP_009913");
                 } else if ("ObjectGroup".equals(paramsNode.get("type").asText())) {
                     ObjectGroupReportEntry ogReportEntry = asTypeReference(element, OG_REPORT_TYPE_REFERENCE);
-                    assertThat(ogReportEntry.params.formerOriginatingAgencies).containsExactly(
-                        "RATP",
-                        "FRAN_NP_009913"
-                    );
+                    assertThat(ogReportEntry.params.originatingAgenciesReassignments).isNotNull();
+                    assertThat(ogReportEntry.params.originatingAgenciesReassignments).hasSize(2);
+
+                    ReassignmentOperation firstOperation =
+                        ogReportEntry.params.originatingAgenciesReassignments.getFirst();
+                    assertThat(firstOperation.getTargetOriginatingAgency()).isEqualTo("FRAN_NP_009913");
+                    assertThat(firstOperation.getSourceOriginatingAgency()).isEqualTo("RATP");
+
+                    ReassignmentOperation secondOperation =
+                        ogReportEntry.params.originatingAgenciesReassignments.getLast();
+                    assertThat(secondOperation.getTargetOriginatingAgency()).isEqualTo("RATP");
+                    assertThat(secondOperation.getSourceOriginatingAgency()).isEqualTo("FRAN_NP_009913");
                 }
             }
         }
@@ -3403,9 +3421,20 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
                 assertThat(unitReport.params.opi).isEqualTo(ingestOperationGuid);
                 assertThat(unitReport.params.originatingAgency).isEqualTo(ORIGINATING_AGENCY);
-                assertThat(unitReport.params.formerOriginatingAgencies).containsExactly("RATP", "FRAN_NP_009913");
+
                 assertThat(unitReport.params.objectGroupId).isEqualTo(getObjectGroupId(unit));
                 assertThat(unitReport.params.type).isEqualTo("Unit");
+
+                assertThat(unitReport.params.originatingAgenciesReassignments).isNotNull();
+                assertThat(unitReport.params.originatingAgenciesReassignments).hasSize(2);
+
+                ReassignmentOperation firstOperation = unitReport.params.originatingAgenciesReassignments.getFirst();
+                assertThat(firstOperation.getTargetOriginatingAgency()).isEqualTo("FRAN_NP_009913");
+                assertThat(firstOperation.getSourceOriginatingAgency()).isEqualTo("RATP");
+
+                ReassignmentOperation secondOperation = unitReport.params.originatingAgenciesReassignments.getLast();
+                assertThat(secondOperation.getTargetOriginatingAgency()).isEqualTo("RATP");
+                assertThat(secondOperation.getSourceOriginatingAgency()).isEqualTo("FRAN_NP_009913");
             }
 
             //Check report object groups
@@ -3422,10 +3451,19 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             for (ObjectGroupReportEntry objectGroupReportEntry : objectGroupReports) {
                 assertThat(objectGroupReportEntry.params.opi).isEqualTo(ingestOperationGuid);
                 assertThat(objectGroupReportEntry.params.originatingAgency).isEqualTo(ORIGINATING_AGENCY);
-                assertThat(objectGroupReportEntry.params.formerOriginatingAgencies).containsExactly(
-                    "RATP",
-                    "FRAN_NP_009913"
-                );
+
+                assertThat(objectGroupReportEntry.params.originatingAgenciesReassignments).isNotNull();
+                assertThat(objectGroupReportEntry.params.originatingAgenciesReassignments).hasSize(2);
+
+                ReassignmentOperation firstOperation =
+                    objectGroupReportEntry.params.originatingAgenciesReassignments.getFirst();
+                assertThat(firstOperation.getTargetOriginatingAgency()).isEqualTo("FRAN_NP_009913");
+                assertThat(firstOperation.getSourceOriginatingAgency()).isEqualTo("RATP");
+
+                ReassignmentOperation secondOperation =
+                    objectGroupReportEntry.params.originatingAgenciesReassignments.getLast();
+                assertThat(secondOperation.getTargetOriginatingAgency()).isEqualTo("RATP");
+                assertThat(secondOperation.getSourceOriginatingAgency()).isEqualTo("FRAN_NP_009913");
             }
         }
     }
@@ -3825,8 +3863,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         @JsonProperty("originatingAgency")
         String originatingAgency;
 
-        @JsonProperty("formerOriginatingAgencies")
-        List<String> formerOriginatingAgencies;
+        @JsonProperty("originatingAgenciesReassignments")
+        List<ReassignmentOperation> originatingAgenciesReassignments;
 
         @JsonProperty("objectGroupId")
         String objectGroupId;
@@ -3876,8 +3914,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         @JsonProperty("originatingAgency")
         String originatingAgency;
 
-        @JsonProperty("formerOriginatingAgencies")
-        List<String> formerOriginatingAgencies;
+        @JsonProperty("originatingAgenciesReassignments")
+        List<ReassignmentOperation> originatingAgenciesReassignments;
 
         @JsonProperty("archivalAgencyIdentifier")
         String archivalAgencyIdentifier;

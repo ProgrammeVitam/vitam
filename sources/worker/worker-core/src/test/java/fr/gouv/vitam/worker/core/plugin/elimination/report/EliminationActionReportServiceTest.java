@@ -32,8 +32,10 @@ import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
+import fr.gouv.vitam.common.model.reassignment.ReassignmentOperation;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -54,6 +56,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -112,6 +115,23 @@ public class EliminationActionReportServiceTest {
     @RunWithCustomExecutor
     public void appendUnitEntries() throws Exception {
         // Given
+        List<ReassignmentOperation> originatingAgencyReassignments = new ArrayList<>();
+
+        originatingAgencyReassignments.add(
+            new ReassignmentOperation()
+                .setOperationId("opr1")
+                .setReassignmentDate(LocalDateUtil.nowFormatted())
+                .setSourceOriginatingAgency("sp2")
+                .setTargetOriginatingAgency("sp3")
+        );
+        originatingAgencyReassignments.add(
+            new ReassignmentOperation()
+                .setOperationId("opr2")
+                .setReassignmentDate(LocalDateUtil.nowFormatted())
+                .setSourceOriginatingAgency("sp3")
+                .setTargetOriginatingAgency("sp4")
+        );
+
         List<EliminationActionUnitReportEntry> entries = Arrays.asList(
             new EliminationActionUnitReportEntry(
                 "unit1",
@@ -119,7 +139,7 @@ public class EliminationActionReportServiceTest {
                 "opi1",
                 "got1",
                 EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT.name(),
-                List.of("sp2", "sp3")
+                originatingAgencyReassignments
             ),
             new EliminationActionUnitReportEntry(
                 "unit2",
@@ -147,7 +167,18 @@ public class EliminationActionReportServiceTest {
         assertThat(unitEntry.getInitialOperation()).isEqualTo("opi1");
         assertThat(unitEntry.getOriginatingAgency()).isEqualTo("sp1");
         assertThat(unitEntry.getObjectGroupId()).isEqualTo("got1");
-        assertThat(unitEntry.getFormerOriginatingAgencies()).isEqualTo(List.of("sp2", "sp3"));
+        assertThat(unitEntry.getOriginatingAgenciesReassignments()).isNotNull();
+        assertThat(unitEntry.getOriginatingAgenciesReassignments()).hasSize(2);
+        ReassignmentOperation firstOperation = unitEntry.getOriginatingAgenciesReassignments().getFirst();
+        assertThat(firstOperation.getOperationId()).isEqualTo("opr1");
+        assertThat(firstOperation.getTargetOriginatingAgency()).isEqualTo("sp3");
+        assertThat(firstOperation.getSourceOriginatingAgency()).isEqualTo("sp2");
+
+        ReassignmentOperation secondOperation = unitEntry.getOriginatingAgenciesReassignments().getLast();
+        assertThat(secondOperation.getOperationId()).isEqualTo("opr2");
+        assertThat(secondOperation.getTargetOriginatingAgency()).isEqualTo("sp4");
+        assertThat(secondOperation.getSourceOriginatingAgency()).isEqualTo("sp3");
+
         assertThat(unitEntry.getStatus()).isEqualTo(EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT.name());
     }
 
