@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.model.objectgroup.PersistentIdentifierModel;
+import fr.gouv.vitam.common.model.reassignment.ReassignmentOperation;
 
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class PurgeUnitReportEntry {
 
     private static final String ID = "id";
     private static final String ORIGINATING_AGENCY = "originatingAgency";
-    private static final String FORMER_ORIGINATING_AGENCIES = "formerOriginatingAgencies";
+    private static final String ORIGINATING_AGENCIES_REASSIGNMENTS = "originatingAgenciesReassignments";
     private static final String OPI = "opi";
     private static final String OBJECT_GROUP = "objectGroupId";
     private static final String EXTRA_INFO = "extraInfo";
@@ -48,7 +49,7 @@ public class PurgeUnitReportEntry {
 
     private final String id;
     private final String originatingAgency;
-    private final List<String> formerOriginatingAgencies;
+    private final List<ReassignmentOperation> originatingAgenciesReassignments;
     private final String initialOperation;
     private final String objectGroupId;
     private final String archivalAgencyIdentifier;
@@ -62,7 +63,7 @@ public class PurgeUnitReportEntry {
     public PurgeUnitReportEntry(
         @JsonProperty(ID) String id,
         @JsonProperty(ORIGINATING_AGENCY) String originatingAgency,
-        @JsonProperty(FORMER_ORIGINATING_AGENCIES) List<String> formerOriginatingAgencies,
+        @JsonProperty(ORIGINATING_AGENCIES_REASSIGNMENTS) List<ReassignmentOperation> originatingAgenciesReassignments,
         @JsonProperty(OPI) String initialOperation,
         @JsonProperty(OBJECT_GROUP) String objectGroupId,
         @JsonProperty(STATUS) String status,
@@ -73,7 +74,7 @@ public class PurgeUnitReportEntry {
     ) {
         this.id = id;
         this.originatingAgency = originatingAgency;
-        this.formerOriginatingAgencies = formerOriginatingAgencies;
+        this.originatingAgenciesReassignments = originatingAgenciesReassignments;
         this.initialOperation = initialOperation;
         this.objectGroupId = objectGroupId;
         this.status = status;
@@ -128,8 +129,8 @@ public class PurgeUnitReportEntry {
         return archivalAgencyIdentifier;
     }
 
-    @JsonProperty(FORMER_ORIGINATING_AGENCIES)
-    public List<String> getFormerOriginatingAgencies() {
-        return formerOriginatingAgencies;
+    @JsonProperty(ORIGINATING_AGENCIES_REASSIGNMENTS)
+    public List<ReassignmentOperation> getOriginatingAgenciesReassignments() {
+        return originatingAgenciesReassignments;
     }
 }

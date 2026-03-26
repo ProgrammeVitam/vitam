@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 
 public class PurgeObjectGroupParams {
 
-    private static final String FORMER_ORIGINATING_AGENCIES = "formerOriginatingAgencies";
+    private static final String ORIGINATING_AGENCIES_REASSIGNMENTS = "originatingAgenciesReassignments";
 
     @JsonProperty("id")
     private String id;
@@ -48,8 +48,8 @@ public class PurgeObjectGroupParams {
     @JsonProperty("opi")
     private String opi;
 
-    @JsonProperty(FORMER_ORIGINATING_AGENCIES)
-    private List<String> formerOriginatingAgencies;
+    @JsonProperty(ORIGINATING_AGENCIES_REASSIGNMENTS)
+    private List<ReassignmentOperation> originatingAgenciesReassignments;
 
     @JsonProperty("objects")
     private List<PurgeObjectParams> objects;
@@ -90,12 +90,14 @@ public class PurgeObjectGroupParams {
         return this;
     }
 
-    public List<String> getFormerOriginatingAgencies() {
-        return formerOriginatingAgencies;
+    public List<ReassignmentOperation> getOriginatingAgenciesReassignments() {
+        return originatingAgenciesReassignments;
     }
 
-    public PurgeObjectGroupParams setFormerOriginatingAgencies(List<String> formerOriginatingAgencies) {
-        this.formerOriginatingAgencies = formerOriginatingAgencies;
+    public PurgeObjectGroupParams setOriginatingAgenciesReassignments(
+        List<ReassignmentOperation> originatingAgenciesReassignments
+    ) {
+        this.originatingAgenciesReassignments = originatingAgenciesReassignments;
         return this;
     }
 
@@ -123,9 +125,7 @@ public class PurgeObjectGroupParams {
         }
 
         if (CollectionUtils.isNotEmpty(objectGroup.getReassignments())) {
-            purgeObjectGroupParams.setFormerOriginatingAgencies(
-                objectGroup.getReassignments().stream().map(ReassignmentOperation::getSourceOriginatingAgency).toList()
-            );
+            purgeObjectGroupParams.setOriginatingAgenciesReassignments(objectGroup.getReassignments());
         }
         return purgeObjectGroupParams;
     }

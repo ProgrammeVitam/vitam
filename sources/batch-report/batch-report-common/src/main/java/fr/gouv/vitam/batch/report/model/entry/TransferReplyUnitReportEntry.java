@@ -29,6 +29,7 @@ package fr.gouv.vitam.batch.report.model.entry;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.objectgroup.PersistentIdentifierModel;
+import fr.gouv.vitam.common.model.reassignment.ReassignmentOperation;
 
 import java.util.List;
 
@@ -37,13 +38,13 @@ public class TransferReplyUnitReportEntry {
     private static final String ID = "id";
     private static final String STATUS = "status";
     public static final String PERSISTENT_IDENTIFIER = "persistentIdentifier";
-    private static final String FORMER_ORIGINATING_AGENCIES = "formerOriginatingAgencies";
+    private static final String ORIGINATING_AGENCIES_REASSIGNMENTS = "originatingAgenciesReassignments";
 
     private final String id;
     private final String status;
 
-    @JsonProperty(FORMER_ORIGINATING_AGENCIES)
-    private final List<String> formerOriginatingAgencies;
+    @JsonProperty(ORIGINATING_AGENCIES_REASSIGNMENTS)
+    private final List<ReassignmentOperation> originatingAgenciesReassignments;
 
     private final List<PersistentIdentifierModel> persistentIdentifier;
 
@@ -51,12 +52,12 @@ public class TransferReplyUnitReportEntry {
     public TransferReplyUnitReportEntry(
         @JsonProperty(ID) String id,
         @JsonProperty(STATUS) String status,
-        @JsonProperty(FORMER_ORIGINATING_AGENCIES) List<String> formerOriginatingAgencies,
+        @JsonProperty(ORIGINATING_AGENCIES_REASSIGNMENTS) List<ReassignmentOperation> originatingAgenciesReassignments,
         @JsonProperty(PERSISTENT_IDENTIFIER) List<PersistentIdentifierModel> persistentIdentifier
     ) {
         this.id = id;
         this.status = status;
-        this.formerOriginatingAgencies = formerOriginatingAgencies;
+        this.originatingAgenciesReassignments = originatingAgenciesReassignments;
         this.persistentIdentifier = persistentIdentifier;
     }
 
@@ -75,7 +76,7 @@ public class TransferReplyUnitReportEntry {
         return persistentIdentifier;
     }
 
-    public List<String> getFormerOriginatingAgencies() {
-        return formerOriginatingAgencies;
+    public List<ReassignmentOperation> getOriginatingAgenciesReassignments() {
+        return originatingAgenciesReassignments;
     }
 }

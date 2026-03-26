@@ -38,12 +38,14 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.iterables.SpliteratorIterator;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.reassignment.ReassignmentOperation;
 import fr.gouv.vitam.common.utils.BufferedConsumer;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -87,7 +89,6 @@ public abstract class EliminationActionUnitPreparationHandlerBase extends Action
     protected static final String REQUEST_JSON = "request.json";
     protected static final String UNITS_TO_DELETE_FILE = "units_to_delete.jsonl";
     protected static final String PERSISTENT_IDENTIFIER = "PersistentIdentifier";
-    public static final String REASSIGNMENT_SOURCE_ORIGINATING_AGENCY = "SourceOriginatingAgency";
 
     private final EliminationAnalysisService eliminationAnalysisService;
     private final EliminationActionReportService eliminationActionReportService;
@@ -184,9 +185,8 @@ public abstract class EliminationActionUnitPreparationHandlerBase extends Action
                             } else {
                                 status = EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT;
                             }
-
-                            List<String> formerOriginatingAgenciesPostReassignments =
-                                retrieveFormerOriginatingAgenciesPostReassignments(unit);
+                            List<ReassignmentOperation> originatingAgenciesReassignments =
+                                extractReassignmentOperations(unit);
                             reportAppender.accept(
                                 new EliminationActionUnitReportEntry(
                                     unitId,
@@ -194,7 +194,7 @@ public abstract class EliminationActionUnitPreparationHandlerBase extends Action
                                     getField(unit, VitamFieldsHelper.initialOperation()),
                                     getField(unit, VitamFieldsHelper.object()),
                                     status.name(),
-                                    formerOriginatingAgenciesPostReassignments
+                                    originatingAgenciesReassignments
                                 )
                             );
 
@@ -224,6 +224,25 @@ public abstract class EliminationActionUnitPreparationHandlerBase extends Action
         } catch (IOException | ProcessingException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not generate unit distribution file", e);
         }
+    }
+
+    private List<ReassignmentOperation> extractReassignmentOperations(JsonNode unit) throws ProcessingStatusException {
+        List<ReassignmentOperation> originatingAgenciesReassignments = null;
+        if (unit.has(VitamFieldsHelper.reassignments())) {
+            originatingAgenciesReassignments = new ArrayList<>();
+            ArrayNode reassignments = (ArrayNode) unit.get(VitamFieldsHelper.reassignments());
+
+            for (JsonNode reassignmentNode : reassignments) {
+                try {
+                    originatingAgenciesReassignments.add(
+                        JsonHandler.getFromJsonNode(reassignmentNode, ReassignmentOperation.class)
+                    );
+                } catch (InvalidParseOperationException e) {
+                    throw new ProcessingStatusException(StatusCode.FATAL, e.getMessage());
+                }
+            }
+        }
+        return originatingAgenciesReassignments;
     }
 
     private BufferedConsumer<EliminationActionUnitReportEntry> createReportAppender(String processId) {
@@ -296,17 +315,5 @@ public abstract class EliminationActionUnitPreparationHandlerBase extends Action
             EliminationEventDetails eventDetails = new EliminationEventDetails().setError(COULD_NOT_PARSE_DSL_REQUEST);
             throw new ProcessingStatusException(StatusCode.KO, eventDetails, COULD_NOT_PARSE_DSL_REQUEST, e);
         }
-    }
-
-    private static List<String> retrieveFormerOriginatingAgenciesPostReassignments(JsonNode unit) {
-        if (!unit.has(VitamFieldsHelper.reassignments())) {
-            return null;
-        }
-        ArrayNode reassignments = (ArrayNode) unit.get(VitamFieldsHelper.reassignments());
-        List<String> originatingAgencies = new ArrayList<>();
-        for (JsonNode reassignmentNode : reassignments) {
-            originatingAgencies.add(reassignmentNode.get(REASSIGNMENT_SOURCE_ORIGINATING_AGENCY).asText());
-        }
-        return originatingAgencies;
     }
 }

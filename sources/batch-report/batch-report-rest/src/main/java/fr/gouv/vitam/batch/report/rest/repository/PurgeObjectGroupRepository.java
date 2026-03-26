@@ -97,7 +97,10 @@ public class PurgeObjectGroupRepository extends ReportCommonRepository {
                             new Document("params.status", "$_metadata.status"),
                             new Document("params.opi", "$_metadata.opi"),
                             new Document("params.originatingAgency", "$_metadata.originatingAgency"),
-                            new Document("params.formerOriginatingAgencies", "$_metadata.formerOriginatingAgencies"),
+                            new Document(
+                                "params.originatingAgenciesReassignments",
+                                "$_metadata.originatingAgenciesReassignments"
+                            ),
                             new Document("params.deletedParentUnitIds", "$_metadata.deletedParentUnitIds"),
                             new Document("params.archivalAgencyIdentifier", "$_metadata.archivalAgencyIdentifier"),
                             new Document("params.objectVersions", "$_metadata.objectVersions"),

@@ -28,17 +28,18 @@ package fr.gouv.vitam.batch.report.model.entry;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.reassignment.ReassignmentOperation;
 
 import java.util.List;
 import java.util.Set;
 
 public class PurgeObjectGroupReportEntry {
 
-    private static final String FORMER_ORIGINATING_AGENCIES = "formerOriginatingAgencies";
+    private static final String ORIGINATING_AGENCIES_REASSIGNMENTS = "originatingAgenciesReassignments";
 
     private final String id;
     private final String originatingAgency;
-    private final List<String> formerOriginatingAgencies;
+    private final List<ReassignmentOperation> originatingAgenciesReassignments;
     private final String initialOperation;
     private final Set<String> deletedParentUnitIds;
     private final Set<String> objectIds;
@@ -50,7 +51,7 @@ public class PurgeObjectGroupReportEntry {
     public PurgeObjectGroupReportEntry(
         @JsonProperty("id") String id,
         @JsonProperty("originatingAgency") String originatingAgency,
-        @JsonProperty(FORMER_ORIGINATING_AGENCIES) List<String> formerOriginatingAgencies,
+        @JsonProperty(ORIGINATING_AGENCIES_REASSIGNMENTS) List<ReassignmentOperation> originatingAgenciesReassignments,
         @JsonProperty("opi") String initialOperation,
         @JsonProperty("deletedParentUnitIds") Set<String> deletedParentUnitIds,
         @JsonProperty("objectIds") Set<String> objectIds,
@@ -60,7 +61,7 @@ public class PurgeObjectGroupReportEntry {
     ) {
         this.id = id;
         this.originatingAgency = originatingAgency;
-        this.formerOriginatingAgencies = formerOriginatingAgencies;
+        this.originatingAgenciesReassignments = originatingAgenciesReassignments;
         this.initialOperation = initialOperation;
         this.deletedParentUnitIds = deletedParentUnitIds;
         this.objectIds = objectIds;
@@ -109,8 +110,8 @@ public class PurgeObjectGroupReportEntry {
         return archivalAgencyIdentifier;
     }
 
-    @JsonProperty(FORMER_ORIGINATING_AGENCIES)
-    public List<String> getFormerOriginatingAgencies() {
-        return formerOriginatingAgencies;
+    @JsonProperty(ORIGINATING_AGENCIES_REASSIGNMENTS)
+    public List<ReassignmentOperation> getOriginatingAgenciesReassignments() {
+        return originatingAgenciesReassignments;
     }
 }
