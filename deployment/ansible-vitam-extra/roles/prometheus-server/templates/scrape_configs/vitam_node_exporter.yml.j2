@@ -5,7 +5,8 @@ scrape_configs:
   - job_name: vitam-node-exporter
     metrics_path: {{ prometheus.node_exporter.metrics_path | default('/metrics') }}
     static_configs:
-      {% for host in groups['vitam'] %}
+    {% for host in groups['vitam'] %}
+      {% if not hostvars[host]['consul_disabled'] | default(false) | bool %}
       - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ prometheus.node_exporter.port | default(9101) }}"]
         labels:
           hostname: {{ host.split(".")[0] }}
@@ -14,5 +15,6 @@ scrape_configs:
           {% elif host in groups['hosts_elasticsearch_log'] %}
           elastic_cluster_name: {{ elasticsearch.log.cluster_name }}
           {% endif %}
-      {% endfor %}
+      {% endif %}
+    {% endfor %}
 {% endif %}
