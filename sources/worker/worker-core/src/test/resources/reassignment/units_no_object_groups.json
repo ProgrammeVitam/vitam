@@ -13,6 +13,7 @@
       "#originating_agencies": ["sourceOriginatingAgency"],
       "#allunitups": [],
       "#unitups": [],
+      "#opi": "opi1",
       "#max": 1
     },
     {
@@ -22,7 +23,8 @@
       "#max": 1,
       "#validComputedInheritedRules": true,
       "#allunitups": [],
-      "#unitups": []
+      "#unitups": [],
+      "#opi": "opi1"
     },
     {
       "#id": "id_unit_3",
@@ -30,6 +32,7 @@
       "#originating_agencies": ["sourceOriginatingAgency"],
       "#max": 2,
       "#allunitups": ["id_unit_1"],
+      "#opi": "opi2",
       "#validComputedInheritedRules": true,
       "#unitups": ["id_unit_1"]
     },
@@ -39,7 +42,8 @@
       "#max": 3,
       "#validComputedInheritedRules": true,
       "#allunitups": ["id_unit_1","id_unit_3"],
-      "#unitups": ["id_unit_3"]
+      "#unitups": ["id_unit_3"],
+      "#opi": "opi3"
     }
   ],
   "$facetResults": [],

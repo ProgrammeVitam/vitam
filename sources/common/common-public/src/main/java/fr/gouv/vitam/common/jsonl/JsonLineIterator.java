@@ -33,9 +33,12 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.stream.StreamUtils;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.util.NoSuchElementException;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Stream;
@@ -52,6 +55,10 @@ public class JsonLineIterator<T> implements CloseableIterator<T> {
     private int available;
     private boolean eof;
     private boolean closed;
+
+    public static <T> JsonLineIterator<T> fromFile(File file, TypeReference<T> typeReference) throws IOException {
+        return new JsonLineIterator<T>(new FileInputStream(file), typeReference);
+    }
 
     public JsonLineIterator(InputStream inputStream, TypeReference<T> typeReference) {
         ParametersChecker.checkParameter("inputStream", inputStream);
@@ -98,7 +105,7 @@ public class JsonLineIterator<T> implements CloseableIterator<T> {
     @Override
     public T next() {
         if (!hasNext()) {
-            throw new IllegalStateException();
+            throw new NoSuchElementException();
         }
 
         InputStream lineInputStream = new InputStream() {

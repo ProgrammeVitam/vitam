@@ -71,6 +71,7 @@ import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
+import fr.gouv.vitam.worker.core.utils.PluginHelper;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.collections4.CollectionUtils;
@@ -108,6 +109,8 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
     private static final String INTERMEDIATE_OG_IDS_FILE_NAME = "intermediate_og_ids.jsonl";
 
     public static final String OBJECT_GROUPS_TO_UPDATE_JSONL_FILE = "object_groups_to_update_sp.jsonl";
+
+    public static final String REASSIGNMENT_STATISTICS_JSON_FILE = "reassignment_statistics.json";
 
     private final OriginatingAgencyReassignmentService originatingAgencyReassignmentService;
 
@@ -198,10 +201,9 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             INTERMEDIATE_OG_IDS_FILE_NAME
         );
 
-        File ogToUpdateIntermediateFile = null;
         try {
             // Generate unit distribution + intermediate distribution for ObjectGroups
-            generateUnitsDistributionsAndPrepareObjectGroupDistributions(
+            MetadataStats unitStats = generateUnitsDistributionsAndPrepareObjectGroupDistributions(
                 reassignmentRequest,
                 handler,
                 unitToUpdateDistributionFile,
@@ -209,25 +211,35 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             );
 
             // Generate Object Group distribution from intermediate distribution
-            ogToUpdateIntermediateFile = handleObjectGroupReassignmentGenerationDistributions(
+            MetadataStats objectGroupStats = handleObjectGroupReassignmentGenerationDistributions(
                 handler,
                 param,
                 ogIdsIntermediateFile,
                 reassignmentRequest
             );
 
-            if (reassignmentRequest.isPropagateToObjectGroups() && ogToUpdateIntermediateFile.length() == 0) {
+            // Write stats
+            persistReassignmentStatistics(handler, unitStats, objectGroupStats);
+
+            // Report status
+            if (unitStats.nbEntries() == 0 && objectGroupStats.nbEntries() == 0) {
+                return buildItemStatus(
+                    PLUGIN_NAME,
+                    StatusCode.KO,
+                    PluginHelper.EventDetails.of("No metadata selected")
+                );
+            }
+            if (reassignmentRequest.isPropagateToObjectGroups() && objectGroupStats.nbEntries() == 0) {
                 return buildItemStatus(PLUGIN_NAME, StatusCode.WARNING, null);
             }
             return buildItemStatus(PLUGIN_NAME, StatusCode.OK, null);
         } finally {
             FileUtils.deleteQuietly(unitToUpdateDistributionFile);
             FileUtils.deleteQuietly(ogIdsIntermediateFile);
-            FileUtils.deleteQuietly(ogToUpdateIntermediateFile);
         }
     }
 
-    private void generateUnitsDistributionsAndPrepareObjectGroupDistributions(
+    private MetadataStats generateUnitsDistributionsAndPrepareObjectGroupDistributions(
         OriginatingAgencyReassignmentRequest reassignmentRequest,
         HandlerIO handler,
         File unitToUpdateDistributionFile,
@@ -241,6 +253,8 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             );
 
             Iterator<JsonNode> unitIterator = new SpliteratorIterator<>(unitScrollSpliterator);
+            Set<String> initialOperations = new HashSet<>();
+            int nbUnits = 0;
 
             try (
                 final FileOutputStream exportUnitsFileOutputStream = new FileOutputStream(unitToUpdateDistributionFile);
@@ -258,6 +272,8 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
                     );
 
                     if (unitToUpdateOriginatingAgency) {
+                        nbUnits++;
+                        initialOperations.add(unit.get(VitamFieldsHelper.initialOperation()).asText());
                         // Write units sorted by level #max
                         unitsToUpdateWriter.addEntry(
                             new JsonLineModel(unitId, unit.get(VitamFieldsHelper.max()).asInt(), unit)
@@ -273,6 +289,8 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
 
             // Transfer file to workspace but keep it locally. We'll be needing it later on
             handler.transferFileToWorkspace(UNITS_TO_UPDATE_FILE, unitToUpdateDistributionFile, false, false);
+
+            return new MetadataStats(nbUnits, initialOperations);
         } catch (IOException | InvalidParseOperationException | ProcessingException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not prepare units to update", e);
         }
@@ -311,6 +329,7 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             VitamFieldsHelper.max(),
             VitamFieldsHelper.originatingAgency(),
             VitamFieldsHelper.originatingAgencies(),
+            VitamFieldsHelper.initialOperation(),
             VitamFieldsHelper.unitups(),
             VitamFieldsHelper.object(),
             VitamFieldsHelper.allunitups(),
@@ -320,7 +339,7 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
         return selectMultiQuery;
     }
 
-    private File handleObjectGroupReassignmentGenerationDistributions(
+    private MetadataStats handleObjectGroupReassignmentGenerationDistributions(
         HandlerIO handler,
         WorkerParameters param,
         File ogIdsToFillInIntermediateFile,
@@ -329,7 +348,8 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
         try {
             if (!reassignmentRequest.isPropagateToObjectGroups()) {
                 // Create an empty distribution file for OGs update step
-                return createEmptyObjectGroupDistributionFile(handler);
+                createEmptyObjectGroupDistributionFile(handler);
+                return new MetadataStats(0, Collections.emptySet());
             }
 
             exportIntermediateObjectGroupIdToUpdateOriginatingAgenciesFileToBatchReport(
@@ -346,11 +366,31 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
                 );
             }
 
-            // Reload OG distribution file exported by BatchReport from workspace
-            return handler.getFileFromWorkspace(
-                handler.getWorkFlowExecutionContext(),
-                OBJECT_GROUPS_TO_UPDATE_JSONL_FILE
-            );
+            // Compute stats after object group deduplication in batch report
+            File ogToUpdateDistributionFile = null;
+            try {
+                ogToUpdateDistributionFile = handler.getFileFromWorkspace(
+                    handler.getWorkFlowExecutionContext(),
+                    OBJECT_GROUPS_TO_UPDATE_JSONL_FILE
+                );
+                try (
+                    JsonLineIterator<JsonLineModel> iterator = JsonLineIterator.fromFile(
+                        ogToUpdateDistributionFile,
+                        new TypeReference<>() {}
+                    )
+                ) {
+                    int nbObjectGroups = 0;
+                    Set<String> initialOperations = new HashSet<>();
+                    while (iterator.hasNext()) {
+                        JsonLineModel entry = iterator.next();
+                        initialOperations.add(entry.getParams().get(VitamFieldsHelper.initialOperation()).asText());
+                        nbObjectGroups++;
+                    }
+                    return new MetadataStats(nbObjectGroups, initialOperations);
+                }
+            } finally {
+                FileUtils.deleteQuietly(ogToUpdateDistributionFile);
+            }
         } catch (
             IOException
             | VitamClientInternalException
@@ -358,11 +398,15 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             | ContentAddressableStorageNotFoundException
             | ContentAddressableStorageServerException e
         ) {
-            throw new ProcessingStatusException(StatusCode.FATAL, e.getMessage());
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "An error occurred during object group distribution",
+                e
+            );
         }
     }
 
-    private File createEmptyObjectGroupDistributionFile(HandlerIO handler)
+    private void createEmptyObjectGroupDistributionFile(HandlerIO handler)
         throws IOException, ProcessingStatusException, ProcessingException {
         File ogToUpdateIntermediateFile = handler.getNewLocalFile(
             handler.getWorkFlowExecutionContext(),
@@ -379,8 +423,6 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
 
         // Transfer file to workspace but keep it locally. We'll be needing it later on
         handler.transferFileToWorkspace(OBJECT_GROUPS_TO_UPDATE_JSONL_FILE, ogToUpdateIntermediateFile, false, false);
-
-        return ogToUpdateIntermediateFile;
     }
 
     public void exportIntermediateObjectGroupIdToUpdateOriginatingAgenciesFileToBatchReport(
@@ -456,7 +498,34 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
         }
     }
 
+    private void persistReassignmentStatistics(
+        HandlerIO handler,
+        MetadataStats unitStats,
+        MetadataStats objectGroupStats
+    ) throws ProcessingStatusException {
+        try {
+            ReassignmentStatistics reassignmentStats = new ReassignmentStatistics(
+                unitStats.nbEntries(),
+                objectGroupStats.nbEntries()
+            );
+            File reassignmentStatsFile = handler.getNewLocalFile(
+                handler.getWorkFlowExecutionContext(),
+                REASSIGNMENT_STATISTICS_JSON_FILE
+            );
+            JsonHandler.writeAsFile(reassignmentStats, reassignmentStatsFile);
+            handler.transferFileToWorkspace(REASSIGNMENT_STATISTICS_JSON_FILE, reassignmentStatsFile, true, false);
+        } catch (ProcessingException | InvalidParseOperationException e) {
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "An error occurred during reassignment statistics persistence",
+                e
+            );
+        }
+    }
+
     public static String getId() {
         return PLUGIN_NAME;
     }
+
+    private record MetadataStats(Integer nbEntries, Set<String> initialOperations) {}
 }

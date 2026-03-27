@@ -67,6 +67,7 @@ import java.util.List;
 import java.util.Map;
 
 import static fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentPreparationPlugin.OBJECT_GROUPS_TO_UPDATE_JSONL_FILE;
+import static fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentPreparationPlugin.REASSIGNMENT_STATISTICS_JSON_FILE;
 import static fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentPreparationPlugin.UNITS_TO_UPDATE_FILE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -261,6 +262,13 @@ public class OriginatingAgencyReassignmentPreparationPluginTest {
                 jsonLineModel -> jsonLineModel.getParams().get(VitamFieldsHelper.initialOperation()).asText()
             )
             .containsExactlyInAnyOrder(tuple("id_og_1", null, "opi_1"), tuple("id_og_2", null, "opi_2"));
+
+        ReassignmentStatistics reassignmentStatistics = JsonHandler.getFromFile(
+            writtenFiles.get(REASSIGNMENT_STATISTICS_JSON_FILE),
+            ReassignmentStatistics.class
+        );
+        assertThat(reassignmentStatistics.nbUnits()).isEqualTo(4);
+        assertThat(reassignmentStatistics.nbObjectGroups()).isEqualTo(2);
     }
 
     @Test
@@ -366,6 +374,13 @@ public class OriginatingAgencyReassignmentPreparationPluginTest {
             );
 
         assertThat(writtenFiles.get(OBJECT_GROUPS_TO_UPDATE_JSONL_FILE)).isEmpty();
+
+        ReassignmentStatistics reassignmentStatistics = JsonHandler.getFromFile(
+            writtenFiles.get(REASSIGNMENT_STATISTICS_JSON_FILE),
+            ReassignmentStatistics.class
+        );
+        assertThat(reassignmentStatistics.nbUnits()).isEqualTo(4);
+        assertThat(reassignmentStatistics.nbObjectGroups()).isEqualTo(0);
     }
 
     @Test
@@ -467,6 +482,13 @@ public class OriginatingAgencyReassignmentPreparationPluginTest {
 
         assertThat(writtenFiles.get(OBJECT_GROUPS_TO_UPDATE_JSONL_FILE)).isEmpty();
         verify(metaDataClient, never()).selectObjectGroups(any());
+
+        ReassignmentStatistics reassignmentStatistics = JsonHandler.getFromFile(
+            writtenFiles.get(REASSIGNMENT_STATISTICS_JSON_FILE),
+            ReassignmentStatistics.class
+        );
+        assertThat(reassignmentStatistics.nbUnits()).isEqualTo(4);
+        assertThat(reassignmentStatistics.nbObjectGroups()).isEqualTo(0);
     }
 
     @Test

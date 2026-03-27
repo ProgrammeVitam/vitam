@@ -53,6 +53,10 @@
               {
                 "name": "object_groups_to_update_sp.jsonl",
                 "uri": "WORKSPACE:object_groups_to_update_sp.jsonl"
+              },
+              {
+                "name": "reassignment_statistics.json",
+                "uri": "WORKSPACE:reassignment_statistics.json"
               }
             ]
           }

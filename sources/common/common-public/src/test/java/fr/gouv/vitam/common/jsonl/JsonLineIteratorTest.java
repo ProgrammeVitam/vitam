@@ -36,6 +36,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.NoSuchElementException;
 
 import static fr.gouv.vitam.common.json.JsonHandler.JSON_NODE_TYPE_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,7 +51,7 @@ public class JsonLineIteratorTest {
             JSON_NODE_TYPE_REFERENCE
         );
         assertThat(jsonLineGenericIterator.hasNext()).isFalse();
-        assertThatThrownBy(jsonLineGenericIterator::next).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(jsonLineGenericIterator::next).isInstanceOf(NoSuchElementException.class);
     }
 
     @Test
