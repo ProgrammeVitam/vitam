@@ -112,6 +112,15 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
 
     public static final String REASSIGNMENT_STATISTICS_JSON_FILE = "reassignment_statistics.json";
 
+    /**
+     * FIXME: to be removed once Vitam V9.1 reassignment workflow restrictions removed
+     */
+    @Deprecated
+    public static boolean _____Enable_Temporary_V91_Restrictions_____ = true;
+
+    private static final String VERSIONS = "versions";
+    private static final String OBJECT_OPI = "#qualifiers.versions.#opi";
+
     private final OriginatingAgencyReassignmentService originatingAgencyReassignmentService;
 
     public OriginatingAgencyReassignmentPreparationPlugin() {
@@ -133,7 +142,7 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
                 "originating agencies reassignment preparation failed with status [" + e.getMessage() + "]",
                 e
             );
-            return buildItemStatus(PLUGIN_NAME, e.getStatusCode(), e);
+            return buildItemStatus(PLUGIN_NAME, e.getStatusCode(), e.getEventDetails());
         }
     }
 
@@ -217,6 +226,9 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
                 ogIdsIntermediateFile,
                 reassignmentRequest
             );
+
+            // Validate selection (limitation of Vitam 9.1)
+            validateSelectionScopeTemporaryLimitation(handler, unitStats, objectGroupStats);
 
             // Write stats
             persistReassignmentStatistics(handler, unitStats, objectGroupStats);
@@ -438,7 +450,9 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
                 new JsonLineIterator<>(inputStream, new TypeReference<>() {}),
                 VitamConfiguration.getBatchSize()
             );
+
             while (partitions.hasNext()) {
+                // Deduplicate GOTs if any
                 Set<String> objectGroupIds = new HashSet<>(partitions.next());
 
                 List<ObjectNode> updatableObjectGroups = filterObjectGroupsHavingOriginatingAgency(
@@ -470,7 +484,7 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
         Set<String> objectGroupsIds,
         String originatingAgency
     )
-        throws InvalidParseOperationException, InvalidCreateOperationException, MetaDataExecutionException, MetaDataClientServerException, MetaDataDocumentSizeException {
+        throws InvalidParseOperationException, InvalidCreateOperationException, MetaDataExecutionException, MetaDataClientServerException, MetaDataDocumentSizeException, ProcessingStatusException {
         if (CollectionUtils.isEmpty(objectGroupsIds)) {
             return Collections.emptyList();
         }
@@ -486,15 +500,50 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             BooleanQuery searchQuery = QueryHelper.and().add(inQuery, originatingAgencyQuery);
             selectMultiQuery.setQuery(searchQuery);
 
-            selectMultiQuery.addUsedProjection(VitamFieldsHelper.id(), VitamFieldsHelper.initialOperation());
+            selectMultiQuery.addUsedProjection(
+                VitamFieldsHelper.id(),
+                VitamFieldsHelper.initialOperation(),
+                OBJECT_OPI
+            );
 
             JsonNode results = metaDataClient.selectObjectGroups(selectMultiQuery.getFinalSelect()).get("$results");
 
             List<ObjectNode> result = new ArrayList<>();
             for (JsonNode objectGroup : results) {
+                validateObjectGroupOpiTemporaryLimitation(objectGroup);
                 result.add((ObjectNode) objectGroup);
             }
             return result;
+        }
+    }
+
+    /**
+     * @deprecated Limitation of Vitam 9.1 : ObjectGroups cannot have the same opi.
+     * In this version, Vitam does not support partial originating agency update for a single AccessionRegisterDetail.
+     * Only full AccessionRegisterDetail update is supported.
+     * This is mainly done to ensure that we won't end with 2 AccessRegisterDetails for the same preservation operation,
+     * with the same Originating Agency.
+     */
+    private void validateObjectGroupOpiTemporaryLimitation(JsonNode objectGroup) throws ProcessingStatusException {
+        if (!_____Enable_Temporary_V91_Restrictions_____) {
+            return;
+        }
+        String opi = getInitialOperation(objectGroup);
+        for (JsonNode qualifier : objectGroup.get(VitamFieldsHelper.qualifiers())) {
+            for (JsonNode version : qualifier.get(VERSIONS)) {
+                String objectOpi = getInitialOperation(version);
+                if (!Objects.equals(opi, objectOpi)) {
+                    ObjectNode evDetData = JsonHandler.createObjectNode();
+                    evDetData.put("objectGroupId", objectGroup.get(VitamFieldsHelper.id()).asText());
+                    evDetData.put("opi", opi);
+                    evDetData.put("objectOpi", objectOpi);
+                    throw new ProcessingStatusException(
+                        StatusCode.KO,
+                        evDetData,
+                        "An object group have objects from other ingest or preservation operations"
+                    );
+                }
+            }
         }
     }
 
@@ -521,6 +570,116 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
                 e
             );
         }
+    }
+
+    /**
+     * @deprecated Limitation of Vitam 9.1 : Originating agency reassignment can only update whole OPIs : all current
+     * units + objectGroups + objects of the same OPI must be updated as a whole.
+     * This is because in this version, Vitam does not support partial originating agency update for a single
+     * AccessionRegisterDetail. Only full AccessionRegisterDetail update is supported.
+     */
+    private void validateSelectionScopeTemporaryLimitation(
+        HandlerIO handler,
+        MetadataStats unitStats,
+        MetadataStats objectGroupStats
+    ) throws ProcessingStatusException {
+        if (!_____Enable_Temporary_V91_Restrictions_____) {
+            return;
+        }
+        try {
+            Set<String> combinedInitialOperations = new HashSet<>();
+            combinedInitialOperations.addAll(unitStats.initialOperations());
+            combinedInitialOperations.addAll(objectGroupStats.initialOperations());
+
+            if (combinedInitialOperations.size() > 1000) {
+                throw new ProcessingStatusException(StatusCode.KO, "Too many #opi selected by query");
+            }
+
+            validateUnitSelectionScope(handler, combinedInitialOperations, unitStats.nbEntries());
+
+            validateObjectGroupSelectionScope(handler, combinedInitialOperations, objectGroupStats.nbEntries());
+        } catch (
+            InvalidCreateOperationException
+            | InvalidParseOperationException
+            | MetaDataExecutionException
+            | MetaDataDocumentSizeException
+            | MetaDataClientServerException e
+        ) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not validate reassignment scope", e);
+        }
+    }
+
+    /**
+     * @deprecated Limitation of Vitam 9.1 :
+     */
+    private void validateUnitSelectionScope(HandlerIO handler, Set<String> initialOperations, int expectedTotal)
+        throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException, ProcessingStatusException {
+        try (MetaDataClient metaDataClient = handler.getMetaDataClient()) {
+            SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
+            selectMultiQuery.setQuery(
+                QueryHelper.in(VitamFieldsHelper.initialOperation(), initialOperations.toArray(new String[0]))
+            );
+            selectMultiQuery.addUsedProjection(VitamFieldsHelper.id());
+            selectMultiQuery.setLimitFilter(0L, 1L);
+            selectMultiQuery.trackTotalHits(true);
+
+            JsonNode result = metaDataClient.selectUnits(selectMultiQuery.getFinalSelect());
+            RequestResponseOK<JsonNode> requestResponse = RequestResponseOK.getFromJsonNode(result, JsonNode.class);
+            int total = (int) requestResponse.getHits().getTotal();
+
+            if (total != expectedTotal) {
+                ObjectNode evDetData = JsonHandler.createObjectNode();
+                evDetData.put("error", "Invalid query perimeter");
+                evDetData.put("nbUnitSelected", total);
+                evDetData.put("nbUnitAvailable", expectedTotal);
+                throw new ProcessingStatusException(
+                    StatusCode.KO,
+                    evDetData,
+                    "Invalid query perimeter. Selected " + expectedTotal + " out of " + total + " units"
+                );
+            }
+        }
+    }
+
+    /**
+     * @deprecated Limitation of Vitam 9.1 :
+     */
+    private void validateObjectGroupSelectionScope(HandlerIO handler, Set<String> initialOperations, int expectedTotal)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataClientServerException, MetaDataDocumentSizeException, ProcessingStatusException, InvalidCreateOperationException {
+        try (MetaDataClient metaDataClient = handler.getMetaDataClient()) {
+            SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
+            // Query both object group #opi, and object #opi to ensure
+            selectMultiQuery.setQuery(
+                QueryHelper.or()
+                    .add(
+                        QueryHelper.in(VitamFieldsHelper.initialOperation(), initialOperations.toArray(new String[0])),
+                        QueryHelper.in(OBJECT_OPI, initialOperations.toArray(new String[0]))
+                    )
+            );
+            selectMultiQuery.addUsedProjection(VitamFieldsHelper.id());
+            selectMultiQuery.setLimitFilter(0L, 1L);
+            selectMultiQuery.trackTotalHits(true);
+
+            JsonNode result = metaDataClient.selectObjectGroups(selectMultiQuery.getFinalSelect());
+            RequestResponseOK<JsonNode> requestResponse = RequestResponseOK.getFromJsonNode(result, JsonNode.class);
+            int total = (int) requestResponse.getHits().getTotal();
+
+            if (total != expectedTotal) {
+                ObjectNode evDetData = JsonHandler.createObjectNode();
+                evDetData.put("error", "Invalid query perimeter");
+                evDetData.put("nbObjectGroupsSelected", total);
+                evDetData.put("nbObjectGroupsAvailable", expectedTotal);
+                throw new ProcessingStatusException(
+                    StatusCode.KO,
+                    evDetData,
+                    "Invalid query perimeter. Selected " + expectedTotal + " out of " + total + " object groups"
+                );
+            }
+        }
+    }
+
+    private String getInitialOperation(JsonNode metadata) {
+        return metadata.get(VitamFieldsHelper.initialOperation()).asText();
     }
 
     public static String getId() {

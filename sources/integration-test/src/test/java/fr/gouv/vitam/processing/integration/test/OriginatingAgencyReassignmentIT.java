@@ -77,6 +77,7 @@ import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentPreparationPlugin;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -190,6 +191,9 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
 
     @After
     public void afterTest() {
+        // FIXME : To removed once temporary v91 restrictions are removed
+        OriginatingAgencyReassignmentPreparationPlugin._____Enable_Temporary_V91_Restrictions_____ = true;
+
         VitamThreadUtils.getVitamSession().setContractId("aName");
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
 
@@ -233,6 +237,9 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testOriginatingAgencyReassignmentWithImpactOnComputedRules() throws Exception {
+        // FIXME : To removed once temporary v91 restrictions are removed
+        OriginatingAgencyReassignmentPreparationPlugin._____Enable_Temporary_V91_Restrictions_____ = false;
+
         prepareVitamSession();
 
         // Given ingest
@@ -370,6 +377,9 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testOriginatingAgencyReassignmentWithPropagationOnObjectGroups() throws Exception {
+        // FIXME : To removed once temporary v91 restrictions are removed
+        OriginatingAgencyReassignmentPreparationPlugin._____Enable_Temporary_V91_Restrictions_____ = false;
+
         prepareVitamSession();
 
         // Given ingest
@@ -487,6 +497,9 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testOriginatingAgencyReassignmentOnUnitsOnly() throws Exception {
+        // FIXME : To removed once temporary v91 restrictions are removed
+        OriginatingAgencyReassignmentPreparationPlugin._____Enable_Temporary_V91_Restrictions_____ = false;
+
         prepareVitamSession();
 
         // Given ingest

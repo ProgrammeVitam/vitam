@@ -83,6 +83,7 @@ import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.TestZipUtils.zipFolder;
 import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFiles;
+import static fr.gouv.vitam.common.VitamTestHelper.printDebutInformation;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
@@ -328,7 +329,7 @@ public class IntegrationTestUtils {
         SelectMultiQuery selectQuery
     )
         throws ContentAddressableStorageServerException, InvalidParseOperationException, InternalServerException, BadRequestException, VitamClientException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException {
-        GUID operationId;
+        GUID operationId = null;
         try (
             WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance(
                 WorkFlowExecutionContext.VITAM
@@ -397,6 +398,11 @@ public class IntegrationTestUtils {
             assertNotNull(cirWorkflow);
             assertEquals(COMPLETED, cirWorkflow.getState());
             assertThat(cirWorkflow.getStatus()).isIn(StatusCode.OK, StatusCode.WARNING);
+        } catch (AssertionError e) {
+            if (operationId != null) {
+                printDebutInformation(operationId.toString());
+            }
+            throw e;
         }
         return operationId.toString();
     }
