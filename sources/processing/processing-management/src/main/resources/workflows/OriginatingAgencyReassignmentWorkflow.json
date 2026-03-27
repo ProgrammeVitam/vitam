@@ -201,6 +201,29 @@
     },
     {
       "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_ACCESSION_REGISTER_UPDATE",
+      "behavior": "BLOCKING",
+      "cancellable": false,
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_ACCESSION_REGISTER_UPDATE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "reassignment_statistics.json",
+                "uri": "WORKSPACE:reassignment_statistics.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_FINALIZATION",
       "cancellable": false,
       "behavior": "FINALLY",

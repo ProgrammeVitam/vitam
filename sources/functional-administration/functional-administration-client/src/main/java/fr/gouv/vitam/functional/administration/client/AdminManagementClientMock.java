@@ -84,6 +84,7 @@ import org.apache.commons.io.input.NullInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -599,15 +600,24 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public RequestResponse<AccessionRegisterSymbolic> createAccessionRegisterSymbolic(List<Integer> tenants) {
-        throw new RuntimeException(CANNOT_BE_USED);
+        throw new IllegalStateException(CANNOT_BE_USED);
+    }
+
+    @Override
+    public void reassignAccessionRegisterOriginatingAgency(
+        Collection<String> initialOperations,
+        String sourceOriginatingAgency,
+        String targetOriginatingAgency
+    ) {
+        throw new IllegalStateException(CANNOT_BE_USED);
     }
 
     @Override
     public RequestResponse<AccessionRegisterSymbolicModel> getAccessionRegisterSymbolic(
         Integer tenant,
         JsonNode queryDsl
-    ) throws AdminManagementClientServerException {
-        throw new RuntimeException(CANNOT_BE_USED);
+    ) {
+        throw new IllegalStateException(CANNOT_BE_USED);
     }
 
     @Override

@@ -42,6 +42,8 @@ public class RegisterValueEventModel {
     public static final String TOTAL_OBJECTS = "Objects";
     public static final String TOTAL_OBJECTS_SIZE = "ObjSize";
     public static final String CREATION_DATE = "CreationDate";
+    public static final String SOURCE_ORIGINATING_AGENCY = "SourceOriginatingAgency";
+    public static final String TARGET_ORIGINATING_AGENCY = "TargetOriginatingAgency";
 
     @JsonProperty(OPERATION)
     private String operation;
@@ -53,28 +55,34 @@ public class RegisterValueEventModel {
      * archive number
      */
     @JsonProperty(TOTAL_GOTS)
-    private long totalGots = 0l;
+    private Long totalGots;
 
     /**
      * archive unit number
      */
     @JsonProperty(TOTAL_UNITS)
-    private long totalUnits = 0l;
+    private Long totalUnits;
 
     /**
      * archive object number
      */
     @JsonProperty(TOTAL_OBJECTS)
-    private long totalObjects = 0l;
+    private Long totalObjects;
 
     /**
      * archive object size
      */
     @JsonProperty(TOTAL_OBJECTS_SIZE)
-    private long objectSize = 0l;
+    private Long objectSize;
 
     @JsonProperty(CREATION_DATE)
-    private String creationdate;
+    private String creationDate;
+
+    @JsonProperty(SOURCE_ORIGINATING_AGENCY)
+    private String sourceOriginatingAgency;
+
+    @JsonProperty(TARGET_ORIGINATING_AGENCY)
+    private String targetOriginatingAgency;
 
     /**
      * Constructor without fields
@@ -120,38 +128,38 @@ public class RegisterValueEventModel {
         return this;
     }
 
-    public long getTotalGots() {
+    public Long getTotalGots() {
         return totalGots;
     }
 
-    public RegisterValueEventModel setTotalGots(long totalGots) {
+    public RegisterValueEventModel setTotalGots(Long totalGots) {
         this.totalGots = totalGots;
         return this;
     }
 
-    public long getTotalUnits() {
+    public Long getTotalUnits() {
         return totalUnits;
     }
 
-    public RegisterValueEventModel setTotalUnits(long totalUnits) {
+    public RegisterValueEventModel setTotalUnits(Long totalUnits) {
         this.totalUnits = totalUnits;
         return this;
     }
 
-    public long getTotalObjects() {
+    public Long getTotalObjects() {
         return totalObjects;
     }
 
-    public RegisterValueEventModel setTotalObjects(long totalObjects) {
+    public RegisterValueEventModel setTotalObjects(Long totalObjects) {
         this.totalObjects = totalObjects;
         return this;
     }
 
-    public long getObjectSize() {
+    public Long getObjectSize() {
         return objectSize;
     }
 
-    public RegisterValueEventModel setObjectSize(long objectSize) {
+    public RegisterValueEventModel setObjectSize(Long objectSize) {
         this.objectSize = objectSize;
         return this;
     }
@@ -161,17 +169,35 @@ public class RegisterValueEventModel {
      *
      * @return creationdate
      */
-    public String getCreationdate() {
-        return creationdate;
+    public String getCreationDate() {
+        return creationDate;
     }
 
     /**
      * Set creationDate
      *
-     * @param creationdate
+     * @param creationDate
      */
-    public RegisterValueEventModel setCreationdate(String creationdate) {
-        this.creationdate = creationdate;
+    public RegisterValueEventModel setCreationDate(String creationDate) {
+        this.creationDate = creationDate;
+        return this;
+    }
+
+    public String getSourceOriginatingAgency() {
+        return sourceOriginatingAgency;
+    }
+
+    public RegisterValueEventModel setSourceOriginatingAgency(String sourceOriginatingAgency) {
+        this.sourceOriginatingAgency = sourceOriginatingAgency;
+        return this;
+    }
+
+    public String getTargetOriginatingAgency() {
+        return targetOriginatingAgency;
+    }
+
+    public RegisterValueEventModel setTargetOriginatingAgency(String targetOriginatingAgency) {
+        this.targetOriginatingAgency = targetOriginatingAgency;
         return this;
     }
 }

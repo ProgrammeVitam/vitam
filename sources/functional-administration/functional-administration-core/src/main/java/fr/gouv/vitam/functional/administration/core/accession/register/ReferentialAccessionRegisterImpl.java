@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.functional.administration.core.accession.register;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -38,6 +39,7 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.query.action.PushAction;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
@@ -60,21 +62,25 @@ import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.retryable.RetryableOnException;
 import fr.gouv.vitam.common.retryable.RetryableOnResult;
 import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.thread.ExecutorUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterOriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.ReferentialAccessionRegisterSummaryUtil;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.exception.ConcurrentReferentialModificationException;
 import fr.gouv.vitam.functional.administration.common.exception.FunctionalBackupServiceException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -84,7 +90,6 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -337,13 +342,14 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     }
 
     private void storeAccessionRegisterDetail(AccessionRegisterDetailModel registerDetail) throws ReferentialException {
+        storeAccessionRegisterDetail(registerDetail.getOriginatingAgency(), registerDetail.getOpi());
+    }
+
+    private void storeAccessionRegisterDetail(String originatingAgency, String opi) throws ReferentialException {
         try {
-            Document docToStorage = findAccessionRegisterDetail(
-                registerDetail.getOriginatingAgency(),
-                registerDetail.getOpi()
-            );
+            Document docToStorage = findAccessionRegisterDetail(originatingAgency, opi);
             // Store Backup copy in storage
-            functionalBackupService.saveDocument(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, docToStorage);
+            functionalBackupService.saveDocument(ACCESSION_REGISTER_DETAIL, docToStorage);
         } catch (FunctionalBackupServiceException e) {
             throw new ReferentialException("Store backup register detail Error", e);
         }
@@ -362,14 +368,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         );
 
         RetryableOnResult<Boolean, ReferentialException> retryable = new RetryableOnResult<>(
-            new RetryableParameters(
-                VitamConfiguration.getOptimisticLockRetryNumber(),
-                VitamConfiguration.getOptimisticLockSleepTime(),
-                VitamConfiguration.getOptimisticLockSleepTime(),
-                VitamConfiguration.getOptimisticLockSleepTime(),
-                TimeUnit.MILLISECONDS,
-                VitamLogLevel.WARN
-            ),
+            getRetryableParameters(),
             success -> !success
         );
 
@@ -400,7 +399,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     private boolean tryAddEventToAccessionRegisterDetailWithOptimisticLock(
         AccessionRegisterDetailModel newRegisterDetail
     )
-        throws ReferentialException, InvalidParseOperationException, ConcurrentModificationException, InvalidCreateOperationException, DocumentAlreadyExistsException {
+        throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException, DocumentAlreadyExistsException {
         LOGGER.debug(
             "Update register ID / Originating Agency: {} / {}",
             newRegisterDetail.getId(),
@@ -578,7 +577,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             .setTotalObjects(registerDetail.getTotalObjects().getRemained())
             .setTotalUnits(registerDetail.getTotalUnits().getRemained())
             .setObjectSize(registerDetail.getObjectSize().getRemained())
-            .setCreationdate(LocalDateUtil.nowFormatted());
+            .setCreationDate(LocalDateUtil.nowFormatted());
     }
 
     @Override
@@ -696,5 +695,201 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         } catch (final Exception e) {
             throw new ReferentialException("Error when migrating register detail !", e);
         }
+    }
+
+    public void reassignAccessionRegisterOriginatingAgency(
+        AccessionRegisterOriginatingAgencyReassignmentRequest request
+    ) throws ReferentialException, BadRequestException {
+        // FIXME : Current Vitam V9.1 implementation does not support partial AccessionRegisterDetail update.
+        //  We'll be updating the whole AccessionRegisterDetail's OriginatingAgency, and updating source and target
+        //  AccessionRegisterSummary docs accordingly
+        String requestId = VitamThreadUtils.getVitamSession().getRequestId();
+
+        List<AccessionRegisterDetail> updatedAccessionRegisterDetails = new ArrayList<>();
+        for (String initialOperation : request.initialOperations()) {
+            AccessionRegisterDetail accessionRegisterDetail = reassignAccessionRegisterOriginatingAgency(
+                request,
+                initialOperation,
+                requestId
+            );
+            updatedAccessionRegisterDetails.add(accessionRegisterDetail);
+
+            // backup to offers
+            storeAccessionRegisterDetail(request.targetOriginatingAgency(), initialOperation);
+        }
+
+        // Update AccessionRegisterSummary for source and target originating agencies
+        updateReassignedOriginatingAgencyAccessionRegisterSummaries(request, updatedAccessionRegisterDetails);
+    }
+
+    private AccessionRegisterDetail reassignAccessionRegisterOriginatingAgency(
+        AccessionRegisterOriginatingAgencyReassignmentRequest request,
+        String initialOperation,
+        String requestId
+    ) throws ReferentialException {
+        RetryableOnException<AccessionRegisterDetail, ReferentialException> retryable = new RetryableOnException<>(
+            getRetryableParameters()
+        );
+        return retryable.exec(
+            () ->
+                tryReassignAccessionRegisterOriginatingAgency(
+                    requestId,
+                    initialOperation,
+                    request.sourceOriginatingAgency(),
+                    request.targetOriginatingAgency()
+                )
+        );
+    }
+
+    private AccessionRegisterDetail tryReassignAccessionRegisterOriginatingAgency(
+        String operationId,
+        String initialOperation,
+        String sourceOriginatingAgency,
+        String targetOriginatingAgency
+    ) throws ReferentialException {
+        try {
+            Select select = (Select) new Select()
+                .setQuery(
+                    QueryHelper.and()
+                        .add(
+                            QueryHelper.in(ORIGINATING_AGENCY, sourceOriginatingAgency, targetOriginatingAgency),
+                            QueryHelper.eq(OPI, initialOperation)
+                        )
+                );
+            List<AccessionRegisterDetail> documents = mongoAccess
+                .findDocuments(select.getFinalSelect(), ACCESSION_REGISTER_DETAIL)
+                .getDocuments(AccessionRegisterDetail.class);
+
+            if (documents.isEmpty()) {
+                throw new IllegalStateException(
+                    "Accession register details not found for Opi '" + initialOperation + "'"
+                );
+            }
+            if (documents.size() > 1) {
+                // Unsupported case (preservation) in Vitam V9.1
+                throw new IllegalStateException(
+                    "Multiple accession register details found for Opi '" + initialOperation + "'"
+                );
+            }
+            AccessionRegisterDetail detail = documents.getFirst();
+            if (detail.getOriginatingAgency().equals(targetOriginatingAgency)) {
+                LOGGER.info(
+                    "AccessionRegisterDetail of <Opi: {}, OriginatingAgency: {}> already reassigned to TargetOriginatingAgency: {}",
+                    initialOperation,
+                    sourceOriginatingAgency,
+                    targetOriginatingAgency
+                );
+                return detail;
+            }
+
+            Update update = new Update();
+            update.setQuery(
+                QueryHelper.and()
+                    .add(
+                        QueryHelper.eq(ID, detail.getString(VitamFieldsHelper.id())),
+                        QueryHelper.eq(VERSION, detail.getInteger(VitamFieldsHelper.version()))
+                    )
+            );
+            update.addActions(UpdateActionHelper.set(ORIGINATING_AGENCY, targetOriginatingAgency));
+            update.addActions(
+                new PushAction(
+                    EVENTS,
+                    JsonHandler.toJsonNode(
+                        new RegisterValueEventModel()
+                            .setOperation(operationId)
+                            .setOperationType(LogbookTypeProcess.ORIGINATING_AGENCY_REASSIGNMENT.name())
+                            .setSourceOriginatingAgency(sourceOriginatingAgency)
+                            .setTargetOriginatingAgency(targetOriginatingAgency)
+                            .setCreationDate(LocalDateUtil.nowFormatted())
+                    )
+                )
+            );
+
+            DbRequestResult dbRequestResult = mongoAccess.updateData(
+                update.getFinalUpdate(),
+                ACCESSION_REGISTER_DETAIL
+            );
+
+            // Update failed if no document updated
+            if (dbRequestResult.getCount() == 0L) {
+                throw new ConcurrentReferentialModificationException(
+                    "Another process updated AccessionRegisterDetail<Opi: %s, OriginatingAgency: %s>".formatted(
+                            initialOperation,
+                            sourceOriginatingAgency
+                        )
+                );
+            }
+            return detail;
+        } catch (
+            SchemaValidationException
+            | BadRequestException
+            | InvalidCreateOperationException
+            | InvalidParseOperationException e
+        ) {
+            throw new ReferentialException(
+                "An error occurred during originating agency reassignment for AccessionRegisterDetail",
+                e
+            );
+        }
+    }
+
+    private void updateReassignedOriginatingAgencyAccessionRegisterSummaries(
+        AccessionRegisterOriginatingAgencyReassignmentRequest request,
+        List<AccessionRegisterDetail> updatedAccessionRegisterDetails
+    ) throws ReferentialException, BadRequestException {
+        // Warning: AccessionRegisterSummary update is neither idempotent nor transactional.
+        RegisterValueDetailModel totalUnits = new RegisterValueDetailModel();
+        RegisterValueDetailModel totalObjectGroups = new RegisterValueDetailModel();
+        RegisterValueDetailModel totalObjects = new RegisterValueDetailModel();
+        RegisterValueDetailModel totalObjectSize = new RegisterValueDetailModel();
+
+        for (AccessionRegisterDetail detail : updatedAccessionRegisterDetails) {
+            increment(totalUnits, detail.getTotalUnits());
+            increment(totalObjectGroups, detail.getTotalObjectGroups());
+            increment(totalObjects, detail.getTotalObjects());
+            increment(totalObjectSize, detail.getTotalObjectSize());
+        }
+
+        updateAccessionRegisterSummary(
+            new AccessionRegisterDetailModel()
+                .setOriginatingAgency(request.targetOriginatingAgency())
+                .setTotalUnits(totalUnits)
+                .setTotalObjectsGroups(totalObjectGroups)
+                .setTotalObjects(totalObjects)
+                .setObjectSize(totalObjectSize)
+        );
+
+        updateAccessionRegisterSummary(
+            new AccessionRegisterDetailModel()
+                .setOriginatingAgency(request.sourceOriginatingAgency())
+                .setTotalUnits(negateStats(totalUnits))
+                .setTotalObjectsGroups(negateStats(totalObjectGroups))
+                .setTotalObjects(negateStats(totalObjects))
+                .setObjectSize(negateStats(totalObjectSize))
+        );
+    }
+
+    private void increment(RegisterValueDetailModel totalStats, RegisterValueDetailModel stats) {
+        totalStats.setIngested(totalStats.getIngested() + stats.getIngested());
+        totalStats.setDeleted(totalStats.getDeleted() + stats.getDeleted());
+        totalStats.setRemained(totalStats.getRemained() + stats.getRemained());
+    }
+
+    private RegisterValueDetailModel negateStats(RegisterValueDetailModel stats) {
+        return new RegisterValueDetailModel()
+            .setIngested(-stats.getIngested())
+            .setDeleted(-stats.getDeleted())
+            .setRemained(-stats.getRemained());
+    }
+
+    private RetryableParameters getRetryableParameters() {
+        return new RetryableParameters(
+            VitamConfiguration.getOptimisticLockRetryNumber(),
+            VitamConfiguration.getOptimisticLockSleepTime(),
+            VitamConfiguration.getOptimisticLockSleepTime(),
+            VitamConfiguration.getOptimisticLockSleepTime(),
+            TimeUnit.MILLISECONDS,
+            VitamLogLevel.WARN
+        );
     }
 }

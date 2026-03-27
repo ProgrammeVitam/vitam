@@ -176,6 +176,12 @@
           },
           "CreationDate": {
             "$ref": "#/definitions/date-opt-time"
+          },
+          "SourceOriginatingAgency": {
+            "type": "string"
+          },
+          "TargetOriginatingAgency": {
+            "type": "string"
           }
         }
       }

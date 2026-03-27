@@ -4507,7 +4507,8 @@
     "ShortName": "Service producteur source",
     "Collections": [
       "Unit",
-      "ObjectGroup"
+      "ObjectGroup",
+      "AccessionRegisterDetail"
     ]
   },
   {
@@ -4521,7 +4522,8 @@
     "ShortName": "Service producteur cible",
     "Collections": [
       "Unit",
-      "ObjectGroup"
+      "ObjectGroup",
+      "AccessionRegisterDetail"
     ]
   },
   {

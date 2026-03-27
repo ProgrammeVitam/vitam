@@ -74,6 +74,7 @@ import fr.gouv.vitam.common.model.administration.schema.SchemaInputModel;
 import fr.gouv.vitam.common.model.administration.schema.SchemaResponse;
 import fr.gouv.vitam.common.model.audit.AuditReferentialOptions;
 import fr.gouv.vitam.common.model.configuration.PublicConfiguration;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterOriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.Profile;
@@ -94,6 +95,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
@@ -1416,6 +1418,36 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         try (Response response = make(request)) {
             check(response);
             return RequestResponse.parseFromResponse(response, AccessionRegisterSymbolic.class);
+        } catch (final VitamClientInternalException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        }
+    }
+
+    @Override
+    public void reassignAccessionRegisterOriginatingAgency(
+        Collection<String> initialOperations,
+        String sourceOriginatingAgency,
+        String targetOriginatingAgency
+    ) throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("Missing initial operation.", initialOperations);
+        ParametersChecker.checkParameter("Missing source originating agency.", sourceOriginatingAgency);
+        ParametersChecker.checkParameter("Missing target originating agency.", targetOriginatingAgency);
+
+        VitamRequestBuilder request = post()
+            .withPath("accession-register/originating-agency-reassignment")
+            .withBody(
+                JsonHandler.toJsonNode(
+                    new AccessionRegisterOriginatingAgencyReassignmentRequest(
+                        initialOperations,
+                        sourceOriginatingAgency,
+                        targetOriginatingAgency
+                    )
+                )
+            )
+            .withJson();
+
+        try (Response response = make(request)) {
+            check(response);
         } catch (final VitamClientInternalException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }

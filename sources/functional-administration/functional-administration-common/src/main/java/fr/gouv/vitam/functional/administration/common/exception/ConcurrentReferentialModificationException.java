@@ -24,15 +24,34 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+package fr.gouv.vitam.functional.administration.common.exception;
 
-package fr.gouv.vitam.worker.core.plugin.reassignment;
+/**
+ * FileFormatException error
+ */
+public class ConcurrentReferentialModificationException extends ReferentialException {
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+    private static final long serialVersionUID = 5667138701285198642L;
 
-import java.util.Set;
+    /**
+     * @param message message to associate with the exception
+     */
+    public ConcurrentReferentialModificationException(String message) {
+        super(message);
+    }
 
-public record ReassignmentStatistics(
-    @JsonProperty("nbUnits") Integer nbUnits,
-    @JsonProperty("nbObjectGroups") Integer nbObjectGroups,
-    @JsonProperty("initialOperations") Set<String> initialOperations
-) {}
+    /**
+     * @param cause cause to associate with the exception
+     */
+    public ConcurrentReferentialModificationException(Throwable cause) {
+        super(cause);
+    }
+
+    /**
+     * @param message message to associate with the exception
+     * @param cause cause to associate with the exception
+     */
+    public ConcurrentReferentialModificationException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}

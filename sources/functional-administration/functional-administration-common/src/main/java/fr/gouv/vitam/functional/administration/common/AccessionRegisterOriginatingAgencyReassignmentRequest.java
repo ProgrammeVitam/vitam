@@ -24,15 +24,17 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-
-package fr.gouv.vitam.worker.core.plugin.reassignment;
+package fr.gouv.vitam.functional.administration.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Set;
+import java.util.Collection;
 
-public record ReassignmentStatistics(
-    @JsonProperty("nbUnits") Integer nbUnits,
-    @JsonProperty("nbObjectGroups") Integer nbObjectGroups,
-    @JsonProperty("initialOperations") Set<String> initialOperations
+/**
+ * Accession Register Detail document
+ */
+public record AccessionRegisterOriginatingAgencyReassignmentRequest(
+    @JsonProperty("initialOperations") Collection<String> initialOperations,
+    @JsonProperty("sourceOriginatingAgency") String sourceOriginatingAgency,
+    @JsonProperty("targetOriginatingAgency") String targetOriginatingAgency
 ) {}

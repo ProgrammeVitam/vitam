@@ -72,6 +72,7 @@ import jakarta.ws.rs.core.Response.Status;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -800,6 +801,18 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     RequestResponse<AccessionRegisterSymbolic> createAccessionRegisterSymbolic(List<Integer> tenants)
         throws AdminManagementClientServerException, InvalidParseOperationException;
+
+    /**
+     * Reassign originating agency of accession registers
+     * @param initialOperations initialOperations to update
+     * @param sourceOriginatingAgency source #sp
+     * @param targetOriginatingAgency target #sp
+     */
+    void reassignAccessionRegisterOriginatingAgency(
+        Collection<String> initialOperations,
+        String sourceOriginatingAgency,
+        String targetOriginatingAgency
+    ) throws InvalidParseOperationException, AdminManagementClientServerException;
 
     /**
      * Retrieve the accession register symbolic regarding the tenant and a date range.

@@ -461,6 +461,9 @@
   "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILD_OBJECT_GROUPS": {
     "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentUpdateChildObjectGroupsPlugin"
   },
+  "ORIGINATING_AGENCY_REASSIGNMENT_ACCESSION_REGISTER_UPDATE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentAccessionRegisterUpdatePlugin"
+  },
   "ORIGINATING_AGENCY_REASSIGNMENT_FINALIZATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentFinalizationPlugin"
   }

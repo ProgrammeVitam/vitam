@@ -553,9 +553,14 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
         MetadataStats objectGroupStats
     ) throws ProcessingStatusException {
         try {
+            Set<String> initialOperations = new HashSet<>();
+            initialOperations.addAll(unitStats.initialOperations());
+            initialOperations.addAll(objectGroupStats.initialOperations());
+
             ReassignmentStatistics reassignmentStats = new ReassignmentStatistics(
                 unitStats.nbEntries(),
-                objectGroupStats.nbEntries()
+                objectGroupStats.nbEntries(),
+                initialOperations
             );
             File reassignmentStatsFile = handler.getNewLocalFile(
                 handler.getWorkFlowExecutionContext(),
