@@ -817,10 +817,17 @@ public class FluxService {
 
     private void checkNonEmptyBinary(ArchiveEntry entry) throws CollectInternalSingleErrorsDetailException {
         if (!entry.isDirectory() && entry.getSize() == 0L) {
-            throw CollectErrorDetailHelper.generateException(
-                CollectErrorMessagesEnum.CANNOT_UPLOAD_EMPTY_FILE,
-                Map.of(CollectErrorParamEnum.FILE, Optional.ofNullable(entry.getName()).orElse(""))
-            );
+            if (entry.getName().equals(METADATA_CSV_FILE) || entry.getName().equals(METADATA_JSONL_FILE)) {
+                throw CollectErrorDetailHelper.generateException(
+                    CollectErrorMessagesEnum.EMPTY_METADATA_FILE,
+                    Map.of()
+                );
+            } else {
+                throw CollectErrorDetailHelper.generateException(
+                    CollectErrorMessagesEnum.CANNOT_UPLOAD_EMPTY_FILE,
+                    Map.of(CollectErrorParamEnum.FILE, Optional.ofNullable(entry.getName()).orElse(""))
+                );
+            }
         }
     }
 

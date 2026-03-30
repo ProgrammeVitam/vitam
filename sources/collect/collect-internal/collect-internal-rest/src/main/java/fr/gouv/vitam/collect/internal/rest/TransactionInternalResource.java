@@ -436,7 +436,10 @@ public class TransactionInternalResource {
             try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
                 StreamUtils.copy(metadataCsvInputStream, fileOutputStream);
                 if (file.length() == 0) {
-                    throw CollectErrorDetailHelper.generateException(CollectErrorMessagesEnum.EMPTY_FILE, Map.of());
+                    throw CollectErrorDetailHelper.generateException(
+                        CollectErrorMessagesEnum.EMPTY_METADATA_FILE,
+                        Map.of()
+                    );
                 }
                 SanityChecker.checkHTMLFile(file);
 
@@ -603,7 +606,7 @@ public class TransactionInternalResource {
      * Select units with inherited rules
      *
      * @param transactionId as transaction Id
-     * @param queryDsl      as JsonNode
+     * @param queryDsl as JsonNode
      * @return an archive unit result list with inherited rules
      */
     @GET
@@ -703,7 +706,7 @@ public class TransactionInternalResource {
     /**
      * Start a reclassification workflow on collect
      *
-     * @param transactionId               as transaction Id
+     * @param transactionId as transaction Id
      * @param reclassificationRequestJson as JsonNode
      * @return an archive unit result list with inherited rules
      */
@@ -900,7 +903,7 @@ public class TransactionInternalResource {
      * Upload compressed SIP as Stream on transaction, will be uncompressed in workspace-collect.</br>
      * </br>
      *
-     * @param contentType         the header Content-Type (zip, tar, ...)
+     * @param contentType the header Content-Type (zip, tar, ...)
      * @param uploadedInputStream the stream to upload
      * @return Response with operation ID
      */
