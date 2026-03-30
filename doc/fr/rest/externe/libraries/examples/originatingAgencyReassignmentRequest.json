@@ -3,11 +3,11 @@
   "targetOriginatingAgency": "target SP",
   "propagateToObjectGroups": true,
   "dslRequest": {
-    "$roots": [ "id0" ],
     "$query": [
       {
-        "$match": { "Title": "titre" },
-        "$depth": 4
+        "$query": [
+          { "$in": { "#opi": [ "<guid_opi1>", "<guid_opi2>"] } }
+        ]
       }
     ],
     "$threshold": 10000

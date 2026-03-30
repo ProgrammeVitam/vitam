@@ -571,11 +571,18 @@ types:
 
   OriginatingAgencyReassignmentRequest:
       displayName: Requête DSL multiple de traitement de masse pour réattribution de service producteur
-      description: Requête DSL multiple Vitam de traitement de masse pour réattribution de service producteur
+      description: |
+        Requête de traitement de masse pour la réattribution de service producteur.
+
+        **NB.** Dans la version actuelle de l'API, la requête DSL doit cibler le périmètre complet d'un ou plusieurs versements.
+        Si une unité ou un group d'objets est sélectionné, l'ensemble des unités et groupes d'objets du même versement doivent être sélectionnés également.
+
+        Aussi, cette API ne permet pas la réattribution de service producteur dans le cas de groupes d'objets auxquels ont été rattachés d'autres binaires via une opération de versement (rattachement d'un binaire à un groupe d'objets existant) ou via une opération de préservation.
+
       type: object
       properties:
         dslRequest:
-          description: Contient la requête de recherche
+          description: Requête DSL multiple de traitement de masse du périmètre à réattribuer
           type: DslTypes.DslBatchProcessionQuery
         sourceOriginatingAgency:
           description: Le service producteur source à remplacer
@@ -592,19 +599,19 @@ types:
           type: boolean
       example:
         {
-           "sourceOriginatingAgency": "source SP",
-           "targetOriginatingAgency": "target SP",
-           "propagateToObjectGroups": true,
-           "dslRequest": {
-             "$roots": [ "id0" ],
-             "$query": [
-               {
-                 "$match": { "Title": "titre" },
-                 "$depth": 4
-               }
-             ],
-             "$threshold": 10000
-           }
+          "sourceOriginatingAgency": "source SP",
+          "targetOriginatingAgency": "target SP",
+          "propagateToObjectGroups": true,
+          "dslRequest": {
+            "$query": [
+              {
+                "$query": [
+                  { "$in": { "#opi": [ "<guid_opi1>", "<guid_opi2>"] } }
+                ]
+              }
+            ],
+            "$threshold": 10000
+          }
         }
 
   OriginatingAgencyReassignmentResponse:
