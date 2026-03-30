@@ -35,6 +35,7 @@ import com.google.common.collect.Iterators;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalMultipleErrorsDetailsException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalServerSideException;
 import fr.gouv.vitam.collect.internal.core.common.CollectErrorMessagesEnum;
@@ -214,7 +215,7 @@ public class MetadataService {
                 updateUnitsWithJsonlMetadataFile(transaction.getId(), jsonlMetadataInputStream);
             }
         } catch (IOException e) {
-            throw new CollectInternalException(e);
+            throw new CollectInternalInvalidRequestException(e);
         } finally {
             FileUtils.deleteQuietly(file);
         }
