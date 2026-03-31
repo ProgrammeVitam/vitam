@@ -176,7 +176,7 @@ public class OriginatingAgencyReassignmentPrepareChildUnitsPlugin extends Action
 
             return buildItemStatus(getId(), StatusCode.OK, null);
         } catch (VitamClientInternalException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, e.getMessage());
+            throw new ProcessingStatusException(StatusCode.FATAL, e.getMessage(), e);
         } finally {
             FileUtils.deleteQuietly(unitIdsToFillInIntermediateFile);
             FileUtils.deleteQuietly(gotIdsToFillInIntermediateFile);
@@ -236,7 +236,7 @@ public class OriginatingAgencyReassignmentPrepareChildUnitsPlugin extends Action
             | InvalidCreateOperationException
             | InvalidParseOperationException e
         ) {
-            throw new ProcessingStatusException(StatusCode.FATAL, e.getMessage());
+            throw new ProcessingStatusException(StatusCode.FATAL, e.getMessage(), e);
         }
     }
 
@@ -267,7 +267,7 @@ public class OriginatingAgencyReassignmentPrepareChildUnitsPlugin extends Action
                 gotIdsToFillInIntermediateFile
             );
         } catch (IOException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, e.getMessage());
+            throw new ProcessingStatusException(StatusCode.FATAL, e.getMessage(), e);
         }
     }
 
@@ -356,7 +356,7 @@ public class OriginatingAgencyReassignmentPrepareChildUnitsPlugin extends Action
                 workspaceClient.deleteObject(handler.getContainerName(), distributionFileName);
             }
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, e.getMessage());
+            throw new ProcessingStatusException(StatusCode.FATAL, e.getMessage(), e);
         }
     }
 

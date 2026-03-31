@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.exception;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.StatusCode;
 
 public class ProcessingStatusException extends Exception {
@@ -57,5 +59,15 @@ public class ProcessingStatusException extends Exception {
 
     public Object getEventDetails() {
         return eventDetails;
+    }
+
+    public static ProcessingStatusException ko(String message) {
+        return ko(message, null);
+    }
+
+    public static ProcessingStatusException ko(String message, Exception cause) {
+        ObjectNode evDetData = JsonHandler.createObjectNode();
+        evDetData.put("error", message);
+        return new ProcessingStatusException(StatusCode.KO, evDetData, message, cause);
     }
 }

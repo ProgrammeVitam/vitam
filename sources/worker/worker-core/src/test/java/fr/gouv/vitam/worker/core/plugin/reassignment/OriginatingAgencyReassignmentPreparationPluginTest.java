@@ -78,8 +78,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class OriginatingAgencyReassignmentPreparationPluginTest {
@@ -407,6 +405,12 @@ public class OriginatingAgencyReassignmentPreparationPluginTest {
 
         when(metaDataClient.selectUnits(any())).thenReturn(unitResponse);
 
+        JsonNode ogResponse = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("reassignment/objectGroups_empty.json")
+        );
+
+        when(metaDataClient.selectObjectGroups(any())).thenReturn(ogResponse);
+
         AgenciesModel targetOriginatingAgenciesModel = new AgenciesModel();
         targetOriginatingAgenciesModel.setId(originatingAgencyReassignmentRequest.getTargetOriginatingAgency());
         targetOriginatingAgenciesModel.setIdentifier(originatingAgencyReassignmentRequest.getTargetOriginatingAgency());
@@ -481,7 +485,6 @@ public class OriginatingAgencyReassignmentPreparationPluginTest {
             );
 
         assertThat(writtenFiles.get(OBJECT_GROUPS_TO_UPDATE_JSONL_FILE)).isEmpty();
-        verify(metaDataClient, never()).selectObjectGroups(any());
 
         ReassignmentStatistics reassignmentStatistics = JsonHandler.getFromFile(
             writtenFiles.get(REASSIGNMENT_STATISTICS_JSON_FILE),

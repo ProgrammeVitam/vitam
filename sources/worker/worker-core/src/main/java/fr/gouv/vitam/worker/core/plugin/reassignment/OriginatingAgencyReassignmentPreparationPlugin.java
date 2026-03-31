@@ -71,7 +71,6 @@ import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
-import fr.gouv.vitam.worker.core.utils.PluginHelper;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.collections4.CollectionUtils;
@@ -119,7 +118,8 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
     public static boolean _____Enable_Temporary_V91_Restrictions_____ = true;
 
     private static final String VERSIONS = "versions";
-    private static final String OBJECT_OPI = "#qualifiers.versions.#opi";
+    private static final String QUALIFIERS_VERSIONS = "#qualifiers.versions";
+    private static final String QUALIFIERS_VERSIONS_OPI = "#qualifiers.versions.#opi";
 
     private final OriginatingAgencyReassignmentService originatingAgencyReassignmentService;
 
@@ -139,7 +139,10 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             return processRequest(handler, param, reassignmentRequest);
         } catch (ProcessingStatusException e) {
             LOGGER.error(
-                "originating agencies reassignment preparation failed with status [" + e.getMessage() + "]",
+                "originating agencies reassignment preparation failed with status " +
+                e.getStatusCode() +
+                " - " +
+                e.getMessage(),
                 e
             );
             return buildItemStatus(PLUGIN_NAME, e.getStatusCode(), e.getEventDetails());
@@ -161,9 +164,8 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
                 reassignmentRequest.getTargetOriginatingAgency()
             )
         ) {
-            throw new ProcessingStatusException(
-                StatusCode.KO,
-                "sourceOriginatingAgency should be different to targetOriginatingAgency"
+            throw ProcessingStatusException.ko(
+                "Source OriginatingAgency should be different from target OriginatingAgency"
             );
         }
     }
@@ -178,20 +180,12 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
 
             List<AgenciesModel> agenciesModels = ((RequestResponseOK<AgenciesModel>) agencyByIdResponse).getResults();
             if (agenciesModels.isEmpty()) {
-                throw new ReferentialNotFoundException("originating agency check failed, not found");
+                throw new ReferentialNotFoundException("No such target originating agency");
             }
         } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Originating agency check failed failed", e);
         } catch (ReferentialNotFoundException e) {
-            ObjectNode evDetData = JsonHandler.createObjectNode();
-            String message = "originating agency check failed, not found";
-            evDetData.put("error", message);
-            throw new ProcessingStatusException(
-                StatusCode.KO,
-                evDetData,
-                "Originating agency check failed, not found",
-                e
-            );
+            throw ProcessingStatusException.ko("No such target originating agency", e);
         }
     }
 
@@ -235,11 +229,7 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
 
             // Report status
             if (unitStats.nbEntries() == 0 && objectGroupStats.nbEntries() == 0) {
-                return buildItemStatus(
-                    PLUGIN_NAME,
-                    StatusCode.KO,
-                    PluginHelper.EventDetails.of("No metadata selected")
-                );
+                throw ProcessingStatusException.ko("No metadata selected");
             }
             if (reassignmentRequest.isPropagateToObjectGroups() && objectGroupStats.nbEntries() == 0) {
                 return buildItemStatus(PLUGIN_NAME, StatusCode.WARNING, null);
@@ -313,7 +303,7 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
         JsonNode unit
     ) throws ProcessingStatusException {
         if (!unit.has(VitamFieldsHelper.originatingAgency())) {
-            throw new ProcessingStatusException(StatusCode.KO, "This action is not allowed for Holding units ");
+            throw ProcessingStatusException.ko("Originating Agency Reassignment not allowed for Holding Units");
         }
         String currentOriginatingAgency = unit.get(VitamFieldsHelper.originatingAgency()).asText();
 
@@ -322,9 +312,10 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             Objects.equals(currentOriginatingAgency, reassignmentRequest.getTargetOriginatingAgency());
 
         if (!validSourceAndTargetRequest) {
-            throw new ProcessingStatusException(
-                StatusCode.KO,
-                "OriginatingAgency does not match source neither target Originating Agency"
+            throw ProcessingStatusException.ko(
+                "Selected OriginatingAgency '" +
+                currentOriginatingAgency +
+                "' does not match source neither target Originating Agency"
             );
         }
         return Objects.equals(currentOriginatingAgency, reassignmentRequest.getSourceOriginatingAgency());
@@ -503,7 +494,7 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             selectMultiQuery.addUsedProjection(
                 VitamFieldsHelper.id(),
                 VitamFieldsHelper.initialOperation(),
-                OBJECT_OPI
+                QUALIFIERS_VERSIONS_OPI
             );
 
             JsonNode results = metaDataClient.selectObjectGroups(selectMultiQuery.getFinalSelect()).get("$results");
@@ -533,14 +524,10 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             for (JsonNode version : qualifier.get(VERSIONS)) {
                 String objectOpi = getInitialOperation(version);
                 if (!Objects.equals(opi, objectOpi)) {
-                    ObjectNode evDetData = JsonHandler.createObjectNode();
-                    evDetData.put("objectGroupId", objectGroup.get(VitamFieldsHelper.id()).asText());
-                    evDetData.put("opi", opi);
-                    evDetData.put("objectOpi", objectOpi);
-                    throw new ProcessingStatusException(
-                        StatusCode.KO,
-                        evDetData,
-                        "An object group have objects from other ingest or preservation operations"
+                    throw ProcessingStatusException.ko(
+                        "Selected object group " +
+                        objectGroup.get(VitamFieldsHelper.id()).asText() +
+                        " contains objects from other ingest or preservation operations"
                     );
                 }
             }
@@ -597,7 +584,7 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             combinedInitialOperations.addAll(objectGroupStats.initialOperations());
 
             if (combinedInitialOperations.size() > 1000) {
-                throw new ProcessingStatusException(StatusCode.KO, "Too many #opi selected by query");
+                throw ProcessingStatusException.ko("Too many #opi selected by query");
             }
 
             validateUnitSelectionScope(handler, combinedInitialOperations, unitStats.nbEntries());
@@ -633,13 +620,7 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             int total = (int) requestResponse.getHits().getTotal();
 
             if (total != expectedTotal) {
-                ObjectNode evDetData = JsonHandler.createObjectNode();
-                evDetData.put("error", "Invalid query perimeter");
-                evDetData.put("nbUnitSelected", total);
-                evDetData.put("nbUnitAvailable", expectedTotal);
-                throw new ProcessingStatusException(
-                    StatusCode.KO,
-                    evDetData,
+                throw ProcessingStatusException.ko(
                     "Invalid query perimeter. Selected " + expectedTotal + " out of " + total + " units"
                 );
             }
@@ -653,12 +634,19 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataClientServerException, MetaDataDocumentSizeException, ProcessingStatusException, InvalidCreateOperationException {
         try (MetaDataClient metaDataClient = handler.getMetaDataClient()) {
             SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
-            // Query both object group #opi, and object #opi to ensure
+            // Query both object group #opi, and object #opi to ensure selecting possible other ObjectGroups with binaries from my #opi
             selectMultiQuery.setQuery(
                 QueryHelper.or()
                     .add(
                         QueryHelper.in(VitamFieldsHelper.initialOperation(), initialOperations.toArray(new String[0])),
-                        QueryHelper.in(OBJECT_OPI, initialOperations.toArray(new String[0]))
+                        // Querying objects requires a nested sub-query
+                        QueryHelper.nestedSearch(
+                            QUALIFIERS_VERSIONS,
+                            QueryHelper.in(
+                                QUALIFIERS_VERSIONS_OPI,
+                                initialOperations.toArray(new String[0])
+                            ).getCurrentQuery()
+                        )
                     )
             );
             selectMultiQuery.addUsedProjection(VitamFieldsHelper.id());
@@ -670,13 +658,7 @@ public class OriginatingAgencyReassignmentPreparationPlugin extends ActionHandle
             int total = (int) requestResponse.getHits().getTotal();
 
             if (total != expectedTotal) {
-                ObjectNode evDetData = JsonHandler.createObjectNode();
-                evDetData.put("error", "Invalid query perimeter");
-                evDetData.put("nbObjectGroupsSelected", total);
-                evDetData.put("nbObjectGroupsAvailable", expectedTotal);
-                throw new ProcessingStatusException(
-                    StatusCode.KO,
-                    evDetData,
+                throw ProcessingStatusException.ko(
                     "Invalid query perimeter. Selected " + expectedTotal + " out of " + total + " object groups"
                 );
             }
