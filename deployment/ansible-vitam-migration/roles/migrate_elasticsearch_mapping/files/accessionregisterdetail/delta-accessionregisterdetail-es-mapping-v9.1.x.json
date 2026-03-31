@@ -1,0 +1,14 @@
+{
+  "properties": {
+    "Events": {
+      "properties": {
+        "SourceOriginatingAgency": {
+          "type": "keyword"
+        },
+        "TargetOriginatingAgency": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}

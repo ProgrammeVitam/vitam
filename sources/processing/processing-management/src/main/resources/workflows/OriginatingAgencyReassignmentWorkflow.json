@@ -43,7 +43,7 @@
         },
         {
           "action": {
-            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_PREPARE_UNITS",
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_PREPARATION",
             "behavior": "BLOCKING",
             "out": [
               {
@@ -51,26 +51,12 @@
                 "uri": "WORKSPACE:units_to_update.jsonl"
               },
               {
-                "name": "intermediate_gots_children_ids.jsonl",
-                "uri": "MEMORY:intermediate_gots_children_ids.jsonl"
-              }
-            ]
-          }
-        },
-        {
-          "action": {
-            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_PREPARE_OBJECT_GROUPS",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "intermediate_gots_children_ids.jsonl",
-                "uri": "MEMORY:intermediate_gots_children_ids.jsonl"
-              }
-            ],
-            "out": [
-              {
                 "name": "object_groups_to_update_sp.jsonl",
                 "uri": "WORKSPACE:object_groups_to_update_sp.jsonl"
+              },
+              {
+                "name": "reassignment_statistics.json",
+                "uri": "WORKSPACE:reassignment_statistics.json"
               }
             ]
           }
@@ -157,8 +143,8 @@
             ],
             "out": [
               {
-                "name": "unitsChildrenToUpdateSps.jsonl",
-                "uri": "WORKSPACE:unitsChildrenToUpdateSps.jsonl"
+                "name": "child_units_to_update.jsonl",
+                "uri": "WORKSPACE:child_units_to_update.jsonl"
               },
               {
                 "name": "object_groups_to_update_sps.jsonl",
@@ -176,7 +162,7 @@
       "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
-        "element": "unitsChildrenToUpdateSps.jsonl",
+        "element": "child_units_to_update.jsonl",
         "type": "Units",
         "statusOnEmptyDistribution": "OK",
         "bulkSize": 1000
@@ -209,6 +195,29 @@
             "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILD_OBJECT_GROUPS",
             "behavior": "BLOCKING",
             "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ORIGINATING_AGENCY_REASSIGNMENT_ACCESSION_REGISTER_UPDATE",
+      "behavior": "BLOCKING",
+      "cancellable": false,
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ORIGINATING_AGENCY_REASSIGNMENT_ACCESSION_REGISTER_UPDATE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "reassignment_statistics.json",
+                "uri": "WORKSPACE:reassignment_statistics.json"
+              }
+            ]
           }
         }
       ]

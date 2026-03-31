@@ -24,28 +24,35 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.batch.report.model;
+package fr.gouv.vitam.batch.report.model.entry;
 
-/**
- * ReportType
- */
-public enum ReportType {
-    ELIMINATION_ACTION_UNIT,
-    ELIMINATION_ACTION,
-    TRANSFER_REPLY_UNIT,
-    TRANSFER_REPLY,
-    PURGE_UNIT,
-    PURGE_OBJECTGROUP,
-    UPDATE_UNIT,
-    BULK_UPDATE_UNIT,
-    PRESERVATION,
-    PROBATIVE_VALUE,
-    AUDIT,
-    EVIDENCE_AUDIT,
-    TRACEABILITY,
-    UNIT_COMPUTED_INHERITED_RULES_INVALIDATION,
-    REASSIGNMENT_CHILD_UNITS,
-    REASSIGNMENT_OBJECT_GROUPS,
-    REASSIGNMENT_CHILD_OBJECT_GROUPS,
-    DELETE_GOT_VERSIONS,
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class ReassignmentObjectGroupReportEntry {
+
+    public static final String OBJECT_GROUP_ID = "id";
+    public static final String OPI = "opi";
+
+    private final String objectGroupId;
+    private final String opi;
+
+    @JsonCreator
+    public ReassignmentObjectGroupReportEntry(
+        @JsonProperty(OBJECT_GROUP_ID) String objectGroupId,
+        @JsonProperty(OPI) String opi
+    ) {
+        this.objectGroupId = objectGroupId;
+        this.opi = opi;
+    }
+
+    @JsonProperty(OBJECT_GROUP_ID)
+    public String getObjectGroupId() {
+        return objectGroupId;
+    }
+
+    @JsonProperty(OPI)
+    public String getOpi() {
+        return opi;
+    }
 }

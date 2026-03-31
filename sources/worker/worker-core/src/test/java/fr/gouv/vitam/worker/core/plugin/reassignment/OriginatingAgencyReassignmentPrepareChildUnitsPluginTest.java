@@ -91,7 +91,7 @@ public class OriginatingAgencyReassignmentPrepareChildUnitsPluginTest {
     private OriginatingAgencyReassignmentPrepareChildUnitsPlugin originatingAgencyReassignmentPrepareChildUnitsPlugin;
 
     private static final String UNITS_TO_UPDATE_FILE_NAME = "units_to_update.jsonl";
-    private static final String UNITS_CHILDREN_FILE_NAME = "unitsChildrenToUpdateSps.jsonl";
+    private static final String CHILD_UNITS_TO_UPDATE_FILE_NAME = "child_units_to_update.jsonl";
 
     @Before
     public void setUp() throws Exception {
@@ -140,7 +140,7 @@ public class OriginatingAgencyReassignmentPrepareChildUnitsPluginTest {
         when(metaDataClient.selectUnits(any(JsonNode.class))).thenReturn(childrenUnitsResponse);
         when(metaDataClient.selectObjectGroups(any())).thenReturn(objectGroupResponse);
 
-        when(workspaceClient.isExistingObject(anyString(), eq(UNITS_CHILDREN_FILE_NAME))).thenReturn(false);
+        when(workspaceClient.isExistingObject(anyString(), eq(CHILD_UNITS_TO_UPDATE_FILE_NAME))).thenReturn(false);
 
         when(handlerIO.getContainerName()).thenReturn("processId");
         WorkerParameters workerParameters = mock(WorkerParameters.class);
@@ -152,7 +152,7 @@ public class OriginatingAgencyReassignmentPrepareChildUnitsPluginTest {
 
         // Create 2 separate local files
         File unitsDistributionFileTempFile = temporaryFolder.newFile("units_to_update.jsonl");
-        File gotsDistributionFileTempFile = temporaryFolder.newFile("intermediate_gots_ids.jsonl");
+        File gotsDistributionFileTempFile = temporaryFolder.newFile("intermediate_og_ids.jsonl");
 
         when(handlerIO.getNewLocalFile(any(), anyString()))
             .thenReturn(unitsDistributionFileTempFile) // 1st call
@@ -170,16 +170,12 @@ public class OriginatingAgencyReassignmentPrepareChildUnitsPluginTest {
         ReportBody secondReportBody = reportBodies.get(1);
 
         assertThat(firstReportBody.getProcessId()).isEqualTo("processId");
-        assertThat(firstReportBody.getReportType()).isEqualTo(
-            ReportType.REASSIGNMENT_UNITS_ORIGINATING_AGENCIES_COMPUTE
-        );
+        assertThat(firstReportBody.getReportType()).isEqualTo(ReportType.REASSIGNMENT_CHILD_UNITS);
 
         assertThat(secondReportBody.getProcessId()).isEqualTo("processId");
-        assertThat(secondReportBody.getReportType()).isEqualTo(
-            ReportType.REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCIES_COMPUTE
-        );
+        assertThat(secondReportBody.getReportType()).isEqualTo(ReportType.REASSIGNMENT_CHILD_OBJECT_GROUPS);
 
         assertThat(firstReportBody.getEntries()).extracting("unitId").containsAll(unitToUpdateSps);
-        verify((batchReportClient)).exportUnitsToComputeOriginatingAgencies(anyString(), any(), any());
+        verify((batchReportClient)).exportReassignmentChildUnits(anyString(), any(), any());
     }
 }

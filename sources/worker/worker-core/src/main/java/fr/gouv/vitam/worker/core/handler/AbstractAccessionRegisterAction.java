@@ -385,7 +385,7 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
             .setTotalGots(totalObjectsGroups.getRemained())
             .setTotalObjects(totalObjects.getRemained())
             .setObjectSize(objectSize.getRemained())
-            .setCreationdate(LocalDateUtil.nowFormatted());
+            .setCreationDate(LocalDateUtil.nowFormatted());
 
         return new AccessionRegisterDetailModel()
             .setId(guid.toString())

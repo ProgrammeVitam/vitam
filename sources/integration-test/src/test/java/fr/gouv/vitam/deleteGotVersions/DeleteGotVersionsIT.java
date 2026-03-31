@@ -104,6 +104,7 @@ import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.InputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.OutputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ResultPreservation;
+import fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentPreparationPlugin;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.assertj.core.util.Lists;
@@ -268,6 +269,9 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
 
     @After
     public void afterTest() {
+        // FIXME : To removed once temporary v91 restrictions are removed
+        OriginatingAgencyReassignmentPreparationPlugin._____Enable_Temporary_V91_Restrictions_____ = true;
+
         VitamThreadUtils.getVitamSession().setContextId(CONTEXT_ID);
         ProcessDataAccessImpl.getInstance().clearWorkflow();
 
@@ -443,6 +447,9 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void givenReassignmentsThenDeleteGotVersions_Report_OK() throws Exception {
+        // FIXME : To removed once temporary v91 restrictions are removed
+        OriginatingAgencyReassignmentPreparationPlugin._____Enable_Temporary_V91_Restrictions_____ = false;
+
         try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
             // GIVEN
             SelectMultiQuery getGotsRequest = new SelectMultiQuery();

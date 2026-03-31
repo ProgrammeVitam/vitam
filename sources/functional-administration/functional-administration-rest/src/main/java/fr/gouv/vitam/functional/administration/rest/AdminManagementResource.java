@@ -79,6 +79,7 @@ import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterOriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
@@ -1025,6 +1026,32 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(exp);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, exp.getLocalizedMessage()))
+                .build();
+        }
+    }
+
+    @POST
+    @Path("accession-register/originating-agency-reassignment")
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    public Response reassignAccessionRegisterOriginatingAgency(
+        AccessionRegisterOriginatingAgencyReassignmentRequest request
+    ) {
+        try (
+            ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(
+                mongoAccess,
+                vitamCounterService,
+                metaDataClientFactory,
+                configuration
+            )
+        ) {
+            service.reassignAccessionRegisterOriginatingAgency(request);
+
+            return Response.status(OK).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getLocalizedMessage()))
                 .build();
         }
     }

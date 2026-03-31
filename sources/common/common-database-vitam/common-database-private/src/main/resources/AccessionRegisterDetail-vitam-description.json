@@ -222,6 +222,18 @@
     "indexed": true
   },
   {
+    "path": "Events.SourceOriginatingAgency",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "Events.TargetOriginatingAgency",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
     "path": "TotalObjects.deleted",
     "type": "signed_long",
     "cardinality": "one",

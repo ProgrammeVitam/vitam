@@ -46,8 +46,6 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.iterables.SpliteratorIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.jsonl.JsonLineWriter;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -93,8 +91,6 @@ import static fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper.createUni
  * Basic helper methods for reclassification plugins
  */
 public class PluginHelper {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PluginHelper.class);
 
     private PluginHelper() {
         throw new IllegalStateException("Utility class");
@@ -178,13 +174,9 @@ public class PluginHelper {
             try {
                 itemStatus.setEvDetailData(JsonHandler.unprettyPrint(JsonHandler.toJsonNode(eventDetails)));
             } catch (InvalidParseOperationException e1) {
-                throw new VitamRuntimeException("Could not serialize event details" + eventDetails, e1);
+                throw new VitamRuntimeException("Could not serialize event details " + eventDetails, e1);
             }
         }
-    }
-
-    public static ObjectNode eventDetails(Throwable e) {
-        return JsonHandler.createObjectNode().put("error", e.getMessage());
     }
 
     public static List<ItemStatus> buildBulkItemStatus(WorkerParameters param, String action, StatusCode statusCode) {
@@ -244,7 +236,7 @@ public class PluginHelper {
                     (JsonHandler.unprettyPrint(JsonHandler.toJsonNode(eventDetails)))
                 );
             } catch (InvalidParseOperationException e1) {
-                throw new VitamRuntimeException("Could not serialize event details" + eventDetails);
+                throw new VitamRuntimeException("Could not serialize event details " + eventDetails);
             }
         }
         return parameters;
@@ -281,7 +273,7 @@ public class PluginHelper {
                 return selectMultiQuery;
             }
 
-            final Query query = queryList.get(queryList.size() - 1);
+            final Query query = queryList.getLast();
             Query restrictedQuery = and().add(exists(OBJECT.exactToken()), query);
             parser.getRequest().getQueries().set(queryList.size() - 1, restrictedQuery);
             return selectMultiQuery;

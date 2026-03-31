@@ -144,8 +144,7 @@ public class AuditExistenceService {
             }
             result.setStatus(result.getObjectsGlobalStatus());
         } catch (StorageClientException | StorageStrategyNotFoundException e) {
-            LOGGER.error("Storage server errors : ", e);
-            throw new ProcessingStatusException(StatusCode.FATAL, String.format("Storage server errors : %s", e));
+            throw new ProcessingStatusException(StatusCode.FATAL, "Storage server errors", e);
         }
 
         if (result.getStatus() == null) {

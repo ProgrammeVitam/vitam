@@ -29,14 +29,14 @@ package fr.gouv.vitam.batch.report.model.entry;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class OriginatingAgencyReassignmentObjectGroupReportEntry {
+public class ReassignmentChildObjectGroupReportEntry {
 
     public static final String OBJECT_GROUP_ID = "id";
 
     private final String objectGroupId;
 
     @JsonCreator
-    public OriginatingAgencyReassignmentObjectGroupReportEntry(@JsonProperty(OBJECT_GROUP_ID) String objectGroupId) {
+    public ReassignmentChildObjectGroupReportEntry(@JsonProperty(OBJECT_GROUP_ID) String objectGroupId) {
         this.objectGroupId = objectGroupId;
     }
 

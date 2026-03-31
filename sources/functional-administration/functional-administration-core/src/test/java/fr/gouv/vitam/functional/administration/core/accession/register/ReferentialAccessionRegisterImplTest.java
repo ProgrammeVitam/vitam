@@ -37,12 +37,14 @@ import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchTestHelper;
 import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
+import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -51,6 +53,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterOriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -64,6 +67,7 @@ import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupServi
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import net.javacrumbs.jsonunit.JsonAssert;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -80,10 +84,14 @@ import org.mockito.junit.MockitoRule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -143,6 +151,8 @@ public class ReferentialAccessionRegisterImplTest {
     @Mock
     private FunctionalBackupService functionalBackupService;
 
+    private final Map<String, AccessionRegisterDetail> persistedAccessionRegisterDetails = new HashMap<>();
+
     @BeforeClass
     @RunWithCustomExecutor
     public static void setUpBeforeClass() throws Exception {
@@ -175,7 +185,7 @@ public class ReferentialAccessionRegisterImplTest {
     }
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
         doReturn(metaDataClient).when(metaDataClientFactory).getClient();
 
         accessionRegisterImpl = new ReferentialAccessionRegisterImpl(
@@ -184,6 +194,15 @@ public class ReferentialAccessionRegisterImplTest {
             metaDataClientFactory,
             ACCESSION_REGISTER_SYMBOLIC_THREAD_POOL_SIZE
         );
+
+        doAnswer(args -> {
+            Document doc = args.getArgument(1);
+            String docId = doc.getString("_id");
+            persistedAccessionRegisterDetails.put(docId, new AccessionRegisterDetail(JsonHandler.toJsonNode(doc)));
+            return null;
+        })
+            .when(functionalBackupService)
+            .saveDocument(Mockito.eq(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL), any());
     }
 
     @After
@@ -777,6 +796,419 @@ public class ReferentialAccessionRegisterImplTest {
         assertThat(ex).hasMessage(
             "Accession register detail for originating agency (OG_1) and opi (Opi_1) found and already contains the detail (Opc_2)"
         );
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void reassignAccessionRegisterOriginatingAgency_testUpdateExistingSummary() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        // Given
+        AccessionRegisterDetailModel sp1_detail1 = new AccessionRegisterDetailModel()
+            .setId(GUIDFactory.newGUID().getId())
+            .setTenant(TENANT_ID)
+            .setOpi("Opi_11")
+            .setOpc("Opi_11")
+            .setOriginatingAgency("SP1")
+            .setTotalUnits(new RegisterValueDetailModel().setIngested(100).setDeleted(20).setRemained(80))
+            .setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(50).setDeleted(10).setRemained(40))
+            .setTotalObjects(new RegisterValueDetailModel().setIngested(80).setDeleted(15).setRemained(65))
+            .setObjectSize(new RegisterValueDetailModel().setIngested(80_000).setDeleted(15_000).setRemained(65_000))
+            .setStatus(AccessionRegisterStatus.STORED_AND_UPDATED)
+            .addEvent(new RegisterValueEventModel());
+        accessionRegisterImpl.createOrUpdateAccessionRegister(sp1_detail1);
+
+        AccessionRegisterDetailModel sp1_detail2 = new AccessionRegisterDetailModel()
+            .setId(GUIDFactory.newGUID().getId())
+            .setTenant(TENANT_ID)
+            .setOpi("Opi_12")
+            .setOpc("Opi_12")
+            .setOriginatingAgency("SP1")
+            .setTotalUnits(new RegisterValueDetailModel().setIngested(200).setDeleted(40).setRemained(160))
+            .setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(100).setDeleted(20).setRemained(80))
+            .setTotalObjects(new RegisterValueDetailModel().setIngested(160).setDeleted(30).setRemained(130))
+            .setObjectSize(new RegisterValueDetailModel().setIngested(160_000).setDeleted(30_000).setRemained(130_000))
+            .setStatus(AccessionRegisterStatus.STORED_AND_UPDATED)
+            .addEvent(new RegisterValueEventModel());
+        accessionRegisterImpl.createOrUpdateAccessionRegister(sp1_detail2);
+
+        AccessionRegisterDetailModel sp1_detail3 = new AccessionRegisterDetailModel()
+            .setId(GUIDFactory.newGUID().getId())
+            .setTenant(TENANT_ID)
+            .setOpi("Opi_13")
+            .setOpc("Opi_13")
+            .setOriginatingAgency("SP1")
+            .setTotalUnits(new RegisterValueDetailModel().setIngested(300).setDeleted(60).setRemained(240))
+            .setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(150).setDeleted(30).setRemained(120))
+            .setTotalObjects(new RegisterValueDetailModel().setIngested(240).setDeleted(45).setRemained(195))
+            .setObjectSize(new RegisterValueDetailModel().setIngested(240_000).setDeleted(45_000).setRemained(195_000))
+            .setStatus(AccessionRegisterStatus.STORED_AND_UPDATED)
+            .addEvent(new RegisterValueEventModel());
+        accessionRegisterImpl.createOrUpdateAccessionRegister(sp1_detail3);
+
+        AccessionRegisterDetailModel sp2_detail1 = new AccessionRegisterDetailModel()
+            .setId(GUIDFactory.newGUID().getId())
+            .setTenant(TENANT_ID)
+            .setOpi("Opi_21")
+            .setOpc("Opi_21")
+            .setOriginatingAgency("SP2")
+            .setTotalUnits(new RegisterValueDetailModel().setIngested(10).setDeleted(2).setRemained(8))
+            .setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(5).setDeleted(1).setRemained(4))
+            .setTotalObjects(new RegisterValueDetailModel().setIngested(8).setDeleted(2).setRemained(6))
+            .setObjectSize(new RegisterValueDetailModel().setIngested(8_000).setDeleted(2_000).setRemained(6_000))
+            .setStatus(AccessionRegisterStatus.STORED_AND_UPDATED)
+            .addEvent(new RegisterValueEventModel());
+        accessionRegisterImpl.createOrUpdateAccessionRegister(sp2_detail1);
+
+        // When
+        accessionRegisterImpl.reassignAccessionRegisterOriginatingAgency(
+            new AccessionRegisterOriginatingAgencyReassignmentRequest(Set.of("Opi_11", "Opi_12"), "SP1", "SP2")
+        );
+
+        // Then
+
+        // Check AccessionRegisterDetails
+        Select selectAll = new Select();
+        selectAll.setQuery(QueryHelper.exists("#id"));
+        Map<String, AccessionRegisterDetail> detailsMap = accessionRegisterImpl
+            .findDetail(selectAll.getFinalSelect())
+            .getResults()
+            .stream()
+            .collect(Collectors.toMap(AccessionRegisterDetail::getOpi, details -> details));
+
+        assertThat(detailsMap).containsOnlyKeys("Opi_11", "Opi_12", "Opi_13", "Opi_21");
+        assertThat(detailsMap.get("Opi_11").getOriginatingAgency()).isEqualTo("SP2");
+        assertThat(detailsMap.get("Opi_12").getOriginatingAgency()).isEqualTo("SP2");
+        assertThat(detailsMap.get("Opi_13").getOriginatingAgency()).isEqualTo("SP1");
+        assertThat(detailsMap.get("Opi_21").getOriginatingAgency()).isEqualTo("SP2");
+
+        assertThat(detailsMap.get("Opi_11").getEvents()).hasSize(2);
+        assertThat(detailsMap.get("Opi_12").getEvents()).hasSize(2);
+        assertThat(detailsMap.get("Opi_13").getEvents()).hasSize(1);
+        assertThat(detailsMap.get("Opi_21").getEvents()).hasSize(1);
+
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getCreationDate()).isNotNull();
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getSourceOriginatingAgency()).isEqualTo("SP1");
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getTargetOriginatingAgency()).isEqualTo("SP2");
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getOperation()).isEqualTo(
+            VitamThreadUtils.getVitamSession().getRequestId()
+        );
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getOperationType()).isEqualTo(
+            "ORIGINATING_AGENCY_REASSIGNMENT"
+        );
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getTotalUnits()).isNull();
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getTotalGots()).isNull();
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getTotalObjects()).isNull();
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getObjectSize()).isNull();
+
+        verifyAccessionRegisterBackup(detailsMap.values());
+
+        // Check AccessionRegisterSummaries
+        Map<String, AccessionRegisterSummary> summaryMap = accessionRegisterImpl
+            .findDocuments(selectAll.getFinalSelect())
+            .getResults()
+            .stream()
+            .collect(Collectors.toMap(AccessionRegisterSummary::getOriginatingAgency, summary -> summary));
+
+        assertThat(summaryMap).containsOnlyKeys("SP1", "SP2");
+
+        AccessionRegisterSummary summarySP1 = summaryMap.get("SP1");
+        assertStatsEquals(summarySP1.getTotalUnits(), 300, 60, 240);
+        assertStatsEquals(summarySP1.getTotalObjectGroups(), 150, 30, 120);
+        assertStatsEquals(summarySP1.getTotalObjects(), 240, 45, 195);
+        assertStatsEquals(summarySP1.getTotalObjectSize(), 240_000, 45_000, 195_000);
+
+        AccessionRegisterSummary summarySP2 = summaryMap.get("SP2");
+        assertStatsEquals(summarySP2.getTotalUnits(), 310, 62, 248);
+        assertStatsEquals(summarySP2.getTotalObjectGroups(), 155, 31, 124);
+        assertStatsEquals(summarySP2.getTotalObjects(), 248, 47, 201);
+        assertStatsEquals(summarySP2.getTotalObjectSize(), 248_000, 47_000, 201_000);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void reassignAccessionRegisterOriginatingAgency_testCreateNewSummary() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        // Given
+        AccessionRegisterDetailModel sp1_detail1 = new AccessionRegisterDetailModel()
+            .setId(GUIDFactory.newGUID().getId())
+            .setTenant(TENANT_ID)
+            .setOpi("Opi_11")
+            .setOpc("Opi_11")
+            .setOriginatingAgency("SP1")
+            .setTotalUnits(new RegisterValueDetailModel().setIngested(100).setDeleted(20).setRemained(80))
+            .setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(50).setDeleted(10).setRemained(40))
+            .setTotalObjects(new RegisterValueDetailModel().setIngested(80).setDeleted(15).setRemained(65))
+            .setObjectSize(new RegisterValueDetailModel().setIngested(80_000).setDeleted(15_000).setRemained(65_000))
+            .setStatus(AccessionRegisterStatus.STORED_AND_UPDATED)
+            .addEvent(new RegisterValueEventModel());
+        accessionRegisterImpl.createOrUpdateAccessionRegister(sp1_detail1);
+
+        AccessionRegisterDetailModel sp1_detail2 = new AccessionRegisterDetailModel()
+            .setId(GUIDFactory.newGUID().getId())
+            .setTenant(TENANT_ID)
+            .setOpi("Opi_12")
+            .setOpc("Opi_12")
+            .setOriginatingAgency("SP1")
+            .setTotalUnits(new RegisterValueDetailModel().setIngested(200).setDeleted(40).setRemained(160))
+            .setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(100).setDeleted(20).setRemained(80))
+            .setTotalObjects(new RegisterValueDetailModel().setIngested(160).setDeleted(30).setRemained(130))
+            .setObjectSize(new RegisterValueDetailModel().setIngested(160_000).setDeleted(30_000).setRemained(130_000))
+            .setStatus(AccessionRegisterStatus.STORED_AND_UPDATED)
+            .addEvent(new RegisterValueEventModel());
+        accessionRegisterImpl.createOrUpdateAccessionRegister(sp1_detail2);
+
+        AccessionRegisterDetailModel sp1_detail3 = new AccessionRegisterDetailModel()
+            .setId(GUIDFactory.newGUID().getId())
+            .setTenant(TENANT_ID)
+            .setOpi("Opi_13")
+            .setOpc("Opi_13")
+            .setOriginatingAgency("SP1")
+            .setTotalUnits(new RegisterValueDetailModel().setIngested(300).setDeleted(60).setRemained(240))
+            .setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(150).setDeleted(30).setRemained(120))
+            .setTotalObjects(new RegisterValueDetailModel().setIngested(240).setDeleted(45).setRemained(195))
+            .setObjectSize(new RegisterValueDetailModel().setIngested(240_000).setDeleted(45_000).setRemained(195_000))
+            .setStatus(AccessionRegisterStatus.STORED_AND_UPDATED)
+            .addEvent(new RegisterValueEventModel());
+        accessionRegisterImpl.createOrUpdateAccessionRegister(sp1_detail3);
+
+        // When
+        accessionRegisterImpl.reassignAccessionRegisterOriginatingAgency(
+            new AccessionRegisterOriginatingAgencyReassignmentRequest(Set.of("Opi_11", "Opi_12"), "SP1", "SP2")
+        );
+
+        // Then
+
+        // Check AccessionRegisterDetails
+        Select selectAll = new Select();
+        selectAll.setQuery(QueryHelper.exists("#id"));
+        Map<String, AccessionRegisterDetail> detailsMap = accessionRegisterImpl
+            .findDetail(selectAll.getFinalSelect())
+            .getResults()
+            .stream()
+            .collect(Collectors.toMap(AccessionRegisterDetail::getOpi, details -> details));
+
+        assertThat(detailsMap).containsOnlyKeys("Opi_11", "Opi_12", "Opi_13");
+        assertThat(detailsMap.get("Opi_11").getOriginatingAgency()).isEqualTo("SP2");
+        assertThat(detailsMap.get("Opi_12").getOriginatingAgency()).isEqualTo("SP2");
+        assertThat(detailsMap.get("Opi_13").getOriginatingAgency()).isEqualTo("SP1");
+
+        assertThat(detailsMap.get("Opi_11").getEvents()).hasSize(2);
+        assertThat(detailsMap.get("Opi_12").getEvents()).hasSize(2);
+        assertThat(detailsMap.get("Opi_13").getEvents()).hasSize(1);
+
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getCreationDate()).isNotNull();
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getSourceOriginatingAgency()).isEqualTo("SP1");
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getTargetOriginatingAgency()).isEqualTo("SP2");
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getOperation()).isEqualTo(
+            VitamThreadUtils.getVitamSession().getRequestId()
+        );
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getOperationType()).isEqualTo(
+            "ORIGINATING_AGENCY_REASSIGNMENT"
+        );
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getTotalUnits()).isNull();
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getTotalGots()).isNull();
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getTotalObjects()).isNull();
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getObjectSize()).isNull();
+
+        verifyAccessionRegisterBackup(detailsMap.values());
+
+        // Check AccessionRegisterSummaries
+        Map<String, AccessionRegisterSummary> summaryMap = accessionRegisterImpl
+            .findDocuments(selectAll.getFinalSelect())
+            .getResults()
+            .stream()
+            .collect(Collectors.toMap(AccessionRegisterSummary::getOriginatingAgency, summary -> summary));
+
+        assertThat(summaryMap).containsOnlyKeys("SP1", "SP2");
+
+        AccessionRegisterSummary summarySP1 = summaryMap.get("SP1");
+
+        assertStatsEquals(summarySP1.getTotalUnits(), 300, 60, 240);
+        assertStatsEquals(summarySP1.getTotalObjectGroups(), 150, 30, 120);
+        assertStatsEquals(summarySP1.getTotalObjects(), 240, 45, 195);
+        assertStatsEquals(summarySP1.getTotalObjectSize(), 240_000, 45_000, 195_000);
+
+        AccessionRegisterSummary summarySP2 = summaryMap.get("SP2");
+        assertStatsEquals(summarySP2.getTotalUnits(), 300, 60, 240);
+        assertStatsEquals(summarySP2.getTotalObjectGroups(), 150, 30, 120);
+        assertStatsEquals(summarySP2.getTotalObjects(), 240, 45, 195);
+        assertStatsEquals(summarySP2.getTotalObjectSize(), 240_000, 45_000, 195_000);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void reassignAccessionRegisterOriginatingAgency_multipleReassignments() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        // Given
+        AccessionRegisterDetailModel sp1_detail1 = new AccessionRegisterDetailModel()
+            .setId(GUIDFactory.newGUID().getId())
+            .setTenant(TENANT_ID)
+            .setOpi("Opi_11")
+            .setOpc("Opi_11")
+            .setOriginatingAgency("SP1")
+            .setTotalUnits(new RegisterValueDetailModel().setIngested(100).setDeleted(20).setRemained(80))
+            .setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(50).setDeleted(10).setRemained(40))
+            .setTotalObjects(new RegisterValueDetailModel().setIngested(80).setDeleted(15).setRemained(65))
+            .setObjectSize(new RegisterValueDetailModel().setIngested(80_000).setDeleted(15_000).setRemained(65_000))
+            .setStatus(AccessionRegisterStatus.STORED_AND_UPDATED)
+            .addEvent(new RegisterValueEventModel());
+        accessionRegisterImpl.createOrUpdateAccessionRegister(sp1_detail1);
+
+        AccessionRegisterDetailModel sp1_detail2 = new AccessionRegisterDetailModel()
+            .setId(GUIDFactory.newGUID().getId())
+            .setTenant(TENANT_ID)
+            .setOpi("Opi_12")
+            .setOpc("Opi_12")
+            .setOriginatingAgency("SP1")
+            .setTotalUnits(new RegisterValueDetailModel().setIngested(200).setDeleted(40).setRemained(160))
+            .setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(100).setDeleted(20).setRemained(80))
+            .setTotalObjects(new RegisterValueDetailModel().setIngested(160).setDeleted(30).setRemained(130))
+            .setObjectSize(new RegisterValueDetailModel().setIngested(160_000).setDeleted(30_000).setRemained(130_000))
+            .setStatus(AccessionRegisterStatus.STORED_AND_UPDATED)
+            .addEvent(new RegisterValueEventModel());
+        accessionRegisterImpl.createOrUpdateAccessionRegister(sp1_detail2);
+
+        AccessionRegisterDetailModel sp1_detail3 = new AccessionRegisterDetailModel()
+            .setId(GUIDFactory.newGUID().getId())
+            .setTenant(TENANT_ID)
+            .setOpi("Opi_13")
+            .setOpc("Opi_13")
+            .setOriginatingAgency("SP1")
+            .setTotalUnits(new RegisterValueDetailModel().setIngested(300).setDeleted(60).setRemained(240))
+            .setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(150).setDeleted(30).setRemained(120))
+            .setTotalObjects(new RegisterValueDetailModel().setIngested(240).setDeleted(45).setRemained(195))
+            .setObjectSize(new RegisterValueDetailModel().setIngested(240_000).setDeleted(45_000).setRemained(195_000))
+            .setStatus(AccessionRegisterStatus.STORED_AND_UPDATED)
+            .addEvent(new RegisterValueEventModel());
+        accessionRegisterImpl.createOrUpdateAccessionRegister(sp1_detail3);
+
+        AccessionRegisterDetailModel sp2_detail1 = new AccessionRegisterDetailModel()
+            .setId(GUIDFactory.newGUID().getId())
+            .setTenant(TENANT_ID)
+            .setOpi("Opi_21")
+            .setOpc("Opi_21")
+            .setOriginatingAgency("SP2")
+            .setTotalUnits(new RegisterValueDetailModel().setIngested(10).setDeleted(2).setRemained(8))
+            .setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(5).setDeleted(1).setRemained(4))
+            .setTotalObjects(new RegisterValueDetailModel().setIngested(8).setDeleted(2).setRemained(6))
+            .setObjectSize(new RegisterValueDetailModel().setIngested(8_000).setDeleted(2_000).setRemained(6_000))
+            .setStatus(AccessionRegisterStatus.STORED_AND_UPDATED)
+            .addEvent(new RegisterValueEventModel());
+        accessionRegisterImpl.createOrUpdateAccessionRegister(sp2_detail1);
+
+        // When
+        String op1 = GUIDFactory.newGUID().getId();
+        VitamThreadUtils.getVitamSession().setRequestId(op1);
+        accessionRegisterImpl.reassignAccessionRegisterOriginatingAgency(
+            new AccessionRegisterOriginatingAgencyReassignmentRequest(Set.of("Opi_11", "Opi_12"), "SP1", "SP2")
+        );
+
+        String op2 = GUIDFactory.newGUID().getId();
+        VitamThreadUtils.getVitamSession().setRequestId(op2);
+        accessionRegisterImpl.reassignAccessionRegisterOriginatingAgency(
+            new AccessionRegisterOriginatingAgencyReassignmentRequest(Set.of("Opi_12", "Opi_21"), "SP2", "SP3")
+        );
+
+        String op3 = GUIDFactory.newGUID().getId();
+        VitamThreadUtils.getVitamSession().setRequestId(op3);
+        accessionRegisterImpl.reassignAccessionRegisterOriginatingAgency(
+            new AccessionRegisterOriginatingAgencyReassignmentRequest(Set.of("Opi_12", "Opi_21"), "SP3", "SP1")
+        );
+
+        // Then
+
+        // Check AccessionRegisterDetails
+        Select selectAll = new Select();
+        selectAll.setQuery(QueryHelper.exists("#id"));
+        Map<String, AccessionRegisterDetail> detailsMap = accessionRegisterImpl
+            .findDetail(selectAll.getFinalSelect())
+            .getResults()
+            .stream()
+            .collect(Collectors.toMap(AccessionRegisterDetail::getOpi, details -> details));
+
+        assertThat(detailsMap).containsOnlyKeys("Opi_11", "Opi_12", "Opi_13", "Opi_21");
+        assertThat(detailsMap.get("Opi_11").getOriginatingAgency()).isEqualTo("SP2");
+        assertThat(detailsMap.get("Opi_12").getOriginatingAgency()).isEqualTo("SP1");
+        assertThat(detailsMap.get("Opi_13").getOriginatingAgency()).isEqualTo("SP1");
+        assertThat(detailsMap.get("Opi_21").getOriginatingAgency()).isEqualTo("SP1");
+
+        assertThat(detailsMap.get("Opi_11").getEvents()).hasSize(2);
+        assertThat(detailsMap.get("Opi_12").getEvents()).hasSize(4);
+        assertThat(detailsMap.get("Opi_13").getEvents()).hasSize(1);
+        assertThat(detailsMap.get("Opi_21").getEvents()).hasSize(3);
+
+        assertThat(detailsMap.get("Opi_12").getEvents().get(1).getCreationDate()).isNotNull();
+        assertThat(detailsMap.get("Opi_12").getEvents().get(1).getSourceOriginatingAgency()).isEqualTo("SP1");
+        assertThat(detailsMap.get("Opi_12").getEvents().get(1).getTargetOriginatingAgency()).isEqualTo("SP2");
+        assertThat(detailsMap.get("Opi_12").getEvents().get(1).getOperation()).isEqualTo(op1);
+
+        assertThat(detailsMap.get("Opi_12").getEvents().get(2).getCreationDate()).isNotNull();
+        assertThat(detailsMap.get("Opi_12").getEvents().get(2).getSourceOriginatingAgency()).isEqualTo("SP2");
+        assertThat(detailsMap.get("Opi_12").getEvents().get(2).getTargetOriginatingAgency()).isEqualTo("SP3");
+        assertThat(detailsMap.get("Opi_12").getEvents().get(2).getOperation()).isEqualTo(op2);
+
+        assertThat(detailsMap.get("Opi_12").getEvents().get(3).getCreationDate()).isNotNull();
+        assertThat(detailsMap.get("Opi_12").getEvents().get(3).getSourceOriginatingAgency()).isEqualTo("SP3");
+        assertThat(detailsMap.get("Opi_12").getEvents().get(3).getTargetOriginatingAgency()).isEqualTo("SP1");
+        assertThat(detailsMap.get("Opi_12").getEvents().get(3).getOperation()).isEqualTo(op3);
+
+        verifyAccessionRegisterBackup(detailsMap.values());
+
+        // Check AccessionRegisterSummaries
+        Map<String, AccessionRegisterSummary> summaryMap = accessionRegisterImpl
+            .findDocuments(selectAll.getFinalSelect())
+            .getResults()
+            .stream()
+            .collect(Collectors.toMap(AccessionRegisterSummary::getOriginatingAgency, summary -> summary));
+
+        assertThat(summaryMap).containsOnlyKeys("SP1", "SP2", "SP3");
+
+        AccessionRegisterSummary summarySP1 = summaryMap.get("SP1");
+        assertStatsEquals(summarySP1.getTotalUnits(), 510, 102, 408);
+        assertStatsEquals(summarySP1.getTotalObjectGroups(), 255, 51, 204);
+        assertStatsEquals(summarySP1.getTotalObjects(), 408, 77, 331);
+        assertStatsEquals(summarySP1.getTotalObjectSize(), 408_000, 77_000, 331_000);
+
+        AccessionRegisterSummary summarySP2 = summaryMap.get("SP2");
+        assertStatsEquals(summarySP2.getTotalUnits(), 100, 20, 80);
+        assertStatsEquals(summarySP2.getTotalObjectGroups(), 50, 10, 40);
+        assertStatsEquals(summarySP2.getTotalObjects(), 80, 15, 65);
+        assertStatsEquals(summarySP2.getTotalObjectSize(), 80_000, 15_000, 65_000);
+
+        AccessionRegisterSummary summarySP3 = summaryMap.get("SP3");
+        assertStatsEquals(summarySP3.getTotalUnits(), 0, 0, 0);
+        assertStatsEquals(summarySP3.getTotalObjectGroups(), 0, 0, 0);
+        assertStatsEquals(summarySP3.getTotalObjects(), 0, 0, 0);
+        assertStatsEquals(summarySP3.getTotalObjectSize(), 0, 0, 0);
+    }
+
+    private void verifyAccessionRegisterBackup(Collection<AccessionRegisterDetail> dbAccessionRegisterDetails)
+        throws InvalidParseOperationException {
+        Map<String, AccessionRegisterDetail> dbDocuments = dbAccessionRegisterDetails
+            .stream()
+            .collect(Collectors.toMap(doc -> doc.getString("#id"), doc -> doc));
+
+        assertThat(persistedAccessionRegisterDetails).containsOnlyKeys(dbDocuments.keySet());
+        for (String docId : dbDocuments.keySet()) {
+            ObjectNode expectedAccessionRegister = (ObjectNode) JsonHandler.toJsonNode(dbDocuments.get(docId));
+            expectedAccessionRegister.set("_id", expectedAccessionRegister.remove("#id"));
+            expectedAccessionRegister.set("_v", expectedAccessionRegister.remove("#version"));
+            expectedAccessionRegister.set("_tenant", expectedAccessionRegister.remove("#tenant"));
+            JsonAssert.assertJsonEquals(
+                expectedAccessionRegister,
+                JsonHandler.toJsonNode(persistedAccessionRegisterDetails.get(docId))
+            );
+        }
+    }
+
+    private void assertStatsEquals(RegisterValueDetailModel stats, int ingested, int deleted, int remaining) {
+        assertThat(ingested - deleted).isEqualTo(remaining);
+        assertThat(stats.getIngested()).isEqualTo(ingested);
+        assertThat(stats.getDeleted()).isEqualTo(deleted);
+        assertThat(stats.getRemained()).isEqualTo(remaining);
     }
 
     private AccessionRegisterDetailModel resourceAccessionRegisterDetails(String path) throws Exception {

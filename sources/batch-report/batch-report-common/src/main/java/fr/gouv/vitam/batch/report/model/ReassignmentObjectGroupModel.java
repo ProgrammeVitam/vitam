@@ -27,12 +27,12 @@
 package fr.gouv.vitam.batch.report.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.ReassignmentObjectGroupReportEntry;
 
 /**
- * OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel Report model
+ * ReassignmentObjectGroupModel Report model
  */
-public class OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel {
+public class ReassignmentObjectGroupModel {
 
     public static final String PROCESS_ID = "processId";
     public static final String TENANT = "_tenant";
@@ -46,20 +46,20 @@ public class OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel {
     private String creationDateTime;
 
     @JsonProperty(METADATA)
-    private OriginatingAgencyReassignmentObjectGroupReportEntry metadata;
+    private ReassignmentObjectGroupReportEntry metadata;
 
     @JsonProperty(TENANT)
     private int tenant;
 
-    public OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel() {
+    public ReassignmentObjectGroupModel() {
         // Empty constructor for deserialization
     }
 
-    public OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel(
+    public ReassignmentObjectGroupModel(
         String processId,
         int tenant,
         String creationDateTime,
-        OriginatingAgencyReassignmentObjectGroupReportEntry metadata
+        ReassignmentObjectGroupReportEntry metadata
     ) {
         this.processId = processId;
         this.creationDateTime = creationDateTime;
@@ -83,11 +83,11 @@ public class OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel {
         this.creationDateTime = creationDateTime;
     }
 
-    public OriginatingAgencyReassignmentObjectGroupReportEntry getMetadata() {
+    public ReassignmentObjectGroupReportEntry getMetadata() {
         return metadata;
     }
 
-    public void setMetadata(OriginatingAgencyReassignmentObjectGroupReportEntry metadata) {
+    public void setMetadata(ReassignmentObjectGroupReportEntry metadata) {
         this.metadata = metadata;
     }
 

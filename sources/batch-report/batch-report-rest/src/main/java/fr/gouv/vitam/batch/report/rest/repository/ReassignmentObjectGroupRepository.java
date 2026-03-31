@@ -31,7 +31,8 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Projections;
-import fr.gouv.vitam.batch.report.model.OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel;
+import fr.gouv.vitam.batch.report.model.ReassignmentChildObjectGroupModel;
+import fr.gouv.vitam.batch.report.model.ReassignmentObjectGroupModel;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import org.bson.Document;
@@ -44,27 +45,23 @@ import java.util.Set;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
-public class OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository extends ReportCommonRepository {
+public class ReassignmentObjectGroupRepository extends ReportCommonRepository {
 
-    static final String OBJECT_GROUP_REASSIGNMENT_ORIGINATING_AGENCIES_UPDATE_COLLECTION_NAME =
-        "OriginatingAgencyReassignmentObjectGroupAgencyUpdateReport";
+    static final String COLLECTION_NAME = "ReassignmentObjectGroupReport";
 
     private final MongoCollection<Document> collection;
 
     @VisibleForTesting
-    OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository(
-        MongoDbAccess mongoDbAccess,
-        String collectionName
-    ) {
+    ReassignmentObjectGroupRepository(MongoDbAccess mongoDbAccess, String collectionName) {
         this.collection = mongoDbAccess.getMongoDatabase().getCollection(collectionName);
     }
 
-    public OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository(SimpleMongoDBAccess mongoDbAccess) {
-        this(mongoDbAccess, OBJECT_GROUP_REASSIGNMENT_ORIGINATING_AGENCIES_UPDATE_COLLECTION_NAME);
+    public ReassignmentObjectGroupRepository(SimpleMongoDBAccess mongoDbAccess) {
+        this(mongoDbAccess, COLLECTION_NAME);
     }
 
-    public void bulkAppendReport(List<OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel> reports) {
-        Set<OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel> reportsWithoutDuplicate = new HashSet<>(reports);
+    public void bulkAppendReport(List<ReassignmentObjectGroupModel> reports) {
+        Set<ReassignmentObjectGroupModel> reportsWithoutDuplicate = new HashSet<>(reports);
         List<Document> entries = reportsWithoutDuplicate.stream().map(ReportCommonRepository::pojoToDocument).toList();
         super.bulkAppendReport(entries, collection);
     }
@@ -75,11 +72,17 @@ public class OriginatingAgencyReassignmentObjectGroupAgenciesUpdateRepository ex
                 Arrays.asList(
                     Aggregates.match(
                         and(
-                            eq(OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel.PROCESS_ID, processId),
-                            eq(OriginatingAgencyReassignmentObjectGroupAgencyUpdateModel.TENANT, tenantId)
+                            eq(ReassignmentChildObjectGroupModel.PROCESS_ID, processId),
+                            eq(ReassignmentChildObjectGroupModel.TENANT, tenantId)
                         )
                     ),
-                    Aggregates.project(Projections.fields(new Document("_id", 0), new Document("id", "$_metadata.id")))
+                    Aggregates.project(
+                        Projections.fields(
+                            new Document("_id", 0),
+                            new Document("id", "$_metadata.id"),
+                            new Document("params.#opi", "$_metadata.opi")
+                        )
+                    )
                 )
             )
             // Aggregation query requires more than 100MB to proceed.

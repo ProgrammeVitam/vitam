@@ -41,11 +41,12 @@ import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsComputedDetails;
 import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
-import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentObjectGroupReportEntry;
-import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentUnitUpdateReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.ReassignmentChildObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.ReassignmentChildUnitReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.ReassignmentObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.TraceabilityReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.TransferReplyUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.UnitComputedInheritedRulesInvalidationReportEntry;
@@ -91,46 +92,40 @@ public class BatchReportResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BatchReportResource.class);
 
     private static final String EMPTY_PROCESSID_ERROR_MESSAGE = "processId should be filed";
-    private static final TypeReference<ReportBody<AuditObjectGroupReportEntry>> reportAuditType = new TypeReference<
-        ReportBody<AuditObjectGroupReportEntry>
-    >() {};
+    private static final TypeReference<ReportBody<AuditObjectGroupReportEntry>> reportAuditType =
+        new TypeReference<>() {};
     private static final TypeReference<ReportBody<EliminationActionUnitReportEntry>> reportEliminationActionUnitType =
-        new TypeReference<ReportBody<EliminationActionUnitReportEntry>>() {};
-    private static final TypeReference<ReportBody<PurgeUnitReportEntry>> reportPurgeUnitType = new TypeReference<
-        ReportBody<PurgeUnitReportEntry>
-    >() {};
+        new TypeReference<>() {};
+    private static final TypeReference<ReportBody<PurgeUnitReportEntry>> reportPurgeUnitType = new TypeReference<>() {};
     private static final TypeReference<ReportBody<PurgeObjectGroupReportEntry>> reportPurgeObjectGroupType =
-        new TypeReference<ReportBody<PurgeObjectGroupReportEntry>>() {};
+        new TypeReference<>() {};
     private static final TypeReference<ReportBody<TransferReplyUnitReportEntry>> reportTransferReplyUnitType =
-        new TypeReference<ReportBody<TransferReplyUnitReportEntry>>() {};
-    private static final TypeReference<ReportBody<PreservationReportEntry>> reportPreservationType = new TypeReference<
-        ReportBody<PreservationReportEntry>
-    >() {};
+        new TypeReference<>() {};
+    private static final TypeReference<ReportBody<PreservationReportEntry>> reportPreservationType =
+        new TypeReference<>() {};
     private static final TypeReference<ReportBody<UpdateUnitMetadataReportEntry>> reportMassUpdateType =
-        new TypeReference<ReportBody<UpdateUnitMetadataReportEntry>>() {};
+        new TypeReference<>() {};
     private static final TypeReference<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportBulkUpdateMetadataType =
-        new TypeReference<ReportBody<BulkUpdateUnitMetadataReportEntry>>() {};
+        new TypeReference<>() {};
     private static final TypeReference<ReportBody<EvidenceAuditReportEntry>> reportEvidenceAuditType =
-        new TypeReference<ReportBody<EvidenceAuditReportEntry>>() {};
+        new TypeReference<>() {};
     private static final TypeReference<
         ReportBody<UnitComputedInheritedRulesInvalidationReportEntry>
-    > unitComputedInheritedRuleInvalidationType = new TypeReference<
-        ReportBody<UnitComputedInheritedRulesInvalidationReportEntry>
-    >() {};
+    > unitComputedInheritedRuleInvalidationType = new TypeReference<>() {};
     private static final TypeReference<ReportBody<DeleteGotVersionsReportEntry>> reportDeleteGotVersionsType =
         new TypeReference<>() {};
 
-    private static final TypeReference<
-        ReportBody<OriginatingAgencyReassignmentUnitUpdateReportEntry>
-    > originatingAgencyReassignmentComputingType = new TypeReference<
-        ReportBody<OriginatingAgencyReassignmentUnitUpdateReportEntry>
-    >() {};
+    private static final TypeReference<ReportBody<ReassignmentChildUnitReportEntry>> reassignmentChildUnitReportType =
+        new TypeReference<>() {};
 
     private static final TypeReference<
-        ReportBody<OriginatingAgencyReassignmentObjectGroupReportEntry>
-    > originatingAgencyReassignmentObjectGroupUpdateType = new TypeReference<
-        ReportBody<OriginatingAgencyReassignmentObjectGroupReportEntry>
-    >() {};
+        ReportBody<ReassignmentObjectGroupReportEntry>
+    > reassignmentObjectGroupReportType = new TypeReference<>() {};
+
+    private static final TypeReference<
+        ReportBody<ReassignmentChildObjectGroupReportEntry>
+    > reassignmentChildObjectGroupReportType = new TypeReference<>() {};
+
     private final BatchReportServiceImpl batchReportServiceImpl;
 
     public BatchReportResource(BatchReportServiceImpl batchReportServiceImpl) {
@@ -261,42 +256,34 @@ public class BatchReportResource extends ApplicationStatusResource {
                         deleteGotVersionsReportEntryReportBody.getEntries()
                     );
                     break;
-                case REASSIGNMENT_UNITS_ORIGINATING_AGENCIES_COMPUTE:
-                    ReportBody<
-                        OriginatingAgencyReassignmentUnitUpdateReportEntry
-                    > unitOriginatingAgencyReassignmentReportEntry = JsonHandler.getFromJsonNode(
-                        body,
-                        originatingAgencyReassignmentComputingType
-                    );
-                    batchReportServiceImpl.appendOriginatingAgencyAssignmentUnitAgenciesChildrenComputingReport(
+                case REASSIGNMENT_CHILD_UNITS:
+                    ReportBody<ReassignmentChildUnitReportEntry> unitOriginatingAgencyReassignmentReportEntry =
+                        JsonHandler.getFromJsonNode(body, reassignmentChildUnitReportType);
+                    batchReportServiceImpl.appendReassignmentChildUnits(
                         unitOriginatingAgencyReassignmentReportEntry.getProcessId(),
                         unitOriginatingAgencyReassignmentReportEntry.getEntries(),
                         tenantId
                     );
                     break;
-                case REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCY_UPDATE:
-                    ReportBody<
-                        OriginatingAgencyReassignmentObjectGroupReportEntry
-                    > gotOriginatingAgencyReassignmentReportEntry = JsonHandler.getFromJsonNode(
-                        body,
-                        originatingAgencyReassignmentObjectGroupUpdateType
-                    );
+                case REASSIGNMENT_OBJECT_GROUPS:
+                    ReportBody<ReassignmentObjectGroupReportEntry> gotOriginatingAgencyReassignmentReportEntry =
+                        JsonHandler.getFromJsonNode(body, reassignmentObjectGroupReportType);
 
-                    batchReportServiceImpl.appendObjectGroupsIdsReassignmentAgencyUpdateReport(
+                    batchReportServiceImpl.appendReassignmentObjectGroups(
                         gotOriginatingAgencyReassignmentReportEntry.getProcessId(),
                         gotOriginatingAgencyReassignmentReportEntry.getEntries(),
                         tenantId
                     );
                     break;
-                case REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCIES_COMPUTE:
+                case REASSIGNMENT_CHILD_OBJECT_GROUPS:
                     ReportBody<
-                        OriginatingAgencyReassignmentObjectGroupReportEntry
+                        ReassignmentChildObjectGroupReportEntry
                     > gotOriginatingAgencyReassignmentReportComputeEntry = JsonHandler.getFromJsonNode(
                         body,
-                        originatingAgencyReassignmentObjectGroupUpdateType
+                        reassignmentChildObjectGroupReportType
                     );
 
-                    batchReportServiceImpl.appendObjectGroupsIdsReassignmentAgenciesComputeReport(
+                    batchReportServiceImpl.appendReassignmentChildObjectGroups(
                         gotOriginatingAgencyReassignmentReportComputeEntry.getProcessId(),
                         gotOriginatingAgencyReassignmentReportComputeEntry.getEntries(),
                         tenantId
@@ -461,27 +448,18 @@ public class BatchReportResource extends ApplicationStatusResource {
                 case DELETE_GOT_VERSIONS:
                     batchReportServiceImpl.deleteGotVersionsByIdAndTenant(processId, tenantId);
                     break;
-                case REASSIGNMENT_UNITS_ORIGINATING_AGENCIES_COMPUTE:
-                    batchReportServiceImpl.deleteOriginatingAgencyReassignmentUnitAgenciesUpdateReportByIdAndTenant(
-                        processId,
-                        tenantId
-                    );
+                case REASSIGNMENT_CHILD_UNITS:
+                    batchReportServiceImpl.deleteReassignmentChildUnitsByIdAndTenant(processId, tenantId);
                     break;
-                case REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCY_UPDATE:
-                    batchReportServiceImpl.deleteObjectGroupIdsForReassignmentAgencyUpdateReportByIdAndTenant(
-                        processId,
-                        tenantId
-                    );
+                case REASSIGNMENT_OBJECT_GROUPS:
+                    batchReportServiceImpl.deleteReassignmentObjectGroupsByIdAndTenant(processId, tenantId);
                     break;
-                case REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCIES_COMPUTE:
-                    batchReportServiceImpl.deleteObjectGroupIdsForReassignmentAgenciesComputeReportByIdAndTenant(
-                        processId,
-                        tenantId
-                    );
+                case REASSIGNMENT_CHILD_OBJECT_GROUPS:
+                    batchReportServiceImpl.deleteReassignmentChildObjectGroupsIdAndTenant(processId, tenantId);
                     break;
                 default:
                     Response.Status status = Response.Status.BAD_REQUEST;
-                    VitamError vitamError = new VitamError(status.name())
+                    VitamError<JsonNode> vitamError = new VitamError<JsonNode>(status.name())
                         .setHttpCode(status.getStatusCode())
                         .setMessage("Report type not found")
                         .setDescription("Report type not found");
@@ -529,7 +507,7 @@ public class BatchReportResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response readComputedDetailsFromReport(JsonNode body) {
         try {
-            ReportBody reportBody = JsonHandler.getFromJsonNode(body, ReportBody.class);
+            ReportBody<JsonNode> reportBody = JsonHandler.getFromJsonNode(body, ReportBody.class, JsonNode.class);
             if (reportBody == null) {
                 throw new IllegalStateException("Incorrect body report!");
             }
@@ -550,53 +528,45 @@ public class BatchReportResource extends ApplicationStatusResource {
         }
     }
 
-    @Path("reassignmentUnitChildrenAgenciesUpdate/{processId}")
+    @Path("reassignmentChildUnits/{processId}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response exportUnitsToComputeSps(
+    public Response exportReassignmentUnits(
         @PathParam("processId") String processId,
         ReportRequestWrapper<ReportExportRequest> reportRequestWrapper
     ) throws Exception {
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-        batchReportServiceImpl.exportUnitsChildrenToUpdateOriginatingAgencies(
-            processId,
-            tenantId,
-            reportRequestWrapper.getRequest()
-        );
+        batchReportServiceImpl.exportReassignmentChildUnits(processId, tenantId, reportRequestWrapper.getRequest());
         return Response.status(Response.Status.CREATED).build();
     }
 
-    @Path("reassignmentObjectGroupAgencyUpdate/{processId}")
+    @Path("reassignmentObjectGroups/{processId}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response exportReassignmentObjectGroupAgencyUpdateReport(
+    public Response exportReassignmentObjectGroups(
         @PathParam("processId") String processId,
         ReportRequestWrapper<ReportExportRequest> reportRequestWrapper
     ) throws Exception {
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-        batchReportServiceImpl.exportObjectGroupsIdsToUpdateOriginatingAgency(
-            processId,
-            tenantId,
-            reportRequestWrapper.getRequest()
-        );
+        batchReportServiceImpl.exportReassignmentObjectGroups(processId, tenantId, reportRequestWrapper.getRequest());
         return Response.status(Response.Status.CREATED).build();
     }
 
-    @Path("reassignmentObjectGroupAgenciesCompute/{processId}")
+    @Path("reassignmentChildObjectGroups/{processId}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response exportReassignmentObjectGroupAgenciesCompute(
+    public Response exportReassignmentChildObjectGroups(
         @PathParam("processId") String processId,
         ReportRequestWrapper<ReportExportRequest> reportRequestWrapper
     ) throws Exception {
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-        batchReportServiceImpl.exportObjectGroupsIdsToComputeOriginatingAgencies(
+        batchReportServiceImpl.exportReassignmentChildObjectGroups(
             processId,
             tenantId,
             reportRequestWrapper.getRequest()

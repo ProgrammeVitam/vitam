@@ -31,7 +31,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Projections;
-import fr.gouv.vitam.batch.report.model.OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel;
+import fr.gouv.vitam.batch.report.model.ReassignmentChildUnitModel;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import org.bson.Document;
@@ -42,24 +42,23 @@ import java.util.List;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
-public class OriginatingAgencyReassignmentUnitAgenciesUpdateRepository extends ReportCommonRepository {
+public class ReassignmentChildUnitRepository extends ReportCommonRepository {
 
-    static final String ORIGINATING_AGENCY_REASSIGNMENT_SPS_UPDATE_COLLECTION_NAME =
-        "OriginatingAgencyReassignmentUnitAgenciesUpdateReport";
+    static final String COLLECTION_NAME = "ReassignmentChildObjectGroupReport";
 
     private final MongoCollection<Document> collection;
 
     @VisibleForTesting
-    OriginatingAgencyReassignmentUnitAgenciesUpdateRepository(MongoDbAccess mongoDbAccess, String collectionName) {
+    ReassignmentChildUnitRepository(MongoDbAccess mongoDbAccess, String collectionName) {
         this.collection = mongoDbAccess.getMongoDatabase().getCollection(collectionName);
     }
 
-    public OriginatingAgencyReassignmentUnitAgenciesUpdateRepository(SimpleMongoDBAccess mongoDbAccess) {
-        this(mongoDbAccess, ORIGINATING_AGENCY_REASSIGNMENT_SPS_UPDATE_COLLECTION_NAME);
+    public ReassignmentChildUnitRepository(SimpleMongoDBAccess mongoDbAccess) {
+        this(mongoDbAccess, COLLECTION_NAME);
     }
 
-    public void bulkAppendReport(List<OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel> reports) {
-        //already de-duplicated in worker plugin
+    public void bulkAppendReport(List<ReassignmentChildUnitModel> reports) {
+        // Already de-duplicated in worker plugin
         List<Document> entries = reports.stream().map(ReportCommonRepository::pojoToDocument).toList();
         super.bulkAppendReport(entries, collection);
     }
@@ -70,8 +69,8 @@ public class OriginatingAgencyReassignmentUnitAgenciesUpdateRepository extends R
                 Arrays.asList(
                     Aggregates.match(
                         and(
-                            eq(OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel.PROCESS_ID, processId),
-                            eq(OriginatingAgencyReassignmentUnitChildrenAgencyUpdateModel.TENANT, tenantId)
+                            eq(ReassignmentChildUnitModel.PROCESS_ID, processId),
+                            eq(ReassignmentChildUnitModel.TENANT, tenantId)
                         )
                     ),
                     Aggregates.project(Projections.fields(new Document("_id", 0), new Document("id", "$_metadata.id")))

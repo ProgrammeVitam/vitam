@@ -3,18 +3,22 @@
 @tenant = 0
 
 ### Ingest SIP
+# @name upload
 POST {{url-ingest}}/ingest-external/v1/ingests
 Accept: application/json
 Content-Type: application/octet-stream
 X-Action: RESUME
 X-Chunk-Offset: 0
 X-Context-Id: DEFAULT_WORKFLOW
-X-Size-Total: {{sip-size}}
+X-Size-Total: 0
 X-Tenant-Id: {{tenant}}
 
 < ./sip.zip
 
-### Lancement du workflow de réattribution de service producteur pour remplacer SP1 par SP2 sur des unités archivistiques dont l'opi est 'aeeaaaaaageccv3kabtrwam35oyyafyaaaaq'
+###
+@operation-id = {{ upload.response.headers.x-request-id }}
+
+### Lancement du workflow de réattribution de service producteur pour remplacer SP1 par SP2 sur des unités archivistiques
 POST {{url-access}}/access-external/v1/originatingAgencyReassignment
 Accept: application/json
 Content-Type: application/json
@@ -30,7 +34,7 @@ X-Access-Contract-Id: {{access-contract}}
       {
         "$and" : [{
           "$eq" : {
-            "#opi": "aeeaaaaaageccv3kabtrwam35oyyafyaaaaq"
+            "#opi": "{{ operation-id }}"
           }
         }
         ]

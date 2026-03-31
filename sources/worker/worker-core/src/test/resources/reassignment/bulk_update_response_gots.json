@@ -17,7 +17,7 @@
       },
       "$results": [
         {
-          "#id": "aebaaaaaaaeaaaabab44mamlsx7dj7qaaaaq",
+          "#id": "id_og_1",
           "#status": "OK",
           "#key": "METADATA_UPDATE",
           "#message": "Update OK.",
@@ -36,7 +36,7 @@
       },
       "$results": [
         {
-          "#id": "aeaaaaaaaaeaaaabab44mamlsx2dj7iaaaba",
+          "#id": "og2",
           "#status": "OK",
           "#key": "METADATA_UPDATE",
           "#message": "Update OK.",

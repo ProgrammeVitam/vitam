@@ -24,24 +24,15 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.batch.report.model.entry;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+package fr.gouv.vitam.worker.core.plugin.reassignment;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class OriginatingAgencyReassignmentUnitUpdateReportEntry {
+import java.util.Set;
 
-    public static final String UNIT_ID = "id";
-
-    private final String unitId;
-
-    @JsonCreator
-    public OriginatingAgencyReassignmentUnitUpdateReportEntry(@JsonProperty(UNIT_ID) String unitId) {
-        this.unitId = unitId;
-    }
-
-    @JsonProperty(UNIT_ID)
-    public String getUnitId() {
-        return unitId;
-    }
-}
+public record ReassignmentStatistics(
+    @JsonProperty("nbUnits") Integer nbUnits,
+    @JsonProperty("nbObjectGroups") Integer nbObjectGroups,
+    @JsonProperty("initialOperations") Set<String> initialOperations
+) {}

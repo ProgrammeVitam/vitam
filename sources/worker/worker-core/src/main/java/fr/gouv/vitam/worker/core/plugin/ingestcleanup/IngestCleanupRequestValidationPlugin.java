@@ -123,7 +123,7 @@ public class IngestCleanupRequestValidationPlugin extends ActionHandler {
             JsonNode jsonNode = logbookOperationsClient.selectOperationById(ingestOperationId);
             return JsonHandler.getFromJsonNode(jsonNode.get(TAG_RESULTS).get(0), LogbookOperation.class);
         } catch (LogbookClientNotFoundException e) {
-            throw new ProcessingStatusException(StatusCode.KO, "Logbook operation not found " + ingestOperationId);
+            throw new ProcessingStatusException(StatusCode.KO, "Logbook operation not found " + ingestOperationId, e);
         } catch (InvalidParseOperationException | LogbookClientException e) {
             throw new ProcessingStatusException(
                 StatusCode.FATAL,

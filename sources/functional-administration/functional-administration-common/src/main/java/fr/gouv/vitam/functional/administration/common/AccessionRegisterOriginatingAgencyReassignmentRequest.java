@@ -24,28 +24,17 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.batch.report.model;
+package fr.gouv.vitam.functional.administration.common;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Collection;
 
 /**
- * ReportType
+ * Accession Register Detail document
  */
-public enum ReportType {
-    ELIMINATION_ACTION_UNIT,
-    ELIMINATION_ACTION,
-    TRANSFER_REPLY_UNIT,
-    TRANSFER_REPLY,
-    PURGE_UNIT,
-    PURGE_OBJECTGROUP,
-    UPDATE_UNIT,
-    BULK_UPDATE_UNIT,
-    PRESERVATION,
-    PROBATIVE_VALUE,
-    AUDIT,
-    EVIDENCE_AUDIT,
-    TRACEABILITY,
-    UNIT_COMPUTED_INHERITED_RULES_INVALIDATION,
-    REASSIGNMENT_CHILD_UNITS,
-    REASSIGNMENT_OBJECT_GROUPS,
-    REASSIGNMENT_CHILD_OBJECT_GROUPS,
-    DELETE_GOT_VERSIONS,
-}
+public record AccessionRegisterOriginatingAgencyReassignmentRequest(
+    @JsonProperty("initialOperations") Collection<String> initialOperations,
+    @JsonProperty("sourceOriginatingAgency") String sourceOriginatingAgency,
+    @JsonProperty("targetOriginatingAgency") String targetOriginatingAgency
+) {}

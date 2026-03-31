@@ -27,11 +27,13 @@
 package fr.gouv.vitam.worker.core.plugin.reassignment;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterators;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
-import fr.gouv.vitam.batch.report.model.entry.OriginatingAgencyReassignmentObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.ReassignmentChildObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.ReassignmentObjectGroupReportEntry;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
@@ -586,19 +588,25 @@ public class OriginatingAgencyReassignmentService {
 
     public void appendReassignmentObjectGroupIdToUpdateOriginatingAgencyToBatchReport(
         HandlerIO handler,
-        Collection<String> filteredObjectGroupIds,
+        Collection<ObjectNode> filteredObjectGroupIds,
         BatchReportClient batchReportClient
     ) {
         if (CollectionUtils.isEmpty(filteredObjectGroupIds)) return;
 
         try {
-            List<OriginatingAgencyReassignmentObjectGroupReportEntry> entries = filteredObjectGroupIds
+            List<ReassignmentObjectGroupReportEntry> entries = filteredObjectGroupIds
                 .stream()
-                .map(OriginatingAgencyReassignmentObjectGroupReportEntry::new)
+                .map(
+                    (ObjectNode objectGroup) ->
+                        new ReassignmentObjectGroupReportEntry(
+                            objectGroup.get(VitamFieldsHelper.id()).asText(),
+                            objectGroup.get(VitamFieldsHelper.initialOperation()).asText()
+                        )
+                )
                 .toList();
-            ReportBody<OriginatingAgencyReassignmentObjectGroupReportEntry> report = new ReportBody<>(
+            ReportBody<ReassignmentObjectGroupReportEntry> report = new ReportBody<>(
                 handler.getContainerName(),
-                ReportType.REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCY_UPDATE,
+                ReportType.REASSIGNMENT_OBJECT_GROUPS,
                 entries
             );
             batchReportClient.appendReportEntries(report);
@@ -615,13 +623,13 @@ public class OriginatingAgencyReassignmentService {
         if (CollectionUtils.isEmpty(filteredObjectGroupIds)) return;
 
         try {
-            List<OriginatingAgencyReassignmentObjectGroupReportEntry> entries = filteredObjectGroupIds
+            List<ReassignmentChildObjectGroupReportEntry> entries = filteredObjectGroupIds
                 .stream()
-                .map(OriginatingAgencyReassignmentObjectGroupReportEntry::new)
+                .map(ReassignmentChildObjectGroupReportEntry::new)
                 .toList();
-            ReportBody<OriginatingAgencyReassignmentObjectGroupReportEntry> report = new ReportBody<>(
+            ReportBody<ReassignmentChildObjectGroupReportEntry> report = new ReportBody<>(
                 handler.getContainerName(),
-                ReportType.REASSIGNMENT_OBJECT_GROUPS_ORIGINATING_AGENCIES_COMPUTE,
+                ReportType.REASSIGNMENT_CHILD_OBJECT_GROUPS,
                 entries
             );
             batchReportClient.appendReportEntries(report);

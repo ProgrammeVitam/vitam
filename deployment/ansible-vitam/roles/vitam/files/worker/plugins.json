@@ -448,11 +448,8 @@
     "className": "fr.gouv.vitam.worker.core.plugin.CheckObjectGroupSchemaActionPlugin",
     "propertiesFile": "check_object_group_schema_plugin.properties"
   },
-  "ORIGINATING_AGENCY_REASSIGNMENT_PREPARE_UNITS": {
-    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentPrepareUnitsPlugin"
-  },
-  "ORIGINATING_AGENCY_REASSIGNMENT_PREPARE_OBJECT_GROUPS": {
-    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentPrepareObjectGroupsPlugin"
+  "ORIGINATING_AGENCY_REASSIGNMENT_PREPARATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentPreparationPlugin"
   },
   "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_UNITS": {
     "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentUpdateUnitsPlugin"
@@ -468,6 +465,9 @@
   },
   "ORIGINATING_AGENCY_REASSIGNMENT_UPDATE_CHILD_OBJECT_GROUPS": {
     "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentUpdateChildObjectGroupsPlugin"
+  },
+  "ORIGINATING_AGENCY_REASSIGNMENT_ACCESSION_REGISTER_UPDATE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentAccessionRegisterUpdatePlugin"
   },
   "ORIGINATING_AGENCY_REASSIGNMENT_FINALIZATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentFinalizationPlugin"

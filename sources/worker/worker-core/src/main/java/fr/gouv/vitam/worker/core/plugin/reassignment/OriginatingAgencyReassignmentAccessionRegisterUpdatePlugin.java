@@ -24,58 +24,76 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.worker.core.plugin.reassignment;
 
-import fr.gouv.vitam.batch.report.client.BatchReportClient;
-import fr.gouv.vitam.batch.report.model.ReportType;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import java.io.File;
+import java.io.IOException;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-/**
- * OriginatingAgencyReassignmentFinalizationPlugin
- */
-public class OriginatingAgencyReassignmentFinalizationPlugin extends ActionHandler {
+public class OriginatingAgencyReassignmentAccessionRegisterUpdatePlugin extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
-        OriginatingAgencyReassignmentFinalizationPlugin.class
+        OriginatingAgencyReassignmentAccessionRegisterUpdatePlugin.class
     );
 
-    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_FINALIZATION";
+    private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_ACCESSION_REGISTER_UPDATE";
 
-    public OriginatingAgencyReassignmentFinalizationPlugin() {
+    public static final String REASSIGNMENT_STATISTICS_JSON_FILE = "reassignment_statistics.json";
+
+    private final OriginatingAgencyReassignmentService originatingAgencyReassignmentService;
+
+    public OriginatingAgencyReassignmentAccessionRegisterUpdatePlugin() {
         // Default constructor for workflow initialization by Worker
+        originatingAgencyReassignmentService = new OriginatingAgencyReassignmentService();
     }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
-        LOGGER.info("Originating agency reassignment finalization started");
+        try {
+            OriginatingAgencyReassignmentRequest reassignmentRequest =
+                originatingAgencyReassignmentService.loadRequestJsonFromWorkspace(handler);
+            ReassignmentStatistics reassignmentStatistics = loadReassignmentStatistics(handler);
 
-        // Cleanup units
-        try (BatchReportClient batchReportClient = handler.getBatchReportClient()) {
-            String processId = handler.getContainerName();
-            batchReportClient.cleanupReport(processId, ReportType.REASSIGNMENT_CHILD_UNITS);
-            batchReportClient.cleanupReport(processId, ReportType.REASSIGNMENT_OBJECT_GROUPS);
-            batchReportClient.cleanupReport(processId, ReportType.REASSIGNMENT_CHILD_OBJECT_GROUPS);
+            try (AdminManagementClient adminClient = handler.getAdminManagementClient()) {
+                adminClient.reassignAccessionRegisterOriginatingAgency(
+                    reassignmentStatistics.initialOperations(),
+                    reassignmentRequest.getSourceOriginatingAgency(),
+                    reassignmentRequest.getTargetOriginatingAgency()
+                );
+            }
 
-            LOGGER.info("Originating agency reassignment finalization succeeded");
-            return buildItemStatus(PLUGIN_NAME, StatusCode.OK, null);
-        } catch (VitamClientInternalException e) {
-            throw new ProcessingException("An error occurred during originating agency report cleanup", e);
+            return new ItemStatus(PLUGIN_NAME).increment(StatusCode.OK);
+        } catch (Exception e) {
+            LOGGER.error("Accession Register update failed: " + e.getMessage(), e);
+            return buildItemStatus(PLUGIN_NAME, StatusCode.FATAL);
         }
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // NOP.
+    private ReassignmentStatistics loadReassignmentStatistics(HandlerIO handler)
+        throws InvalidParseOperationException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException {
+        File reassignmentStatisticsFile = handler.getFileFromWorkspace(
+            WorkFlowExecutionContext.VITAM,
+            REASSIGNMENT_STATISTICS_JSON_FILE
+        );
+        return JsonHandler.getFromFile(reassignmentStatisticsFile, ReassignmentStatistics.class);
     }
 
     public static String getId() {

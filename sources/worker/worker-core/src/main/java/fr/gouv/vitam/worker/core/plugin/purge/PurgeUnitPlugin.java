@@ -387,7 +387,7 @@ public abstract class PurgeUnitPlugin extends ActionHandler {
                         JsonHandler.getFromJsonNode(reassignmentNode, ReassignmentOperation.class)
                     );
                 } catch (InvalidParseOperationException e) {
-                    throw new ProcessingStatusException(StatusCode.FATAL, e.getMessage());
+                    throw new ProcessingStatusException(StatusCode.FATAL, e.getMessage(), e);
                 }
             }
         }
