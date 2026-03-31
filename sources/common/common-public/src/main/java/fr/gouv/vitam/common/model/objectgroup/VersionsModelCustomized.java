@@ -37,29 +37,38 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class VersionsModelCustomized {
 
-    @JsonProperty("id")
+    public static final String ID = "id";
+    public static final String DATA_OBJECT_VERSION = "DataObjectVersion";
+    public static final String DATA_OBJECT_GROUP_ID = "DataObjectGroupId";
+    public static final String SIZE = "Size";
+    public static final String STRATEGY_ID = "strategyId";
+    public static final String OPI = "opi";
+    public static final String OPC = "opc";
+    public static final String PERSISTENT_IDENTIFIER = "persistentIdentifier";
+
+    @JsonProperty(ID)
     private String id;
 
-    @JsonProperty("DataObjectVersion")
+    @JsonProperty(DATA_OBJECT_VERSION)
     private String dataObjectVersion;
 
-    @JsonProperty("DataObjectGroupId")
+    @JsonProperty(DATA_OBJECT_GROUP_ID)
     private String dataObjectGroupId;
 
-    @JsonProperty("Size")
+    @JsonProperty(SIZE)
     private long size;
 
-    @JsonProperty("strategyId")
+    @JsonProperty(STRATEGY_ID)
     private String strategyId;
 
-    @JsonProperty("opi")
+    @JsonProperty(OPI)
     private String opIngest;
 
-    @JsonProperty("opc")
+    @JsonProperty(OPC)
     private String opCurrent;
 
-    @JsonProperty("persistentIdentifier")
-    List<PersistentIdentifierModel> persistentIdentifier;
+    @JsonProperty(PERSISTENT_IDENTIFIER)
+    private List<PersistentIdentifierModel> persistentIdentifier;
 
     public List<PersistentIdentifierModel> getPersistentIdentifier() {
         return persistentIdentifier;

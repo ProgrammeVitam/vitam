@@ -35,10 +35,12 @@ import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupObjectVersion;
 import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.model.objectgroup.PersistentIdentifierModel;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
+import fr.gouv.vitam.common.model.reassignment.ReassignmentOperation;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -131,12 +133,29 @@ public class PurgeReportServiceTest {
         persistentIdentifiers.add(persistentIdentifier1);
         persistentIdentifiers.add(persistentIdentifier2);
 
+        List<ReassignmentOperation> originatingAgencyReassignments = new ArrayList<>();
+
+        originatingAgencyReassignments.add(
+            new ReassignmentOperation()
+                .setOperationId("opr1")
+                .setReassignmentDate(LocalDateUtil.nowFormatted())
+                .setSourceOriginatingAgency("sp2")
+                .setTargetOriginatingAgency("sp3")
+        );
+        originatingAgencyReassignments.add(
+            new ReassignmentOperation()
+                .setOperationId("opr2")
+                .setReassignmentDate(LocalDateUtil.nowFormatted())
+                .setSourceOriginatingAgency("sp3")
+                .setTargetOriginatingAgency("sp4")
+        );
+
         // Given
         List<PurgeUnitReportEntry> entries = Arrays.asList(
             new PurgeUnitReportEntry(
                 "unit1",
                 "sp1",
-                null,
+                originatingAgencyReassignments,
                 "opi1",
                 "got1",
                 PurgeUnitStatus.DELETED.name(),
@@ -179,6 +198,16 @@ public class PurgeReportServiceTest {
         assertThat(unitEntry.getArchivalAgencyIdentifier()).isEqualTo("identifier4");
         assertThat(unitEntry.getObjectGroupId()).isEqualTo("got1");
         assertThat(unitEntry.getStatus()).isEqualTo(PurgeUnitStatus.DELETED.name());
+
+        assertThat(unitEntry.getOriginatingAgenciesReassignments()).isNotNull();
+        assertThat(unitEntry.getOriginatingAgenciesReassignments()).hasSize(2);
+        ReassignmentOperation firstOperation = unitEntry.getOriginatingAgenciesReassignments().getFirst();
+        assertThat(firstOperation.getOperationId()).isEqualTo("opr1");
+        assertThat(firstOperation.getTargetOriginatingAgency()).isEqualTo("sp3");
+        assertThat(firstOperation.getSourceOriginatingAgency()).isEqualTo("sp2");
+
+        PurgeUnitReportEntry unitEntry2 = reportBody.getEntries().get(1);
+        assertThat(unitEntry2.getOriginatingAgenciesReassignments()).isNull();
     }
 
     @Test
@@ -191,12 +220,30 @@ public class PurgeReportServiceTest {
         persistentIdentifierModel.setPersistentIdentifierContent("ark:/666567/001a957db5eadaac");
         persistentIdentifierModel.setPersistentIdentifierOrigin("OriginatingAgency");
         persistentIdentifierModel.setPersistentIdentifierReference("Agency-00221");
+
+        List<ReassignmentOperation> originatingAgencyReassignments = new ArrayList<>();
+
+        originatingAgencyReassignments.add(
+            new ReassignmentOperation()
+                .setOperationId("opr1")
+                .setReassignmentDate(LocalDateUtil.nowFormatted())
+                .setSourceOriginatingAgency("sp2")
+                .setTargetOriginatingAgency("sp3")
+        );
+        originatingAgencyReassignments.add(
+            new ReassignmentOperation()
+                .setOperationId("opr2")
+                .setReassignmentDate(LocalDateUtil.nowFormatted())
+                .setSourceOriginatingAgency("sp3")
+                .setTargetOriginatingAgency("sp4")
+        );
+
         persistentIdentifier.add(persistentIdentifierModel);
         List<PurgeObjectGroupReportEntry> entries = Arrays.asList(
             new PurgeObjectGroupReportEntry(
                 "got1",
                 "sp1",
-                null,
+                originatingAgencyReassignments,
                 "opi1",
                 null,
                 new HashSet<>(Arrays.asList("o1", "o2")),
@@ -248,23 +295,32 @@ public class PurgeReportServiceTest {
         assertThat(reportBody.getProcessId()).isEqualTo(PROC_ID);
         assertThat(reportBody.getEntries()).hasSize(2);
 
-        PurgeObjectGroupReportEntry objectGroup = reportBody.getEntries().get(0);
-        PurgeObjectGroupReportEntry objectGroup2 = reportBody.getEntries().get(1);
+        PurgeObjectGroupReportEntry purgeObjectGroupEntry = reportBody.getEntries().get(0);
+        PurgeObjectGroupReportEntry purgeObjectGroupEntry2 = reportBody.getEntries().get(1);
 
-        assertThat(objectGroup.getId()).isEqualTo("got1");
-        assertThat(objectGroup.getInitialOperation()).isEqualTo("opi1");
-        assertThat(objectGroup.getOriginatingAgency()).isEqualTo("sp1");
-        assertThat(objectGroup.getObjectIds()).containsExactly("o1", "o2");
-        assertThat(objectGroup.getDeletedParentUnitIds()).isNull();
-        assertThat(objectGroup.getStatus()).isEqualTo(PurgeObjectGroupStatus.DELETED.name());
-        assertThat(objectGroup.getArchivalAgencyIdentifier()).isEqualTo("identifier4");
+        assertThat(purgeObjectGroupEntry.getId()).isEqualTo("got1");
+        assertThat(purgeObjectGroupEntry.getInitialOperation()).isEqualTo("opi1");
+        assertThat(purgeObjectGroupEntry.getOriginatingAgency()).isEqualTo("sp1");
+        assertThat(purgeObjectGroupEntry.getObjectIds()).containsExactly("o1", "o2");
+        assertThat(purgeObjectGroupEntry.getDeletedParentUnitIds()).isNull();
+        assertThat(purgeObjectGroupEntry.getStatus()).isEqualTo(PurgeObjectGroupStatus.DELETED.name());
+        assertThat(purgeObjectGroupEntry.getArchivalAgencyIdentifier()).isEqualTo("identifier4");
 
-        assertThat(objectGroup2.getId()).isEqualTo("got2");
-        assertThat(objectGroup2.getInitialOperation()).isEqualTo("opi2");
-        assertThat(objectGroup2.getOriginatingAgency()).isEqualTo("sp2");
-        assertThat(objectGroup2.getObjectIds()).isNull();
-        assertThat(objectGroup2.getDeletedParentUnitIds()).containsExactly("unit3");
-        assertThat(objectGroup2.getStatus()).isEqualTo(PurgeObjectGroupStatus.PARTIAL_DETACHMENT.name());
+        assertThat(purgeObjectGroupEntry.getOriginatingAgenciesReassignments()).isNotNull();
+        assertThat(purgeObjectGroupEntry.getOriginatingAgenciesReassignments()).hasSize(2);
+        ReassignmentOperation firstOperation = purgeObjectGroupEntry.getOriginatingAgenciesReassignments().getFirst();
+        assertThat(firstOperation.getOperationId()).isEqualTo("opr1");
+        assertThat(firstOperation.getTargetOriginatingAgency()).isEqualTo("sp3");
+        assertThat(firstOperation.getSourceOriginatingAgency()).isEqualTo("sp2");
+
+        assertThat(purgeObjectGroupEntry2.getId()).isEqualTo("got2");
+        assertThat(purgeObjectGroupEntry2.getInitialOperation()).isEqualTo("opi2");
+        assertThat(purgeObjectGroupEntry2.getOriginatingAgency()).isEqualTo("sp2");
+        assertThat(purgeObjectGroupEntry2.getObjectIds()).isNull();
+        assertThat(purgeObjectGroupEntry2.getDeletedParentUnitIds()).containsExactly("unit3");
+        assertThat(purgeObjectGroupEntry2.getStatus()).isEqualTo(PurgeObjectGroupStatus.PARTIAL_DETACHMENT.name());
+
+        assertThat(purgeObjectGroupEntry2.getOriginatingAgenciesReassignments()).isNull();
     }
 
     @Test

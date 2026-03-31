@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModelCustomized;
+import fr.gouv.vitam.common.model.reassignment.ReassignmentOperation;
 
 import java.util.List;
 
@@ -39,23 +40,31 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @JsonInclude(NON_NULL)
 public class ObjectGroupToDeleteReportEntry {
 
+    private static final String ORIGINATING_AGENCIES_REASSIGNMENTS = "originatingAgenciesReassignments";
     public static final String STATUS = "status";
     public static final String DELETED_VERSIONS = "deletedVersions";
     public static final String OUTCOME = "outCome";
+    public static final String ORIGINATING_AGENCY = "OriginatingAgency";
 
     private final StatusCode status;
     private final String outcome;
     private final List<VersionsModelCustomized> deletedVersions;
+    private final String originatingAgency;
+    private final List<ReassignmentOperation> originatingAgenciesReassignments;
 
     @JsonCreator
     public ObjectGroupToDeleteReportEntry(
         @JsonProperty(STATUS) StatusCode status,
         @JsonProperty(OUTCOME) String outcome,
-        @JsonProperty(DELETED_VERSIONS) List<VersionsModelCustomized> deletedVersions
+        @JsonProperty(DELETED_VERSIONS) List<VersionsModelCustomized> deletedVersions,
+        @JsonProperty(ORIGINATING_AGENCY) String originatingAgency,
+        @JsonProperty(ORIGINATING_AGENCIES_REASSIGNMENTS) List<ReassignmentOperation> originatingAgenciesReassignments
     ) {
         this.deletedVersions = deletedVersions;
         this.status = status;
         this.outcome = outcome;
+        this.originatingAgency = originatingAgency;
+        this.originatingAgenciesReassignments = originatingAgenciesReassignments;
     }
 
     @JsonProperty(DELETED_VERSIONS)
@@ -71,5 +80,15 @@ public class ObjectGroupToDeleteReportEntry {
     @JsonProperty(OUTCOME)
     public String getOutcome() {
         return outcome;
+    }
+
+    @JsonProperty(ORIGINATING_AGENCY)
+    public String getOriginatingAgency() {
+        return originatingAgency;
+    }
+
+    @JsonProperty(ORIGINATING_AGENCIES_REASSIGNMENTS)
+    public List<ReassignmentOperation> getOriginatingAgenciesReassignments() {
+        return originatingAgenciesReassignments;
     }
 }
