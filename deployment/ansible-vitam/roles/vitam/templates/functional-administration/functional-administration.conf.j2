@@ -48,8 +48,8 @@ elasticsearchTenantIndexation:
 
 # ExternalId configuration
 listEnableExternalIdentifiers:
-{% if vitam_tenants_usage_external is iterable %}
-  {% for tenant in vitam_tenants_usage_external %}
+{% if vitam_tenants_usage_external is iterable | default([]) %}
+  {% for tenant in vitam_tenants_usage_external | default([]) %}
     {% if tenant.identifiers is defined %}
   {{ tenant.name }}:
       {% for external in tenant.identifiers %}
@@ -60,8 +60,8 @@ listEnableExternalIdentifiers:
 {% endif %}
 
 listMinimumRuleDuration:
-{% if vitam_tenant_rule_duration is iterable %}
-  {% for tenant in vitam_tenant_rule_duration %}
+{% if vitam_tenant_rule_duration is iterable | default([]) %}
+  {% for tenant in vitam_tenant_rule_duration | default([]) %}
   {{ tenant.name }}:
     {% for rule in tenant.rules %}
       {% for key, value in rule.items() %}
