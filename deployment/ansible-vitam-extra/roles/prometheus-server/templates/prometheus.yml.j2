@@ -36,9 +36,9 @@ scrape_configs:
       labels:
         hostname: "{{ host.split(".")[0] }}"
       {% if host in groups['hosts_elasticsearch_data'] %}
-      elastic_cluster_name: "{{ elasticsearch.data.cluster_name }}"
+        elastic_cluster_name: "{{ elasticsearch.data.cluster_name }}"
       {% elif host in groups['hosts_elasticsearch_log'] %}
-      elastic_cluster_name: "{{ elasticsearch.log.cluster_name }}"
+        elastic_cluster_name: "{{ elasticsearch.log.cluster_name }}"
       {% endif %}
     {% endif %}
   {% endfor %}
