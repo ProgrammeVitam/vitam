@@ -41,11 +41,16 @@ public class OriginatingAgencyReassignmentReportLine {
     private static final String TARGET_ORIGINATING_AGENCY = "targetOriginatingAgency";
     private static final String OBJECT_GROUP_ID = "objectGroupId";
 
+    public enum ReportElementLineType {
+        ObjectGroup,
+        Unit,
+    }
+
     @JsonProperty(ID)
     private String id;
 
     @JsonProperty(TYPE)
-    private String type;
+    private ReportElementLineType type;
 
     @JsonProperty(OPI)
     private String opi;
@@ -65,7 +70,7 @@ public class OriginatingAgencyReassignmentReportLine {
 
     public OriginatingAgencyReassignmentReportLine(
         String id,
-        String type,
+        ReportElementLineType type,
         String opi,
         String sourceOriginatingAgency,
         String targetOriginatingAgency,
@@ -81,7 +86,7 @@ public class OriginatingAgencyReassignmentReportLine {
 
     public OriginatingAgencyReassignmentReportLine(
         String id,
-        String type,
+        ReportElementLineType type,
         String opi,
         String sourceOriginatingAgency,
         String targetOriginatingAgency
@@ -102,11 +107,11 @@ public class OriginatingAgencyReassignmentReportLine {
         return this;
     }
 
-    public String getType() {
+    public ReportElementLineType getType() {
         return type;
     }
 
-    public OriginatingAgencyReassignmentReportLine setType(String type) {
+    public OriginatingAgencyReassignmentReportLine setType(ReportElementLineType type) {
         this.type = type;
         return this;
     }

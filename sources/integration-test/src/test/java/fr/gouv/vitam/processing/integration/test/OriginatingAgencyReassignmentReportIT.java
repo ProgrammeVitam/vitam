@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.integration.test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
@@ -48,9 +49,8 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -65,15 +65,14 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectio
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
-import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
-import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentPreparationPlugin;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -96,16 +95,15 @@ import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
 import static fr.gouv.vitam.common.VitamTestHelper.doIngest;
-import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
-import static fr.gouv.vitam.common.model.ProcessState.COMPLETED;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.processing.integration.test.IntegrationTestUtils.launchOriginatingAgencyReassignmentOperation;
 import static fr.gouv.vitam.purge.EndToEndEliminationAndTransferReplyIT.prepareVitamSession;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -235,7 +233,7 @@ public class OriginatingAgencyReassignmentReportIT extends VitamRuleRunner {
                 }
                 OriginatingAgencyReassignmentReportLine expectedLine = new OriginatingAgencyReassignmentReportLine(
                     unitId,
-                    "Unit",
+                    OriginatingAgencyReassignmentReportLine.ReportElementLineType.Unit,
                     unitOpi,
                     unitOriginatingAgency,
                     targetOriginatingAgency,
@@ -255,7 +253,7 @@ public class OriginatingAgencyReassignmentReportIT extends VitamRuleRunner {
                 String objectGroupOpi = gotPojo.getOpi();
                 OriginatingAgencyReassignmentReportLine expectedLine = new OriginatingAgencyReassignmentReportLine(
                     objectGroupId,
-                    "ObjectGroup",
+                    OriginatingAgencyReassignmentReportLine.ReportElementLineType.ObjectGroup,
                     objectGroupOpi,
                     objectGroupOriginatingAgency,
                     targetOriginatingAgency
@@ -275,6 +273,28 @@ public class OriginatingAgencyReassignmentReportIT extends VitamRuleRunner {
                 Set.of(StatusCode.OK, StatusCode.WARNING)
             );
 
+            List<JsonNode> reportsLines = Objects.requireNonNull(VitamTestHelper.getReports(reassignmentOperationId));
+            Assertions.assertThat(reportsLines).isNotEmpty();
+
+            JsonNode summaryNode = reportsLines.get(1);
+            assertTrue(summaryNode.has("reportType"));
+            assertEquals("REASSIGNMENT_ORIGINATING_AGENCIES", summaryNode.get("reportType").asText());
+
+            int nbUnits = summaryNode.get("extendedInfo").get("nbUnits").asInt();
+            int nbObjectGroups = summaryNode.get("extendedInfo").get("nbObjectGroups").asInt();
+            assertEquals(nbUnits, reportLinesExpectedByUnitId.size());
+            assertEquals(nbObjectGroups, reportLinesExpectedByOGId.size());
+
+            JsonNode queryNode = reportsLines.get(2);
+            ObjectNode jsonNode = (ObjectNode) queryNode.get("query");
+            OriginatingAgencyReassignmentRequest requestFromJsonNode = getFromJsonNode(
+                jsonNode,
+                OriginatingAgencyReassignmentRequest.class
+            );
+            assertEquals(sourceOriginatingAgency, requestFromJsonNode.getSourceOriginatingAgency());
+            assertEquals(targetOriginatingAgency, requestFromJsonNode.getTargetOriginatingAgency());
+            assertTrue(requestFromJsonNode.isPropagateToObjectGroups());
+
             // reporting
             JsonNode unitReportLines = JsonHandler.toJsonNode(
                 Objects.requireNonNull(VitamTestHelper.getReports(reassignmentOperationId))
@@ -287,6 +307,8 @@ public class OriginatingAgencyReassignmentReportIT extends VitamRuleRunner {
                 unitReportLines,
                 new TypeReference<>() {}
             );
+            Assertions.assertThat(reportsUnitsList).hasSameSizeAs(reportLinesExpectedByUnitId.keySet());
+
             for (OriginatingAgencyReassignmentReportLine unitReportLine : reportsUnitsList) {
                 assertEquals(sourceOriginatingAgency, unitReportLine.getSourceOriginatingAgency());
                 assertEquals(targetOriginatingAgency, unitReportLine.getTargetOriginatingAgency());
@@ -303,7 +325,7 @@ public class OriginatingAgencyReassignmentReportIT extends VitamRuleRunner {
             }
 
             JsonNode objectGroupReportLines = JsonHandler.toJsonNode(
-                Objects.requireNonNull(VitamTestHelper.getReports(reassignmentOperationId))
+                reportsLines
                     .stream()
                     .filter(elt -> elt.has("type") && ("ObjectGroup".equals(elt.get("type").asText())))
                     .collect(Collectors.toList())
@@ -313,6 +335,9 @@ public class OriginatingAgencyReassignmentReportIT extends VitamRuleRunner {
                 objectGroupReportLines,
                 new TypeReference<>() {}
             );
+
+            Assertions.assertThat(reportsList).hasSameSizeAs(reportLinesExpectedByOGId.values());
+
             for (OriginatingAgencyReassignmentReportLine objectGroupReportLine : reportsList) {
                 assertEquals(sourceOriginatingAgency, objectGroupReportLine.getSourceOriginatingAgency());
                 assertEquals(targetOriginatingAgency, objectGroupReportLine.getTargetOriginatingAgency());
@@ -330,24 +355,5 @@ public class OriginatingAgencyReassignmentReportIT extends VitamRuleRunner {
                 assertEquals(objectGroupReportLine.getOpi(), reportLinesExpected.getOpi());
             }
         }
-    }
-
-    public static void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status) {
-        awaitForWorkflowTerminationWithStatus(operationGuid, status, COMPLETED);
-    }
-
-    private static void awaitForWorkflowTerminationWithStatus(
-        GUID operationGuid,
-        StatusCode status,
-        ProcessState processState
-    ) {
-        waitOperation(operationGuid.toString());
-
-        ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance()
-            .findOneProcessWorkflow(operationGuid.toString(), VitamThreadUtils.getVitamSession().getTenantId());
-
-        assertNotNull(processWorkflow);
-        assertEquals(processState, processWorkflow.getState());
-        assertEquals(status, processWorkflow.getStatus());
     }
 }
