@@ -26,17 +26,21 @@
  */
 package fr.gouv.vitam.worker.core.plugin.reassignment;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.OriginatingAgencyReassignmentRequest;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.reassignment.report.OriginatingAgencyReassignmentReportService;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
@@ -49,27 +53,52 @@ public class OriginatingAgencyReassignmentFinalizationPlugin extends ActionHandl
         OriginatingAgencyReassignmentFinalizationPlugin.class
     );
 
+    private final OriginatingAgencyReassignmentReportService reassignmentReportService;
+    private final OriginatingAgencyReassignmentService originatingAgencyReassignmentService;
+
     private static final String PLUGIN_NAME = "ORIGINATING_AGENCY_REASSIGNMENT_FINALIZATION";
 
     public OriginatingAgencyReassignmentFinalizationPlugin() {
-        // Default constructor for workflow initialization by Worker
+        this(new OriginatingAgencyReassignmentReportService(), new OriginatingAgencyReassignmentService());
+    }
+
+    @VisibleForTesting
+    OriginatingAgencyReassignmentFinalizationPlugin(
+        OriginatingAgencyReassignmentReportService reassignmentReportService,
+        OriginatingAgencyReassignmentService originatingAgencyReassignmentService
+    ) {
+        this.reassignmentReportService = reassignmentReportService;
+        this.originatingAgencyReassignmentService = originatingAgencyReassignmentService;
     }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         LOGGER.info("Originating agency reassignment finalization started");
+        try {
+            final OriginatingAgencyReassignmentRequest reassignmentRequest =
+                originatingAgencyReassignmentService.loadRequestJsonFromWorkspace(handler);
 
-        // Cleanup units
-        try (BatchReportClient batchReportClient = handler.getBatchReportClient()) {
-            String processId = handler.getContainerName();
-            batchReportClient.cleanupReport(processId, ReportType.REASSIGNMENT_CHILD_UNITS);
-            batchReportClient.cleanupReport(processId, ReportType.REASSIGNMENT_OBJECT_GROUPS);
-            batchReportClient.cleanupReport(processId, ReportType.REASSIGNMENT_CHILD_OBJECT_GROUPS);
+            reassignmentReportService.generateReassignmentReport(handler, param, reassignmentRequest);
+
+            cleanupDistributionReports(handler);
 
             LOGGER.info("Originating agency reassignment finalization succeeded");
             return buildItemStatus(PLUGIN_NAME, StatusCode.OK, null);
-        } catch (VitamClientInternalException e) {
+        } catch (ProcessingStatusException e) {
             throw new ProcessingException("An error occurred during originating agency report cleanup", e);
+        }
+    }
+
+    private void cleanupDistributionReports(HandlerIO handlerIO) throws ProcessingStatusException {
+        String processId = handlerIO.getContainerName();
+
+        // Cleanup reports used to generate distributions
+        try (BatchReportClient batchReportClient = handlerIO.getBatchReportClient()) {
+            batchReportClient.cleanupReport(processId, ReportType.REASSIGNMENT_CHILD_UNITS);
+            batchReportClient.cleanupReport(processId, ReportType.REASSIGNMENT_OBJECT_GROUPS);
+            batchReportClient.cleanupReport(processId, ReportType.REASSIGNMENT_CHILD_OBJECT_GROUPS);
+        } catch (VitamClientInternalException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, e.getMessage());
         }
     }
 

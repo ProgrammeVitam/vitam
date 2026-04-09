@@ -65,6 +65,7 @@ import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
@@ -464,10 +465,22 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
             SelectMultiQuery ingestSelect = new SelectMultiQuery();
             CompareQuery operationQuery = QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationId);
             ingestSelect.setQuery(operationQuery);
-            launchOriginatingAgencyReassignmentOperation("FRAN_NP_009913", "RATP", true, ingestSelect);
+            launchOriginatingAgencyReassignmentOperation(
+                "FRAN_NP_009913",
+                "RATP",
+                true,
+                ingestSelect,
+                Set.of(StatusCode.OK, StatusCode.WARNING)
+            );
 
             // When another reassignment
-            launchOriginatingAgencyReassignmentOperation("RATP", "FRAN_NP_009913", true, ingestSelect);
+            launchOriginatingAgencyReassignmentOperation(
+                "RATP",
+                "FRAN_NP_009913",
+                true,
+                ingestSelect,
+                Set.of(StatusCode.OK, StatusCode.WARNING)
+            );
 
             RequestResponse<JsonNode> gotsAfterThirdPreservation = accessClient.selectObjects(
                 getGotsRequest.getFinalSelect()
