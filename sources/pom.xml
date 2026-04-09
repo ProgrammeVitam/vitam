@@ -183,7 +183,7 @@
         <slf4j.version>2.0.12</slf4j.version>
 
         <logback.version>1.5.32</logback.version>
-        <logback.access.version>2.0.6</logback.access.version>
+        <logback.access.version>2.0.12</logback.access.version>
         <resteasy.client.version>6.2.15.Final</resteasy.client.version>
         <resteasy.core.version>6.2.15.Final</resteasy.core.version>
         <thaiopensource.version>20220510</thaiopensource.version>
