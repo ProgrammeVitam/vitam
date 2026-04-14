@@ -718,6 +718,7 @@ public class TransactionService {
 
         try {
             batch.setBatchStatus(BatchStatus.PURGED);
+            batch.setEvTypeProc(LogbookTypeProcess.COLLECT_SIP_INGEST.name());
             traceTransaction(batches, newTransactionModel);
         } catch (CollectInternalException e) {
             LOGGER.info("unable to Update Transaction :", e);
