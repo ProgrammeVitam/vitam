@@ -26,39 +26,74 @@
  */
 package fr.gouv.vitam.processing.integration.test;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
+import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.DataLoader;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.TestZipUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamConfigurationParameters;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
+import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
+import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
+import fr.gouv.vitam.common.model.dip.DataObjectVersions;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.export.ExportRequest;
+import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
+import fr.gouv.vitam.common.model.export.transfer.TransferRequestParameters;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
+import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
+import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.model.reassignment.ReassignmentOperation;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.time.LogicalClockRule;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -67,16 +102,22 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectio
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
-import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
-import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.InputPreservation;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.OutputPreservation;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.ResultPreservation;
 import fr.gouv.vitam.worker.core.plugin.reassignment.OriginatingAgencyReassignmentPreparationPlugin;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -87,8 +128,19 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -98,16 +150,40 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
+import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
 import static fr.gouv.vitam.common.VitamTestHelper.awaitForWorkflowTerminationWithStatus;
 import static fr.gouv.vitam.common.VitamTestHelper.computeInheritedRules;
+import static fr.gouv.vitam.common.VitamTestHelper.getTransferSip;
+import static fr.gouv.vitam.common.VitamTestHelper.printDebutInformation;
+import static fr.gouv.vitam.common.VitamTestHelper.readReportFile;
+import static fr.gouv.vitam.common.VitamTestHelper.startTransferReplyWorkflow;
+import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
+import static fr.gouv.vitam.common.json.JsonHandler.writeAsFile;
+import static fr.gouv.vitam.common.model.PreservationVersion.FIRST;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
+import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.BINARY_MASTER;
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.FILING_SCHEME;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.HOLDING_SCHEME;
 import static fr.gouv.vitam.processing.integration.test.IntegrationTestUtils.launchOriginatingAgencyReassignmentOperation;
+import static fr.gouv.vitam.processing.integration.test.IntegrationTestUtils.replaceStringInFile;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -132,6 +208,8 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
         mongoRule.getMongoDatabase().getName(),
         ElasticsearchRule.getClusterName(),
         Sets.newHashSet(
+            StorageMain.class,
+            DefaultOfferMain.class,
             MetadataMain.class,
             WorkerMain.class,
             AdminManagementMain.class,
@@ -143,13 +221,17 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
         )
     );
 
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
+
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
+
     private static final Integer tenantId = 0;
 
     private static final String SIP_FOLDER = "SIP";
 
     private WorkspaceClient workspaceClient;
-    private ProcessingManagementClient processingClient;
-    private static ProcessMonitoringImpl processMonitoring;
 
     private static final String LINK_AU_TO_EXISTING_GOT_OK_NAME = "integration-processing/OK_LINK_AU_TO_EXISTING_GOT";
     private static final String LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET = "integration-processing";
@@ -163,10 +245,6 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(VitamServerRunner.FORMAT_IDENTIFIERS_CONF);
 
-        processMonitoring = ProcessMonitoringImpl.getInstance();
-
-        StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
-        storageClientFactory.setVitamClientType(VitamClientType.MOCK);
         new DataLoader("integration-processing").prepareData();
     }
 
@@ -191,7 +269,7 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
 
     @After
     public void afterTest() {
-        // FIXME : To removed once temporary v91 restrictions are removed
+        // FIXME : To be removed once temporary v91 restrictions are removed
         OriginatingAgencyReassignmentPreparationPlugin._____Enable_Temporary_V91_Restrictions_____ = true;
 
         VitamThreadUtils.getVitamSession().setContractId("aName");
@@ -237,7 +315,7 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testOriginatingAgencyReassignmentWithImpactOnComputedRules() throws Exception {
-        // FIXME : To removed once temporary v91 restrictions are removed
+        // FIXME : To be removed once temporary v91 restrictions are removed
         OriginatingAgencyReassignmentPreparationPlugin._____Enable_Temporary_V91_Restrictions_____ = false;
 
         prepareVitamSession();
@@ -245,9 +323,6 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
         // Given ingest
         final String ingestOperation = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_COMPLEX_RULES_V2,
             DEFAULT_WORKFLOW.name(),
             StatusCode.OK,
@@ -255,6 +330,7 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
         );
 
         MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+
         SelectMultiQuery ingestSelect = new SelectMultiQuery();
         CompareQuery operationQuery = QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperation);
         ingestSelect.setQuery(operationQuery);
@@ -303,7 +379,7 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
             currentOriginatingAgency,
             targetOriginatingAgency,
             true,
-            partialSelect,
+            partialSelect.getFinalSelect(),
             Set.of(StatusCode.OK, StatusCode.WARNING)
         );
 
@@ -378,7 +454,7 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testOriginatingAgencyReassignmentWithPropagationOnObjectGroups() throws Exception {
-        // FIXME : To removed once temporary v91 restrictions are removed
+        // FIXME : To be removed once temporary v91 restrictions are removed
         OriginatingAgencyReassignmentPreparationPlugin._____Enable_Temporary_V91_Restrictions_____ = false;
 
         prepareVitamSession();
@@ -386,9 +462,6 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
         // Given ingest
         final String ingestOperation = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_COMPLEX_RULES_V2,
             DEFAULT_WORKFLOW.name(),
             StatusCode.OK,
@@ -417,7 +490,7 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
             currentOriginatingAgency,
             targetOriginatingAgency,
             true,
-            partialSelect,
+            partialSelect.getFinalSelect(),
             Set.of(StatusCode.OK, StatusCode.WARNING)
         );
 
@@ -499,7 +572,7 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testOriginatingAgencyReassignmentOnUnitsOnly() throws Exception {
-        // FIXME : To removed once temporary v91 restrictions are removed
+        // FIXME : To be removed once temporary v91 restrictions are removed
         OriginatingAgencyReassignmentPreparationPlugin._____Enable_Temporary_V91_Restrictions_____ = false;
 
         prepareVitamSession();
@@ -507,9 +580,6 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
         // Given ingest
         final String ingestOperation = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_COMPLEX_RULES_V2,
             DEFAULT_WORKFLOW.name(),
             StatusCode.OK,
@@ -539,7 +609,7 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
             currentOriginatingAgency,
             targetOriginatingAgency,
             false,
-            partialSelect,
+            partialSelect.getFinalSelect(),
             Set.of(StatusCode.OK, StatusCode.WARNING)
         );
 
@@ -807,9 +877,6 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
         // Given ingest
         final String ingestOperation = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             REASSIGNMENT_COMPLEX_SIP,
             DEFAULT_WORKFLOW.name(),
             WARNING,
@@ -844,9 +911,7 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
 
         IntegrationTestUtils.simulateAttachUnitToExistingGOT(
             tenantId,
-            processMonitoring,
             workspaceClient,
-            processingClient,
             LINK_AU_TO_EXISTING_GOT_OK_NAME,
             LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET,
             someObjectGroupId,
@@ -934,7 +999,7 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
             currentOriginatingAgency,
             targetOriginatingAgency,
             propagateToObjectGroups,
-            reassignmentDslRequest,
+            reassignmentDslRequest.getFinalSelect(),
             Set.of(StatusCode.OK, StatusCode.WARNING)
         );
         //check SP on unit
@@ -966,7 +1031,7 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
             currentOriginatingAgency,
             targetOriginatingAgency,
             propagateToObjectGroups,
-            reassignmentDslRequest2,
+            reassignmentDslRequest2.getFinalSelect(),
             Set.of(StatusCode.OK, StatusCode.WARNING)
         );
 
@@ -993,6 +1058,1042 @@ public class OriginatingAgencyReassignmentIT extends VitamRuleRunner {
         for (JsonNode resultGot : gotsAfterReassignment2) {
             String originatingAgency = resultGot.get(VitamFieldsHelper.originatingAgency()).asText();
             assertEquals("RATP", originatingAgency);
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void originatingAgencyReassignmentComplexTreeTests() throws Exception {
+        prepareVitamSession();
+        workspaceClient = WorkspaceClientFactory.getInstance(WorkFlowExecutionContext.VITAM).getClient();
+
+        // Freeze time
+        logicalClock.freezeTime();
+        String initDateTime = LocalDateUtil.nowFormatted();
+
+        // Given complex setup (cf test/resources/reassignment/ComplexReassignmentGraph.excalidraw - https://excalidraw.com/)
+        final String opi1 = IntegrationTestUtils.ingestSIP(
+            tenantId,
+            "reassignment/Complex_Originating_Agency_Reassignment_OPI_1.zip",
+            HOLDING_SCHEME.name(),
+            OK,
+            SIP_FOLDER
+        );
+        final String opi2 = IntegrationTestUtils.ingestSIP(
+            tenantId,
+            "reassignment/Complex_Originating_Agency_Reassignment_OPI_2.zip",
+            FILING_SCHEME.name(),
+            OK,
+            SIP_FOLDER
+        );
+
+        final String opi3 = IntegrationTestUtils.ingestSIP(
+            tenantId,
+            "reassignment/Complex_Originating_Agency_Reassignment_OPI_3.zip",
+            DEFAULT_WORKFLOW.name(),
+            OK,
+            SIP_FOLDER
+        );
+
+        // Ingest attached unit to existing object group
+        Path opi4ZipFolder = tempFolder.newFolder("Complex_Originating_Agency_Reassignment_OPI_4").toPath();
+        TestZipUtils.unzipFile(
+            PropertiesUtils.getResourceFile(
+                "reassignment/Complex_Originating_Agency_Reassignment_OPI_4.zip"
+            ).getAbsolutePath(),
+            opi4ZipFolder.toString()
+        );
+        ArrayNode opi3Units = selectUnits(opi3);
+        Map<String, String> opi3OgIdByUnitTitle = new HashMap<>();
+        opi3Units
+            .iterator()
+            .forEachRemaining(
+                unit ->
+                    opi3OgIdByUnitTitle.put(
+                        unit.get("Title").asText(),
+                        unit.has(VitamFieldsHelper.object()) ? unit.get(VitamFieldsHelper.object()).asText() : null
+                    )
+            );
+        replaceStringInFile(
+            opi4ZipFolder.resolve("manifest.xml"),
+            "#####GUID_OG_4#####",
+            opi3OgIdByUnitTitle.get("Unit_9")
+        );
+        replaceStringInFile(
+            opi4ZipFolder.resolve("manifest.xml"),
+            "#####GUID_OG_5#####",
+            opi3OgIdByUnitTitle.get("Unit_10")
+        );
+
+        String opi4ZipName = tempFolder.getRoot().getAbsolutePath() + "/" + GUIDFactory.newGUID().getId() + ".zip";
+        TestZipUtils.zipFolder(opi4ZipFolder, opi4ZipName);
+
+        final String opi4 = IntegrationTestUtils.ingestSIP(
+            tenantId,
+            new FileInputStream(opi4ZipName),
+            DEFAULT_WORKFLOW.name(),
+            OK,
+            SIP_FOLDER
+        );
+
+        final String opi5 = IntegrationTestUtils.ingestSIP(
+            tenantId,
+            "reassignment/Complex_Originating_Agency_Reassignment_OPI_5.zip",
+            DEFAULT_WORKFLOW.name(),
+            OK,
+            SIP_FOLDER
+        );
+        final String opi6 = IntegrationTestUtils.ingestSIP(
+            tenantId,
+            "reassignment/Complex_Originating_Agency_Reassignment_OPI_6.zip",
+            DEFAULT_WORKFLOW.name(),
+            OK,
+            SIP_FOLDER
+        );
+        final String opi7 = IntegrationTestUtils.ingestSIP(
+            tenantId,
+            "reassignment/Complex_Originating_Agency_Reassignment_OPI_7.zip",
+            DEFAULT_WORKFLOW.name(),
+            OK,
+            SIP_FOLDER
+        );
+        final String opi8 = IntegrationTestUtils.ingestSIP(
+            tenantId,
+            "reassignment/Complex_Originating_Agency_Reassignment_OPI_8.zip",
+            DEFAULT_WORKFLOW.name(),
+            OK,
+            SIP_FOLDER
+        );
+
+        final SelectMultiQuery eliminationQuery = new SelectMultiQuery();
+        eliminationQuery.addQueries(
+            QueryHelper.and()
+                .add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), opi3), QueryHelper.eq("Tag", "Unit_10"))
+        );
+        String opi9 = eliminationAction(eliminationQuery.getFinalSelect());
+
+        SelectMultiQuery transferQuery = new SelectMultiQuery();
+        transferQuery.addQueries(
+            QueryHelper.and()
+                .add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), opi4), QueryHelper.eq("Tag", "Unit_12"))
+        );
+        String transferOperation = transferRequest(transferQuery.getFinalSelect());
+        String ingestOfTransferredSip;
+        try (InputStream sipInputStream = getTransferSip(transferOperation)) {
+            ingestOfTransferredSip = IntegrationTestUtils.ingestSIP(
+                tenantId,
+                sipInputStream,
+                DEFAULT_WORKFLOW.name(),
+                OK,
+                SIP_FOLDER
+            );
+        }
+        String atr = readReportFile(ingestOfTransferredSip + ".xml");
+        String opi10 = startTransferReplyWorkflow(new ByteArrayInputStream(atr.getBytes(StandardCharsets.UTF_8)), OK);
+
+        SelectMultiQuery deleteGotVersionQuery = new SelectMultiQuery();
+        deleteGotVersionQuery.addQueries(
+            QueryHelper.and()
+                .add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), opi4), QueryHelper.eq("Tag", "Unit_13"))
+        );
+        DeleteGotVersionsRequest deleteGotVersionsRequest = new DeleteGotVersionsRequest(
+            deleteGotVersionQuery.getFinalSelect(),
+            BINARY_MASTER.getName(),
+            List.of(2)
+        );
+
+        String opi11 = deleteGotVersions(deleteGotVersionsRequest);
+
+        SelectMultiQuery preservationSelectQuery = new SelectMultiQuery();
+        preservationSelectQuery.setQuery(
+            QueryHelper.and()
+                .add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), opi8), QueryHelper.eq("Tag", "Unit_19"))
+        );
+
+        String opi12 = preservation(preservationSelectQuery);
+
+        // Check accession registers - Before reassignments
+        assertThat(getAccessionRegisterDetail(opi1)).isNull();
+        checkAccessionRegisterDetails("Identifier1", 2, 0, 0, 0, 0, 0, 0L, 0L, opi2);
+        checkAccessionRegisterDetails("Identifier1", 7, 1, 5, 0, 7, 0, 5000L, 0L, opi3, opi9);
+        checkAccessionRegisterDetails("Identifier2", 4, 1, 2, 1, 4, 2, 4000L, 2000L, opi4, opi10, opi11);
+        checkAccessionRegisterDetails("Identifier1", 2, 0, 1, 0, 1, 0, 1000L, 0L, opi5);
+        checkAccessionRegisterDetails("Identifier1", 1, 0, 1, 0, 2, 0, 2000L, 0L, opi6);
+        checkAccessionRegisterDetails("Identifier3", 1, 0, 1, 0, 1, 0, 1000L, 0L, opi7);
+        checkAccessionRegisterDetails("Identifier1", 1, 0, 1, 0, 1, 0, 1000L, 0L, opi8);
+        checkAccessionRegisterDetails("Identifier1", 0, 0, 0, 0, 1, 0, 1000L, 0L, opi12);
+
+        assertAccessionRegisterSummaryStats("Identifier1", 13, 1, 8, 0, 12, 0, 10000L, 0L);
+        assertAccessionRegisterSummaryStats("Identifier2", 4, 1, 2, 1, 4, 2, 4000L, 2000L);
+        assertAccessionRegisterSummaryStats("Identifier3", 1, 0, 1, 0, 1, 0, 1000L, 0L);
+        assertThat(getAccessionRegisterSummary("Identifier4")).isNull();
+
+        // Originating agency reassignment tests
+        logicalClock.logicalSleep(10, ChronoUnit.SECONDS);
+        String reassignmentDateTime = LocalDateUtil.nowFormatted();
+
+        // Test 1 : source originating agency = target ==> KO
+        launchOriginatingAgencyReassignmentOperation(
+            "Identifier3",
+            "Identifier3",
+            true,
+            queryByOpi(opi7),
+            Set.of(StatusCode.KO)
+        );
+
+        // Test 2 : Unknown target originating agency ==> KO
+        launchOriginatingAgencyReassignmentOperation(
+            "Identifier3",
+            "NoSuchAgency",
+            true,
+            queryByOpi(opi7),
+            Set.of(StatusCode.KO)
+        );
+
+        // Test 3 : Originating agency must match source or target ==> KO
+        launchOriginatingAgencyReassignmentOperation(
+            "Identifier1",
+            "Identifier4",
+            true,
+            queryByOpi(opi7),
+            Set.of(StatusCode.KO)
+        );
+
+        // Test 4 : No metadata found ==> KO
+        launchOriginatingAgencyReassignmentOperation(
+            "Identifier1",
+            "Identifier2",
+            true,
+            queryByOpi("unknown_opi"),
+            Set.of(StatusCode.KO)
+        );
+
+        // FIXME : To be removed once temporary v91 restrictions are removed
+        // Test 5 : partial scope - missing units ==> KO
+        launchOriginatingAgencyReassignmentOperation(
+            "Identifier1",
+            "Identifier2",
+            true,
+            queryByOpiAndTag(opi2, "Unit_2"),
+            Set.of(StatusCode.KO)
+        );
+
+        // FIXME : To be removed once temporary v91 restrictions are removed
+        // Test 6 : partial scope - missing object groups ==> KO
+        launchOriginatingAgencyReassignmentOperation(
+            "Identifier1",
+            "Identifier1",
+            false,
+            queryByOpi(opi7),
+            Set.of(StatusCode.KO)
+        );
+
+        // FIXME : To be removed once temporary v91 restrictions are removed
+        // Test 7 : partial scope - missing object attached to another object group ==> KO
+        launchOriginatingAgencyReassignmentOperation(
+            "Identifier1",
+            "Identifier2",
+            true,
+            queryByOpi(opi6),
+            Set.of(StatusCode.KO)
+        );
+
+        // FIXME : To be removed once temporary v91 restrictions are removed
+        // Test 8 : object group has object added by another ingest ==> KO
+        launchOriginatingAgencyReassignmentOperation(
+            "Identifier1",
+            "Identifier2",
+            true,
+            queryByOpi(opi5),
+            Set.of(StatusCode.KO)
+        );
+
+        // FIXME : To be removed once temporary v91 restrictions are removed
+        // Test 9 : object group has object added by another preservation operation ==> KO
+        launchOriginatingAgencyReassignmentOperation(
+            "Identifier1",
+            "Identifier2",
+            true,
+            queryByOpi(opi8),
+            Set.of(StatusCode.KO)
+        );
+
+        // Test 10 : Holding scheme ==> KO
+        launchOriginatingAgencyReassignmentOperation(
+            "Identifier1",
+            "Identifier2",
+            true,
+            queryByOpi(opi7),
+            Set.of(StatusCode.KO)
+        );
+
+        // Test 11 : Filling plan - OK
+        String opiReassign1 = launchOriginatingAgencyReassignmentOperation(
+            "Identifier1",
+            "Identifier2",
+            false,
+            queryByOpi(opi2),
+            Set.of(StatusCode.OK)
+        );
+
+        // Test 12 : OK (updating AccessionRegisterDetail 1)
+        String opiReassign2 = launchOriginatingAgencyReassignmentOperation(
+            "Identifier2",
+            "Identifier1",
+            true,
+            queryByOpi(opi4),
+            Set.of(StatusCode.OK)
+        );
+
+        // FIXME : To be removed once temporary v91 restrictions are removed
+        // Test 13 : Reverting reassignment from Test 12 is impossible - Object groups OG_4 & OG_5 from OPI_3 should also be included ==> KO
+        launchOriginatingAgencyReassignmentOperation(
+            "Identifier1",
+            "Identifier2",
+            true,
+            queryByOpi(opi4),
+            Set.of(StatusCode.KO)
+        );
+
+        // Test 14 : OK (creating a new AccessionRegisterDetail 4)
+        String opiReassign3 = launchOriginatingAgencyReassignmentOperation(
+            "Identifier1",
+            "Identifier4",
+            true,
+            queryByOpi(opi3, opi4),
+            Set.of(StatusCode.OK)
+        );
+
+        // Test 15 : OK multiple circular reassignments (Identifier3 -> Identifier1 --> Identifier2 --> Identifier3)
+        String opiReassign4 = launchOriginatingAgencyReassignmentOperation(
+            "Identifier3",
+            "Identifier1",
+            true,
+            queryByOpi(opi7),
+            Set.of(StatusCode.OK)
+        );
+        String opiReassign5 = launchOriginatingAgencyReassignmentOperation(
+            "Identifier1",
+            "Identifier2",
+            true,
+            queryByOpi(opi7),
+            Set.of(StatusCode.OK)
+        );
+        String opiReassign6 = launchOriginatingAgencyReassignmentOperation(
+            "Identifier2",
+            "Identifier3",
+            true,
+            queryByOpi(opi7),
+            Set.of(StatusCode.OK)
+        );
+
+        // Check accession registers - After reassignments
+        assertThat(getAccessionRegisterDetail(opi1)).isNull();
+        checkAccessionRegisterDetails("Identifier2", 2, 0, 0, 0, 0, 0, 0L, 0L, opi2, opiReassign1);
+        checkAccessionRegisterDetails("Identifier4", 7, 1, 5, 0, 7, 0, 5000L, 0L, opi3, opi9, opiReassign3);
+        checkAccessionRegisterDetails(
+            "Identifier4",
+            4,
+            1,
+            2,
+            1,
+            4,
+            2,
+            4000L,
+            2000L,
+            opi4,
+            opi10,
+            opi11,
+            opiReassign2,
+            opiReassign3
+        );
+        checkAccessionRegisterDetails("Identifier1", 2, 0, 1, 0, 1, 0, 1000L, 0L, opi5);
+        checkAccessionRegisterDetails("Identifier1", 1, 0, 1, 0, 2, 0, 2000L, 0L, opi6);
+        checkAccessionRegisterDetails(
+            "Identifier3",
+            1,
+            0,
+            1,
+            0,
+            1,
+            0,
+            1000L,
+            0L,
+            opi7,
+            opiReassign4,
+            opiReassign5,
+            opiReassign6
+        );
+        checkAccessionRegisterDetails("Identifier1", 1, 0, 1, 0, 1, 0, 1000L, 0L, opi8);
+        checkAccessionRegisterDetails("Identifier1", 0, 0, 0, 0, 1, 0, 1000L, 0L, opi12);
+
+        assertAccessionRegisterSummaryStats("Identifier1", 4, 0, 3, 0, 5, 0, 5000L, 0L);
+        assertAccessionRegisterSummaryStats("Identifier2", 2, 0, 0, 0, 0, 0, 0L, 0L);
+        assertAccessionRegisterSummaryStats("Identifier3", 1, 0, 1, 0, 1, 0, 1000L, 0L);
+        assertAccessionRegisterSummaryStats("Identifier4", 11, 2, 7, 1, 11, 2, 9000L, 2000L);
+
+        // Check unit & object group graph
+        ArrayNode units = selectUnits(opi1, opi2, opi3, opi4, opi5, opi6, opi7, opi8);
+        ArrayNode objectGroups = selectObjectGroups(opi1, opi2, opi3, opi4, opi5, opi6, opi7, opi8);
+
+        Map<String, ObjectNode> unitByTitle = new HashMap<>();
+        units.iterator().forEachRemaining(unit -> unitByTitle.put(unit.get("Title").asText(), (ObjectNode) unit));
+
+        Map<String, ObjectNode> ogById = new HashMap<>();
+        objectGroups
+            .iterator()
+            .forEachRemaining(og -> ogById.put(og.get(VitamFieldsHelper.id()).asText(), (ObjectNode) og));
+
+        Map<String, ObjectNode> ogByUnitTitle = new HashMap<>();
+        units
+            .iterator()
+            .forEachRemaining(unit -> {
+                if (unit.has(VitamFieldsHelper.object())) {
+                    ogByUnitTitle.put(
+                        unit.get("Title").asText(),
+                        ogById.get(unit.get(VitamFieldsHelper.object()).asText())
+                    );
+                }
+            });
+
+        // OPI_1
+        checkUnit(unitByTitle.get("Unit_1"), null, emptySet(), 0, List.of(opi1), emptyList(), initDateTime);
+        // OPI_2
+        checkUnit(
+            unitByTitle.get("Unit_2"),
+            "Identifier2",
+            Set.of("Identifier2"),
+            1,
+            List.of(opi2, opiReassign1),
+            List.of(opiReassign1),
+            reassignmentDateTime
+        );
+        checkUnit(
+            unitByTitle.get("Unit_3"),
+            "Identifier2",
+            Set.of("Identifier2"),
+            1,
+            List.of(opi2, opiReassign1),
+            List.of(opiReassign1),
+            reassignmentDateTime
+        );
+
+        // OPI_3
+        checkUnit(
+            unitByTitle.get("Unit_4"),
+            "Identifier4",
+            Set.of("Identifier4"),
+            1,
+            List.of(opi3, opiReassign3),
+            List.of(opiReassign3),
+            reassignmentDateTime
+        );
+        checkOG(
+            ogByUnitTitle.get("Unit_4"),
+            "Identifier4",
+            Set.of("Identifier4"),
+            2,
+            List.of(opi3, opiReassign3),
+            List.of(opiReassign3),
+            reassignmentDateTime
+        );
+        checkUnit(
+            unitByTitle.get("Unit_5"),
+            "Identifier4",
+            Set.of("Identifier2", "Identifier4"),
+            1,
+            List.of(opi3, opiReassign3),
+            List.of(opiReassign3),
+            reassignmentDateTime
+        );
+        checkUnit(
+            unitByTitle.get("Unit_6"),
+            "Identifier4",
+            Set.of("Identifier2", "Identifier4"),
+            1,
+            List.of(opi3, opiReassign3),
+            List.of(opiReassign3),
+            reassignmentDateTime
+        );
+        checkOG(
+            ogByUnitTitle.get("Unit_6"),
+            "Identifier4",
+            Set.of("Identifier2", "Identifier4"),
+            3,
+            List.of(opi3, opiReassign3),
+            List.of(opiReassign3),
+            reassignmentDateTime
+        );
+        checkUnit(
+            unitByTitle.get("Unit_7"),
+            "Identifier4",
+            Set.of("Identifier2", "Identifier4"),
+            1,
+            List.of(opi3, opiReassign3),
+            List.of(opiReassign3),
+            reassignmentDateTime
+        );
+        checkOG(
+            ogByUnitTitle.get("Unit_7"),
+            "Identifier4",
+            Set.of("Identifier2", "Identifier4"),
+            2,
+            List.of(opi3, opiReassign3),
+            List.of(opiReassign3),
+            reassignmentDateTime
+        );
+        checkUnit(
+            unitByTitle.get("Unit_8"),
+            "Identifier4",
+            Set.of("Identifier4"),
+            1,
+            List.of(opi3, opiReassign3),
+            List.of(opiReassign3),
+            reassignmentDateTime
+        );
+        checkUnit(
+            unitByTitle.get("Unit_9"),
+            "Identifier4",
+            Set.of("Identifier4"),
+            1,
+            List.of(opi3, opiReassign3),
+            List.of(opiReassign3),
+            reassignmentDateTime
+        );
+        checkOG(
+            ogByUnitTitle.get("Unit_9"),
+            "Identifier4",
+            Set.of("Identifier4"),
+            3,
+            List.of(opi3, opi4, opiReassign3),
+            List.of(opiReassign3),
+            reassignmentDateTime
+        );
+        // Unit_10 deleted (elimination)
+
+        // OPI_4
+        checkUnit(
+            unitByTitle.get("Unit_11"),
+            "Identifier4",
+            Set.of("Identifier4"),
+            2,
+            List.of(opi4, opiReassign2, opiReassign3),
+            List.of(opiReassign2, opiReassign3),
+            reassignmentDateTime
+        );
+        // Unit_12 deleted (transfer reply)
+        checkUnit(
+            unitByTitle.get("Unit_13"),
+            "Identifier4",
+            Set.of("Identifier4"),
+            2,
+            List.of(opi4, opiReassign2, opiReassign3),
+            List.of(opiReassign2, opiReassign3),
+            reassignmentDateTime
+        );
+        checkOG(
+            ogByUnitTitle.get("Unit_13"),
+            "Identifier4",
+            Set.of("Identifier4"),
+            4,
+            List.of(opi4, opi11, opiReassign2, opiReassign3),
+            List.of(opiReassign2, opiReassign3),
+            reassignmentDateTime
+        );
+        checkUnit(
+            unitByTitle.get("Unit_14"),
+            "Identifier4",
+            Set.of("Identifier4"),
+            2,
+            List.of(opi4, opiReassign2, opiReassign3),
+            List.of(opiReassign2, opiReassign3),
+            reassignmentDateTime
+        );
+        checkOG(
+            ogByUnitTitle.get("Unit_14"),
+            "Identifier4",
+            Set.of("Identifier4"),
+            4,
+            List.of(opi3, opi4, opi9, opiReassign3),
+            List.of(opiReassign3),
+            reassignmentDateTime
+        );
+
+        // OPI_5
+        checkUnit(
+            unitByTitle.get("Unit_15"),
+            "Identifier1",
+            Set.of("Identifier1"),
+            0,
+            List.of(opi5),
+            emptyList(),
+            initDateTime
+        );
+        checkUnit(
+            unitByTitle.get("Unit_16"),
+            "Identifier1",
+            Set.of("Identifier1", "Identifier2", "Identifier4"),
+            0,
+            List.of(opi5),
+            emptyList(),
+            initDateTime
+        );
+        checkOG(
+            ogByUnitTitle.get("Unit_16"),
+            "Identifier1",
+            Set.of("Identifier1", "Identifier2", "Identifier4"),
+            2,
+            List.of(opi5, opi6),
+            emptyList(),
+            initDateTime
+        );
+
+        // OPI_6
+        checkUnit(
+            unitByTitle.get("Unit_17"),
+            "Identifier1",
+            Set.of("Identifier1"),
+            0,
+            List.of(opi6),
+            emptyList(),
+            initDateTime
+        );
+        checkOG(
+            ogByUnitTitle.get("Unit_17"),
+            "Identifier1",
+            Set.of("Identifier1"),
+            1,
+            List.of(opi6),
+            emptyList(),
+            initDateTime
+        );
+
+        // OPI_7
+        checkUnit(
+            unitByTitle.get("Unit_18"),
+            "Identifier3",
+            Set.of("Identifier1", "Identifier2", "Identifier3", "Identifier4"),
+            3,
+            List.of(opi7, opiReassign4, opiReassign5, opiReassign6),
+            List.of(opiReassign4, opiReassign5, opiReassign6),
+            reassignmentDateTime
+        );
+        checkOG(
+            ogByUnitTitle.get("Unit_18"),
+            "Identifier3",
+            Set.of("Identifier1", "Identifier2", "Identifier3", "Identifier4"),
+            4,
+            List.of(opi7, opiReassign4, opiReassign5, opiReassign6),
+            List.of(opiReassign4, opiReassign5, opiReassign6),
+            reassignmentDateTime
+        );
+
+        // OPI_8
+        checkUnit(
+            unitByTitle.get("Unit_19"),
+            "Identifier1",
+            Set.of("Identifier1"),
+            0,
+            List.of(opi8),
+            emptyList(),
+            initDateTime
+        );
+        checkOG(
+            ogByUnitTitle.get("Unit_19"),
+            "Identifier1",
+            Set.of("Identifier1"),
+            2,
+            List.of(opi8, opi12),
+            emptyList(),
+            initDateTime
+        );
+    }
+
+    private void checkOG(
+        ObjectNode og,
+        String sp,
+        Set<String> sps,
+        int version,
+        List<String> ops,
+        List<String> reassignmentOps,
+        String lastUpdateDateTime
+    ) throws InvalidParseOperationException, LogbookClientException {
+        // Get LFC
+        LogbookLifecycle lfc;
+        try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            lfc = JsonHandler.getFromJsonNode(
+                client.getRawObjectGroupLifeCycleById(og.get(VitamFieldsHelper.id()).asText()),
+                LogbookLifecycle.class
+            );
+        }
+
+        // Check metadata
+        checkMetadata(og, lfc, sp, sps, version, ops, reassignmentOps, lastUpdateDateTime);
+    }
+
+    private void checkUnit(
+        ObjectNode unit,
+        String sp,
+        Set<String> sps,
+        int version,
+        List<String> ops,
+        List<String> reassignmentOps,
+        String lastUpdateDateTime
+    ) throws InvalidParseOperationException, LogbookClientException {
+        // Get LFC
+        LogbookLifecycle lfc;
+        try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            lfc = JsonHandler.getFromJsonNode(
+                client.getRawUnitLifeCycleById(unit.get(VitamFieldsHelper.id()).asText()),
+                LogbookLifecycle.class
+            );
+        }
+
+        // Check metadata
+        checkMetadata(unit, lfc, sp, sps, version, ops, reassignmentOps, lastUpdateDateTime);
+    }
+
+    private void checkMetadata(
+        ObjectNode metadata,
+        LogbookLifecycle lfc,
+        String sp,
+        Set<String> sps,
+        int version,
+        List<String> ops,
+        List<String> reassignmentOps,
+        String lastUpdateDateTime
+    ) throws InvalidParseOperationException {
+        // SP & SPS
+        assertThat(
+            metadata.has(VitamFieldsHelper.originatingAgency())
+                ? metadata.get(VitamFieldsHelper.originatingAgency()).asText()
+                : null
+        ).isEqualTo(sp);
+        List<String> originatingAgencies = metadata.has(VitamFieldsHelper.originatingAgencies())
+            ? JsonHandler.getFromJsonNode(
+                metadata.get(VitamFieldsHelper.originatingAgencies()),
+                new TypeReference<>() {}
+            )
+            : emptyList();
+        assertThat(originatingAgencies).containsExactlyInAnyOrderElementsOf(sps);
+
+        // Version
+        assertThat(metadata.get(VitamFieldsHelper.version()).asInt()).isEqualTo(version);
+
+        // Operations
+        List<String> operationIds = JsonHandler.getFromJsonNode(
+            metadata.get(VitamFieldsHelper.operations()),
+            new TypeReference<>() {}
+        );
+        assertThat(operationIds).containsExactlyInAnyOrderElementsOf(ops);
+
+        // Update dates
+        assertThat(metadata.get(VitamFieldsHelper.approximateUpdateDate()).asText()).isEqualTo(lastUpdateDateTime);
+        //assertThat(unit.get(VitamFieldsHelper.graph_last_persisted_date()).asText()).isEqualTo(lastUpdateDateTime);
+
+        // Check reassignments
+        List<ReassignmentOperation> reassignmentOperations = metadata.has(VitamFieldsHelper.reassignments())
+            ? JsonHandler.getFromJsonNode(metadata.get(VitamFieldsHelper.reassignments()), new TypeReference<>() {})
+            : emptyList();
+        for (ReassignmentOperation reassignmentOperation : reassignmentOperations) {
+            assertThat(reassignmentOperation.getSourceOriginatingAgency()).isNotNull();
+            assertThat(reassignmentOperation.getTargetOriginatingAgency()).isNotNull();
+            assertThat(reassignmentOperation.getReassignmentDate()).isEqualTo(lastUpdateDateTime);
+        }
+        assertThat(
+            reassignmentOperations.stream().map(ReassignmentOperation::getOperationId)
+        ).containsExactlyElementsOf(reassignmentOps);
+
+        // Check LFCs
+        assertThat(
+            lfc.getEvents().stream().map(LogbookEvent::getEvIdProc).distinct()
+        ).containsExactlyInAnyOrderElementsOf(ops);
+    }
+
+    private void checkAccessionRegisterDetails(
+        String originatingAgency,
+        int ingestedUnits,
+        int deletedUnits,
+        int ingestedOGs,
+        int deletedOGs,
+        int ingestedObjects,
+        int deletedObjets,
+        long ingestedObjectSize,
+        long deletedObjectSite,
+        String... operationIds
+    ) throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException {
+        AccessionRegisterDetailModel detail = getAccessionRegisterDetail(operationIds[0]);
+        assertThat(detail.getOriginatingAgency()).isEqualTo(originatingAgency);
+        assertThat(detail.getTotalUnits().getIngested()).isEqualTo(ingestedUnits);
+        assertThat(detail.getTotalUnits().getDeleted()).isEqualTo(deletedUnits);
+        assertThat(detail.getTotalObjectsGroups().getIngested()).isEqualTo(ingestedOGs);
+        assertThat(detail.getTotalObjectsGroups().getDeleted()).isEqualTo(deletedOGs);
+        assertThat(detail.getTotalObjects().getIngested()).isEqualTo(ingestedObjects);
+        assertThat(detail.getTotalObjects().getDeleted()).isEqualTo(deletedObjets);
+        assertThat(detail.getObjectSize().getIngested()).isEqualTo(ingestedObjectSize);
+        assertThat(detail.getObjectSize().getDeleted()).isEqualTo(deletedObjectSite);
+        assertThat(detail.getOpi()).isEqualTo(operationIds[0]);
+        assertThat(detail.getEvents().stream().map(RegisterValueEventModel::getOperation)).containsExactly(
+            operationIds
+        );
+    }
+
+    private void assertAccessionRegisterSummaryStats(
+        String originatingAgency,
+        int ingestedUnits,
+        int deletedUnits,
+        int ingestedOGs,
+        int deletedOGs,
+        int ingestedObjects,
+        int deletedObjets,
+        long ingestedObjectSize,
+        long deletedObjectSite
+    )
+        throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException, AccessUnauthorizedException {
+        AccessionRegisterSummaryModel summary = getAccessionRegisterSummary(originatingAgency);
+        assertThat(summary.getTotalUnits().getIngested()).isEqualTo(ingestedUnits);
+        assertThat(summary.getTotalUnits().getDeleted()).isEqualTo(deletedUnits);
+        assertThat(summary.getTotalObjectsGroups().getIngested()).isEqualTo(ingestedOGs);
+        assertThat(summary.getTotalObjectsGroups().getDeleted()).isEqualTo(deletedOGs);
+        assertThat(summary.getTotalObjects().getIngested()).isEqualTo(ingestedObjects);
+        assertThat(summary.getTotalObjects().getDeleted()).isEqualTo(deletedObjets);
+        assertThat(summary.getObjectSize().getIngested()).isEqualTo(ingestedObjectSize);
+        assertThat(summary.getObjectSize().getDeleted()).isEqualTo(deletedObjectSite);
+    }
+
+    private String eliminationAction(ObjectNode query) throws AccessInternalClientServerException {
+        try (AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient()) {
+            GUID eliminationActionOperationGuid = newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(eliminationActionOperationGuid);
+            EliminationRequestBody eliminationRequestBody = new EliminationRequestBody("2020-01-01", query);
+            RequestResponse<JsonNode> actionResult = accessInternalClient.startEliminationAction(
+                eliminationRequestBody
+            );
+            assertThat(actionResult.isOk()).isTrue();
+
+            awaitForWorkflowTerminationWithStatus(eliminationActionOperationGuid, StatusCode.OK);
+            return eliminationActionOperationGuid.getId();
+        }
+    }
+
+    private String transferRequest(ObjectNode query) throws AccessInternalClientServerException {
+        TransferRequest transferRequest = new TransferRequest(new DataObjectVersions(), query, false);
+        transferRequest.setMaxSizeThreshold(10_000_000L);
+        transferRequest.setSedaVersion(SupportedSedaVersions.SEDA_2_3.getVersion());
+
+        TransferRequestParameters transferRequestParameters = new TransferRequestParameters();
+        transferRequestParameters.setArchivalAgencyIdentifier("Identifier4");
+        transferRequestParameters.setArchivalAgreement("ArchivalAgreement0");
+        transferRequestParameters.setOriginatingAgencyIdentifier("RATP");
+        transferRequestParameters.setSubmissionAgencyIdentifier("RATP");
+        transferRequest.setTransferRequestParameters(transferRequestParameters);
+
+        ExportRequest exportRequest = ExportRequest.from(transferRequest);
+
+        GUID transferOperation = GUIDFactory.newGUID();
+        VitamThreadUtils.getVitamSession().setRequestId(transferOperation);
+
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            client.exportByUsageFilter(exportRequest);
+            awaitForWorkflowTerminationWithStatus(transferOperation, StatusCode.OK);
+            return transferOperation.getId();
+        }
+    }
+
+    private String deleteGotVersions(DeleteGotVersionsRequest deleteGotVersionsRequest)
+        throws AccessInternalClientServerException {
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
+            final RequestResponse<JsonNode> actionResult = accessClient.deleteGotVersions(deleteGotVersionsRequest);
+            assertThat(actionResult.isOk()).isTrue();
+            VitamTestHelper.awaitForWorkflowTerminationWithStatus(operationGuid, OK);
+            return operationGuid.getId();
+        } catch (AssertionError e) {
+            printDebutInformation(operationGuid.toString());
+            throw e;
+        }
+    }
+
+    private String preservation(SelectMultiQuery preservationSelectQuery)
+        throws AccessInternalClientServerException, IOException, InvalidParseOperationException, AdminManagementClientServerException {
+        // Setup preservation
+        File griffinsExecFolder = PropertiesUtils.getResourceFile("preservation" + File.separator);
+        VitamConfiguration.setVitamGriffinExecFolder(griffinsExecFolder.getAbsolutePath());
+        File griffinFolder = tempFolder.newFolder("griffinInput");
+        VitamConfiguration.setVitamGriffinInputFilesFolder(griffinFolder.getAbsolutePath());
+
+        Path griffinExecutable = griffinsExecFolder.toPath().resolve("griffin-libreoffice/griffin");
+        boolean griffinIsExecutable = griffinExecutable.toFile().setExecutable(true);
+        if (!griffinIsExecutable) {
+            throw new VitamRuntimeException("Wrong execution right for griffin-libreoffice/griffin.");
+        }
+
+        Path griffinExtractionAuExecutable = griffinsExecFolder.toPath().resolve("griffin-extraction-au/griffin");
+        boolean griffinExtractAuIsExecutable = griffinExtractionAuExecutable.toFile().setExecutable(true);
+        if (!griffinExtractAuIsExecutable) {
+            throw new VitamRuntimeException("Wrong execution right for griffin-extraction-au/griffin.");
+        }
+
+        importGriffins();
+
+        importPreservationScenarios();
+
+        PreservationRequest preservationRequest = new PreservationRequest(
+            preservationSelectQuery.getFinalSelect(),
+            "PSC-000001",
+            "BinaryMaster",
+            FIRST,
+            "BinaryMaster"
+        );
+        String operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId).getId();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
+            buildAndSavePreservationResultFile(BINARY_MASTER.getName());
+            accessClient.startPreservation(preservationRequest);
+            waitOperation(NB_TRY, SLEEP_TIME, operationGuid);
+            verifyOperation(operationGuid, OK);
+            return operationGuid;
+        } catch (AssertionError e) {
+            printDebutInformation(operationGuid);
+            throw e;
+        }
+    }
+
+    private void importGriffins()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        VitamThreadUtils.getVitamSession().setRequestId(newGUID());
+        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+            File resourceFile = PropertiesUtils.getResourceFile("preservation/griffins.json");
+            adminClient.importGriffins(JsonHandler.getFromFileAsTypeReference(resourceFile, new TypeReference<>() {}));
+        }
+    }
+
+    private void importPreservationScenarios()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        VitamThreadUtils.getVitamSession().setRequestId(newGUID());
+        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+            File resourceFile = PropertiesUtils.getResourceFile("preservation/scenarios.json");
+            VitamThreadUtils.getVitamSession().setRequestId(newGUID());
+            adminClient.importPreservationScenarios(
+                JsonHandler.getFromFileAsTypeReference(resourceFile, new TypeReference<>() {})
+            );
+        }
+    }
+
+    private void buildAndSavePreservationResultFile(String sourceUsageName)
+        throws IOException, InvalidParseOperationException {
+        Map<String, String> objectIdsToFormat = getAllBinariesIds(sourceUsageName);
+
+        ResultPreservation resultPreservation = new ResultPreservation();
+
+        resultPreservation.setId("batchId");
+        resultPreservation.setRequestId(getVitamSession().getRequestId());
+
+        Map<String, List<OutputPreservation>> values = new HashMap<>();
+
+        for (Map.Entry<String, String> entry : objectIdsToFormat.entrySet()) {
+            List<OutputPreservation> outputPreservationList = new ArrayList<>();
+            for (ActionTypePreservation action : singletonList(GENERATE)) {
+                OutputPreservation outputPreservation = new OutputPreservation();
+
+                outputPreservation.setStatus(PreservationStatus.OK);
+                outputPreservation.setAnalyseResult("VALID_ALL");
+                outputPreservation.setAction(action);
+
+                outputPreservation.setInputPreservation(new InputPreservation(entry.getKey(), entry.getValue()));
+                outputPreservation.setOutputName("GENERATE-" + entry.getKey() + ".pdf");
+                outputPreservationList.add(outputPreservation);
+            }
+
+            values.put(entry.getKey(), outputPreservationList);
+        }
+
+        resultPreservation.setOutputs(values);
+        Path griffinIdDirectory = tempFolder.newFolder("griffinInput", "griffin-libreoffice").toPath();
+        writeAsFile(resultPreservation, griffinIdDirectory.resolve("result.json").toFile());
+    }
+
+    private Map<String, String> getAllBinariesIds(String sourceUsageName) {
+        List<ObjectGroupResponse> objectModelsForUnitResults = getAllObjectModels();
+
+        Map<String, String> allObjectIds = new HashMap<>();
+
+        for (ObjectGroupResponse objectGroup : objectModelsForUnitResults) {
+            Optional<VersionsModel> versionsModelOptional = objectGroup.getFirstVersionsModel(sourceUsageName);
+            versionsModelOptional.ifPresent(
+                model -> allObjectIds.put(model.getId(), model.getFormatIdentification().getFormatId())
+            );
+        }
+        return allObjectIds;
+    }
+
+    private List<ObjectGroupResponse> getAllObjectModels() {
+        try (MetaDataClient client = MetaDataClientFactory.getInstance().getClient()) {
+            Select select = new Select();
+            select.setQuery(exists("#id"));
+
+            ObjectNode finalSelect = select.getFinalSelect();
+            JsonNode response = client.selectObjectGroups(finalSelect);
+
+            JsonNode results = response.get("$results");
+            return getFromStringAsTypeReference(results.toString(), new TypeReference<>() {});
+        } catch (VitamException | InvalidFormatException | InvalidCreateOperationException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private ArrayNode selectUnits(String... operationIds)
+        throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException {
+        MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.setQuery(QueryHelper.and().add(QueryHelper.in(VitamFieldsHelper.initialOperation(), operationIds)));
+        return (ArrayNode) metaDataClient.selectUnits(select.getFinalSelect()).get(TAG_RESULTS);
+    }
+
+    private ArrayNode selectObjectGroups(String... operationIds)
+        throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException {
+        MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.setQuery(QueryHelper.and().add(QueryHelper.in(VitamFieldsHelper.initialOperation(), operationIds)));
+        return (ArrayNode) metaDataClient.selectObjectGroups(select.getFinalSelect()).get(TAG_RESULTS);
+    }
+
+    private ObjectNode queryByOpi(String... operationIds) throws InvalidCreateOperationException {
+        Select select = new Select();
+        select.setQuery(QueryHelper.in(VitamFieldsHelper.initialOperation(), operationIds));
+        return select.getFinalSelect();
+    }
+
+    private ObjectNode queryByOpiAndTag(String operationId, String... tags) throws InvalidCreateOperationException {
+        Select select = new Select();
+        select.setQuery(
+            QueryHelper.and()
+                .add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), operationId), QueryHelper.in("Tag", tags))
+        );
+        return select.getFinalSelect();
+    }
+
+    private AccessionRegisterDetailModel getAccessionRegisterDetail(String opi)
+        throws InvalidParseOperationException, ReferentialException, InvalidCreateOperationException {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            Select select = new Select();
+            select.setQuery(QueryHelper.eq(AccessionRegisterDetailModel.OPI, opi));
+            ObjectNode query = select.getFinalSelect();
+            return (
+                (RequestResponseOK<AccessionRegisterDetailModel>) client.getAccessionRegisterDetail(query)
+            ).getFirstResult();
+        }
+    }
+
+    private AccessionRegisterSummaryModel getAccessionRegisterSummary(String originatingAgency)
+        throws InvalidParseOperationException, ReferentialException, AccessUnauthorizedException, InvalidCreateOperationException {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            Select select = new Select();
+            select.setQuery(QueryHelper.eq(AccessionRegisterSummaryModel.ORIGINATING_AGENCY, originatingAgency));
+            return (
+                (RequestResponseOK<AccessionRegisterSummaryModel>) client.getAccessionRegister(select.getFinalSelect())
+            ).getFirstResult();
         }
     }
 }

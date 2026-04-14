@@ -37,7 +37,6 @@ import fr.gouv.vitam.batch.report.model.OriginatingAgencyReassignmentReportLine;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.VitamTestHelper;
@@ -82,7 +81,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -93,9 +91,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
 import static fr.gouv.vitam.common.VitamTestHelper.doIngest;
-import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
@@ -154,13 +150,6 @@ public class OriginatingAgencyReassignmentReportIT extends VitamRuleRunner {
     public void setUpBefore() throws Exception {
         getVitamSession().setRequestId(newOperationLogbookGUID(0));
         getVitamSession().setTenantId(TENANT_ID);
-        File griffinsExecFolder = PropertiesUtils.getResourceFile("preservation" + File.separator);
-        VitamConfiguration.setVitamGriffinExecFolder(griffinsExecFolder.getAbsolutePath());
-        VitamConfiguration.setVitamGriffinInputFilesFolder(tmpGriffinFolder.getRoot().getAbsolutePath());
-
-        AccessInternalClientFactory factory = AccessInternalClientFactory.getInstance();
-        factory.changeServerPort(PORT_SERVICE_ACCESS_INTERNAL);
-        factory.setVitamClientType(PRODUCTION);
 
         prepareVitamSession();
         ingestOperationId = doIngest(TENANT_ID, "preservation/OG_with_3_parents.zip");
@@ -180,7 +169,7 @@ public class OriginatingAgencyReassignmentReportIT extends VitamRuleRunner {
 
     @After
     public void afterTest() {
-        // FIXME : To removed once temporary v91 restrictions are removed
+        // FIXME : To be removed once temporary v91 restrictions are removed
         OriginatingAgencyReassignmentPreparationPlugin._____Enable_Temporary_V91_Restrictions_____ = true;
 
         VitamThreadUtils.getVitamSession().setContextId(CONTEXT_ID);
@@ -188,7 +177,6 @@ public class OriginatingAgencyReassignmentReportIT extends VitamRuleRunner {
 
         runAfterMongo(
             Sets.newHashSet(
-                FunctionalAdminCollections.PRESERVATION_SCENARIO.getName(),
                 FunctionalAdminCollections.GRIFFIN.getName(),
                 MetadataCollections.UNIT.getName(),
                 MetadataCollections.OBJECTGROUP.getName(),
@@ -201,7 +189,6 @@ public class OriginatingAgencyReassignmentReportIT extends VitamRuleRunner {
             ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 0),
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 1),
-            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.PRESERVATION_SCENARIO.getName()),
             ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.GRIFFIN.getName())
         );
     }
@@ -210,7 +197,7 @@ public class OriginatingAgencyReassignmentReportIT extends VitamRuleRunner {
     @Test
     public void givenReassignmentsOkThen_Report_OK() throws Exception {
         try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
-            // FIXME : To removed once temporary v91 restrictions are removed
+            // FIXME : To be removed once temporary v91 restrictions are removed
             OriginatingAgencyReassignmentPreparationPlugin._____Enable_Temporary_V91_Restrictions_____ = false;
             String sourceOriginatingAgency = "FRAN_NP_009913";
             String targetOriginatingAgency = "RATP";
@@ -269,7 +256,7 @@ public class OriginatingAgencyReassignmentReportIT extends VitamRuleRunner {
                 sourceOriginatingAgency,
                 targetOriginatingAgency,
                 true,
-                ingestSelect,
+                ingestSelect.getFinalSelect(),
                 Set.of(StatusCode.OK, StatusCode.WARNING)
             );
 

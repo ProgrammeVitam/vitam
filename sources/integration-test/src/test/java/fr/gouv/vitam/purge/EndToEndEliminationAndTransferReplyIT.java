@@ -102,8 +102,6 @@ import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.model.reassignment.ReassignmentOperation;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
@@ -160,7 +158,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import io.restassured.RestAssured;
-import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
@@ -187,6 +184,7 @@ import retrofit2.http.Headers;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -216,7 +214,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static fr.gouv.vitam.common.VitamTestHelper.doIngestNext;
+import static fr.gouv.vitam.common.VitamTestHelper.getTransferSip;
 import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFiles;
+import static fr.gouv.vitam.common.VitamTestHelper.readReportFile;
+import static fr.gouv.vitam.common.VitamTestHelper.startTransferReplyWorkflow;
 import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
@@ -477,7 +478,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             "RATP",
             "FRAN_NP_009913",
             true,
-            ingestSelect,
+            ingestSelect.getFinalSelect(),
             Set.of(StatusCode.OK, StatusCode.WARNING)
         );
 
@@ -486,7 +487,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             "FRAN_NP_009913",
             "RATP",
             true,
-            ingestSelect,
+            ingestSelect.getFinalSelect(),
             Set.of(StatusCode.OK, StatusCode.WARNING)
         );
 
@@ -891,7 +892,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             "RATP",
             "FRAN_NP_009913",
             true,
-            ingestSelect,
+            ingestSelect.getFinalSelect(),
             Set.of(StatusCode.OK, StatusCode.WARNING)
         );
 
@@ -900,7 +901,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             "FRAN_NP_009913",
             "RATP",
             true,
-            ingestSelect,
+            ingestSelect.getFinalSelect(),
             Set.of(StatusCode.OK, StatusCode.WARNING)
         );
 
@@ -3084,17 +3085,6 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         }
     }
 
-    private String startTransferReplyWorkflow(InputStream atrInputStream, StatusCode expectedStatusCode)
-        throws AccessInternalClientServerException {
-        String transferReplyWorkflowGuid = GUIDFactory.newOperationLogbookGUID(tenantId).getId();
-        VitamThreadUtils.getVitamSession().setRequestId(transferReplyWorkflowGuid);
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            client.startTransferReplyWorkflow(atrInputStream);
-            awaitForWorkflowTerminationWithStatus(transferReplyWorkflowGuid, expectedStatusCode);
-        }
-        return transferReplyWorkflowGuid;
-    }
-
     private void checkTransferOperationsInExportedUnits(
         AccessInternalClient accessInternalClient,
         String transferOperation,
@@ -3308,30 +3298,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
     private InputStream readStoredReport(String filename)
         throws StorageServerClientException, StorageNotFoundException, StorageUnavailableDataFromAsyncOfferClientException {
-        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            Response reportResponse = null;
-
-            try {
-                reportResponse = storageClient.getContainerAsync(
-                    VitamConfiguration.getDefaultStrategy(),
-                    filename,
-                    DataCategory.REPORT,
-                    AccessLogUtils.getNoLogAccessLog()
-                );
-
-                assertThat(reportResponse.getStatus()).isEqualTo(Status.OK.getStatusCode());
-
-                return new VitamAsyncInputStream(reportResponse);
-            } catch (
-                RuntimeException
-                | StorageServerClientException
-                | StorageNotFoundException
-                | StorageUnavailableDataFromAsyncOfferClientException e
-            ) {
-                StreamUtils.consumeAnyEntityAndClose(reportResponse);
-                throw e;
-            }
-        }
+        String atr = readReportFile(filename);
+        return new ByteArrayInputStream(atr.getBytes(StandardCharsets.UTF_8));
     }
 
     private String doIngest(InputStream zipInputStreamSipObject, StatusCode expectedStatusCode) throws VitamException {
@@ -3405,12 +3373,6 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             awaitForWorkflowTerminationWithStatus(transferOperation, expectedStatusCode);
 
             return transferOperation;
-        }
-    }
-
-    private InputStream getTransferSip(String operationId) throws Exception {
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            return client.findTransferSIPByID(operationId).readEntity(InputStream.class);
         }
     }
 

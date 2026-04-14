@@ -850,9 +850,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         final String containerName = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_PROFIL_OK,
             DEFAULT_WORKFLOW.name(),
             WARNING,
@@ -957,16 +954,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public void testWorkflow_with_accession_register() throws Exception {
         prepareVitamSession();
 
-        IntegrationTestUtils.ingestSIP(
-            tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
-            SIP_FUND_REGISTER_OK,
-            DEFAULT_WORKFLOW.name(),
-            WARNING,
-            SIP_FOLDER
-        );
+        IntegrationTestUtils.ingestSIP(tenantId, SIP_FUND_REGISTER_OK, DEFAULT_WORKFLOW.name(), WARNING, SIP_FOLDER);
     }
 
     @RunWithCustomExecutor
@@ -975,9 +963,6 @@ public class ProcessingIT extends VitamRuleRunner {
         prepareVitamSession();
         IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_WITHOUT_MANIFEST,
             DEFAULT_WORKFLOW.name(),
             StatusCode.KO,
@@ -990,16 +975,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public void testWorkflowSipNoFormat() throws Exception {
         prepareVitamSession();
 
-        IntegrationTestUtils.ingestSIP(
-            tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
-            SIP_NO_FORMAT,
-            DEFAULT_WORKFLOW.name(),
-            StatusCode.OK,
-            SIP_FOLDER
-        );
+        IntegrationTestUtils.ingestSIP(tenantId, SIP_NO_FORMAT, DEFAULT_WORKFLOW.name(), StatusCode.OK, SIP_FOLDER);
     }
 
     @RunWithCustomExecutor
@@ -1009,9 +985,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_NO_FORMAT_NO_TAG,
             DEFAULT_WORKFLOW.name(),
             StatusCode.OK,
@@ -1026,9 +999,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_NB_OBJ_INCORRECT_IN_MANIFEST,
             DEFAULT_WORKFLOW.name(),
             StatusCode.KO,
@@ -1087,9 +1057,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_WITHOUT_FUND_REGISTER,
             DEFAULT_WORKFLOW.name(),
             StatusCode.KO,
@@ -1106,9 +1073,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_BORD_AU_REF_PHYS_OBJECT,
             DEFAULT_WORKFLOW.name(),
             StatusCode.KO,
@@ -1124,9 +1088,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         String opi = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             OK_SIP_SIGNATURE,
             DEFAULT_WORKFLOW.name(),
             StatusCode.OK,
@@ -1576,16 +1537,7 @@ public class ProcessingIT extends VitamRuleRunner {
         prepareVitamSession();
 
         // 1. First we create an AU by sip
-        IntegrationTestUtils.ingestSIP(
-            tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
-            SIP_PROD_SERV_A,
-            DEFAULT_WORKFLOW.name(),
-            WARNING,
-            SIP_FOLDER
-        );
+        IntegrationTestUtils.ingestSIP(tenantId, SIP_PROD_SERV_A, DEFAULT_WORKFLOW.name(), WARNING, SIP_FOLDER);
 
         String zipPath;
         // 2. then we link another SIP to it
@@ -1657,9 +1609,7 @@ public class ProcessingIT extends VitamRuleRunner {
         // Get the GOT that have two AU by executing the method simulateAttachUnitToExistingGOT
         IntegrationTestUtils.simulateAttachUnitToExistingGOT(
             tenantId,
-            processMonitoring,
             workspaceClient,
-            processingClient,
             LINK_AU_TO_EXISTING_GOT_OK_NAME,
             LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET,
             idGOT,
@@ -1798,9 +1748,6 @@ public class ProcessingIT extends VitamRuleRunner {
         // 1. First we create an AU by sip
         final String containerName = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_FILE_OK_NAME,
             DEFAULT_WORKFLOW.name(),
             WARNING,
@@ -1991,16 +1938,7 @@ public class ProcessingIT extends VitamRuleRunner {
         // re-launch worker
         runner.stopWorkerServer();
         runner.startWorkerServer(CONFIG_BIG_WORKER_PATH);
-        IntegrationTestUtils.ingestSIP(
-            tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
-            SIP_FILE_OK_NAME,
-            BIG_WORKFLOW,
-            WARNING,
-            SIP_FOLDER
-        );
+        IntegrationTestUtils.ingestSIP(tenantId, SIP_FILE_OK_NAME, BIG_WORKFLOW, WARNING, SIP_FOLDER);
 
         runner.stopWorkerServer();
         runner.startWorkerServer(VitamServerRunner.CONFIG_WORKER_PATH);
@@ -2071,16 +2009,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public void testWorkflowBug2182() throws Exception {
         prepareVitamSession();
 
-        IntegrationTestUtils.ingestSIP(
-            tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
-            SIP_BUG_2182,
-            DEFAULT_WORKFLOW.name(),
-            StatusCode.KO,
-            SIP_FOLDER
-        );
+        IntegrationTestUtils.ingestSIP(tenantId, SIP_BUG_2182, DEFAULT_WORKFLOW.name(), StatusCode.KO, SIP_FOLDER);
     }
 
     @RunWithCustomExecutor
@@ -2090,9 +2019,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_FILE_KO_AU_REF_BDO,
             DEFAULT_WORKFLOW.name(),
             StatusCode.KO,
@@ -2249,9 +2175,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_REFERENCE_CONTRACT_KO,
             DEFAULT_WORKFLOW.name(),
             StatusCode.KO,
@@ -2344,16 +2267,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public void testWorkflowOkSIPSignature() throws Exception {
         prepareVitamSession();
 
-        IntegrationTestUtils.ingestSIP(
-            tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
-            OK_SIP_SIGNATURE,
-            DEFAULT_WORKFLOW.name(),
-            StatusCode.OK,
-            SIP_FOLDER
-        );
+        IntegrationTestUtils.ingestSIP(tenantId, OK_SIP_SIGNATURE, DEFAULT_WORKFLOW.name(), StatusCode.OK, SIP_FOLDER);
     }
 
     @RunWithCustomExecutor
@@ -2363,9 +2277,6 @@ public class ProcessingIT extends VitamRuleRunner {
         prepareVitamSession();
         String ingestContainerName = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_SIGNATURE_ELECTRONIQUE_KO,
             DEFAULT_WORKFLOW.name(),
             StatusCode.KO,
@@ -2413,9 +2324,6 @@ public class ProcessingIT extends VitamRuleRunner {
         // Given ingest
         final String ingestOperation = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_COMPLEX_RULES_V2,
             DEFAULT_WORKFLOW.name(),
             StatusCode.OK,
@@ -2507,9 +2415,6 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         final String ingestOperation = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_COMPLEX_RULES_V2,
             DEFAULT_WORKFLOW.name(),
             StatusCode.OK,
@@ -2635,9 +2540,6 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         final String ingestOperation = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_COMPLEX_RULES_V2,
             DEFAULT_WORKFLOW.name(),
             StatusCode.OK,
@@ -3333,9 +3235,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_FILE_WRONG_DATE,
             DEFAULT_WORKFLOW.name(),
             StatusCode.KO,
@@ -3348,16 +3247,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public void testIngestWithAURefObjShouldEndWithKO() throws Exception {
         prepareVitamSession();
 
-        IntegrationTestUtils.ingestSIP(
-            tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
-            SIP_KO_AU_REF_OBJ,
-            DEFAULT_WORKFLOW.name(),
-            StatusCode.KO,
-            SIP_FOLDER
-        );
+        IntegrationTestUtils.ingestSIP(tenantId, SIP_KO_AU_REF_OBJ, DEFAULT_WORKFLOW.name(), StatusCode.KO, SIP_FOLDER);
     }
 
     @RunWithCustomExecutor
@@ -3367,9 +3257,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_KO_MANIFEST_URI,
             DEFAULT_WORKFLOW.name(),
             StatusCode.KO,
@@ -3385,9 +3272,6 @@ public class ProcessingIT extends VitamRuleRunner {
         // 1. First we create an AU by sip
         IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_APPRAISAL_RULES,
             DEFAULT_WORKFLOW.name(),
             StatusCode.OK,
@@ -3421,16 +3305,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public void testWorkflowSipSeda_full(String pathOfZIP) throws Exception {
         prepareVitamSession();
 
-        IntegrationTestUtils.ingestSIP(
-            tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
-            pathOfZIP,
-            DEFAULT_WORKFLOW.name(),
-            WARNING,
-            SIP_FOLDER
-        );
+        IntegrationTestUtils.ingestSIP(tenantId, pathOfZIP, DEFAULT_WORKFLOW.name(), WARNING, SIP_FOLDER);
 
         MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection().find(eq("Title", "monSIP"));
         final Document unitToAssert = resultUnits.first();
@@ -3680,9 +3555,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         final String ingestOperation = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_OK_HOLD_RULES,
             DEFAULT_WORKFLOW.name(),
             WARNING,
@@ -3728,9 +3600,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         final String ingestOperation = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_OK_HOLD_RULES_WITH_MANAGEMENT_MEDATADA,
             DEFAULT_WORKFLOW.name(),
             WARNING,
@@ -3764,9 +3633,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_KO_HOLD_RULES_HOLD_END_DATE_BEFORE_START_DATE,
             DEFAULT_WORKFLOW.name(),
             StatusCode.KO,
@@ -3781,9 +3647,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_KO_HOLD_RULES_HOLD_END_DATE_FOR_RULE_WITH_DEFINED_DURATION,
             DEFAULT_WORKFLOW.name(),
             StatusCode.KO,
@@ -3798,9 +3661,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             SIP_KO_HOLD_RULES_REF_NON_RULE_ID_UNKNOWN_RULE,
             DEFAULT_WORKFLOW.name(),
             StatusCode.KO,
@@ -3816,9 +3676,6 @@ public class ProcessingIT extends VitamRuleRunner {
         // Given ingest
         final String ingestOperation = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             "integration-processing/4_UNITS_2_GOTS.zip",
             DEFAULT_WORKFLOW.name(),
             StatusCode.OK,
@@ -3918,9 +3775,6 @@ public class ProcessingIT extends VitamRuleRunner {
         // Given ingest
         final String ingestOperation = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             "integration-processing/4_UNITS_2_GOTS.zip",
             DEFAULT_WORKFLOW.name(),
             StatusCode.OK,
@@ -4012,9 +3866,6 @@ public class ProcessingIT extends VitamRuleRunner {
         // Given ingest
         final String ingestOperation = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             "integration-processing/RECLASSIFICATION_HOLD_RULES_COMPLEX.zip",
             DEFAULT_WORKFLOW.name(),
             StatusCode.WARNING,
@@ -4078,9 +3929,6 @@ public class ProcessingIT extends VitamRuleRunner {
         // Given ingest
         final String ingestOperation = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             "integration-processing/RECLASSIFICATION_HOLD_RULES_COMPLEX.zip",
             DEFAULT_WORKFLOW.name(),
             StatusCode.WARNING,
@@ -4174,9 +4022,6 @@ public class ProcessingIT extends VitamRuleRunner {
         // Given ingest
         final String ingestOperation = IntegrationTestUtils.ingestSIP(
             tenantId,
-            processingClient,
-            workspaceClient,
-            processMonitoring,
             "integration-processing/4_UNITS_2_GOTS.zip",
             DEFAULT_WORKFLOW.name(),
             StatusCode.OK,

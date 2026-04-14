@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -142,10 +141,8 @@ public class IntegrationTestUtils {
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        createLogbookOperation(operationGuid, objectGuid);
-
-        return objectGuid.getId();
+        createLogbookOperation(operationGuid, operationGuid);
+        return operationGuid.getId();
     }
 
     public static void createLogbookOperation(GUID operationId, GUID objectId)
@@ -202,45 +199,75 @@ public class IntegrationTestUtils {
 
     public static String ingestSIP(
         Integer tenantId,
-        ProcessingManagementClient processingClient,
-        WorkspaceClient workspaceClient,
-        ProcessMonitoringImpl processMonitoring,
         String sipFileName,
         String workflowName,
         StatusCode expectedStatus,
         String sipFolder
     )
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException, FileNotFoundException, ContentAddressableStorageException, BadRequestException, InternalServerException, VitamClientException {
-        final String ingestContainerName = IntegrationTestUtils.createOperationContainer(tenantId);
-        final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(sipFileName);
-        workspaceClient = WorkspaceClientFactory.getInstance(WorkFlowExecutionContext.VITAM).getClient();
-        workspaceClient.createContainer(ingestContainerName);
-        workspaceClient.uncompressObject(ingestContainerName, sipFolder, CommonMediaType.ZIP, zipInputStreamSipObject);
-        // Insert sanityCheck file & StpUpload
-        insertWaitForStepEssentialFiles(ingestContainerName);
-
-        // call processing
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(ingestContainerName, workflowName);
-        RequestResponse<ItemStatus> ret2 = processingClient.executeOperationProcess(
-            ingestContainerName,
+        return ingestSIP(
+            tenantId,
+            PropertiesUtils.getResourceAsStream(sipFileName),
             workflowName,
-            RESUME.getValue()
+            expectedStatus,
+            sipFolder
         );
-        assertNotNull(ret2);
-        assertTrue(ret2.isOk());
-        assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret2.getStatus());
-        waitOperation(ingestContainerName);
-        ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(ingestContainerName, tenantId);
-        assertNotNull(processWorkflow2);
-        assertEquals(COMPLETED, processWorkflow2.getState());
-        assertEquals(expectedStatus, processWorkflow2.getStatus());
-        return ingestContainerName;
+    }
+
+    public static String ingestSIP(
+        Integer tenantId,
+        InputStream zipInputStreamSipObject,
+        String workflowName,
+        StatusCode expectedStatus,
+        String sipFolder
+    )
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException, FileNotFoundException, ContentAddressableStorageException, BadRequestException, InternalServerException, VitamClientException {
+        final String ingestContainerName = IntegrationTestUtils.createOperationContainer(tenantId);
+        try {
+            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance(
+                WorkFlowExecutionContext.VITAM
+            ).getClient();
+            workspaceClient.createContainer(ingestContainerName);
+            workspaceClient.uncompressObject(
+                ingestContainerName,
+                sipFolder,
+                CommonMediaType.ZIP,
+                zipInputStreamSipObject
+            );
+            // Insert sanityCheck file & StpUpload
+            insertWaitForStepEssentialFiles(ingestContainerName);
+
+            // call processing
+            ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            processingClient.initVitamProcess(ingestContainerName, workflowName);
+            RequestResponse<ItemStatus> ret2 = processingClient.executeOperationProcess(
+                ingestContainerName,
+                workflowName,
+                RESUME.getValue()
+            );
+            assertNotNull(ret2);
+            assertTrue(ret2.isOk());
+            assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret2.getStatus());
+            waitOperation(ingestContainerName);
+            ProcessWorkflow processWorkflow2 = ProcessMonitoringImpl.getInstance()
+                .findOneProcessWorkflow(ingestContainerName, tenantId);
+            assertNotNull(processWorkflow2);
+            assertEquals(COMPLETED, processWorkflow2.getState());
+            assertEquals(expectedStatus, processWorkflow2.getStatus());
+            return ingestContainerName;
+        } catch (AssertionError e) {
+            printDebutInformation(ingestContainerName);
+            throw e;
+        }
     }
 
     public static void replaceStringInFile(String targetFilename, String textToReplace, String replacementText)
         throws IOException {
         Path path = PropertiesUtils.getResourcePath(targetFilename);
+        replaceStringInFile(path, textToReplace, replacementText);
+    }
+
+    public static void replaceStringInFile(Path path, String textToReplace, String replacementText) throws IOException {
         Charset charset = StandardCharsets.UTF_8;
 
         String content = Files.readString(path, charset);
@@ -255,14 +282,11 @@ public class IntegrationTestUtils {
      * <p>
      * Why after simulateAttachUnitToExistingGOT the returned GOT have two AU
      *
-     * @return The id GOT that should have two AU
      * @throws Exception
      */
     public static void simulateAttachUnitToExistingGOT(
         Integer tenantId,
-        ProcessMonitoringImpl processMonitoring,
         WorkspaceClient workspaceClient,
-        ProcessingManagementClient processingClient,
         String linkAuToExistingGotName,
         String linkAuToExistingGotNameTarget,
         String idGot,
@@ -293,7 +317,7 @@ public class IntegrationTestUtils {
         insertWaitForStepEssentialFiles(containerName2);
 
         // call processing
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName2, DEFAULT_WORKFLOW.name());
         final RequestResponse<ItemStatus> ret2 = processingClient.executeOperationProcess(
             containerName2,
@@ -306,7 +330,8 @@ public class IntegrationTestUtils {
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret2.getStatus());
 
         waitOperation(containerName2);
-        ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
+        ProcessWorkflow processWorkflow2 = ProcessMonitoringImpl.getInstance()
+            .findOneProcessWorkflow(containerName2, tenantId);
         assertNotNull(processWorkflow2);
         assertEquals(COMPLETED, processWorkflow2.getState());
         assertEquals(WARNING, processWorkflow2.getStatus());
@@ -327,7 +352,7 @@ public class IntegrationTestUtils {
         String sourceOriginatingAgency,
         String newOriginatingAgency,
         boolean propagateToObjectGroups,
-        SelectMultiQuery selectQuery,
+        ObjectNode selectQuery,
         Set<StatusCode> expectedStatus
     )
         throws ContentAddressableStorageServerException, InvalidParseOperationException, InternalServerException, BadRequestException, VitamClientException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException {
@@ -361,7 +386,7 @@ public class IntegrationTestUtils {
             logbookOperationsClient.create(initParameters);
 
             workspaceClient.createContainer(operationId.toString());
-            JsonNode queryNode = JsonHandler.getFromInputStream(writeToInpustream(selectQuery.getFinalSelect()));
+            JsonNode queryNode = JsonHandler.getFromInputStream(writeToInpustream(selectQuery));
 
             OriginatingAgencyReassignmentRequest originatingAgencyReassignmentRequest =
                 new OriginatingAgencyReassignmentRequest(
@@ -377,11 +402,7 @@ public class IntegrationTestUtils {
                 JsonHandler.writeToInpustream(originatingAgencyReassignmentRequest)
             );
 
-            workspaceClient.putObject(
-                operationId.toString(),
-                "query.json",
-                writeToInpustream(selectQuery.getFinalSelect())
-            );
+            workspaceClient.putObject(operationId.toString(), "query.json", writeToInpustream(selectQuery));
 
             processingClient.initVitamProcess(
                 new ProcessingEntry(operationId.toString(), ORIGINATING_AGENCY_REASSIGNMENT.name())

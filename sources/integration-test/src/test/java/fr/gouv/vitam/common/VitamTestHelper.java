@@ -30,6 +30,9 @@ package fr.gouv.vitam.common;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.access.internal.client.AccessInternalClient;
+import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -93,11 +96,13 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -211,7 +216,14 @@ public class VitamTestHelper {
                 DataCategory.REPORT,
                 AccessLogUtils.getNoLogAccessLog()
             );
-            return containerAsync.readEntity(String.class);
+            Object entity = containerAsync.getEntity();
+            if (entity instanceof InputStream is) {
+                return IOUtils.toString(is, StandardCharsets.UTF_8);
+            } else if (entity instanceof String str) {
+                return str;
+            } else {
+                throw new AssertionError("Unknown entity type " + entity);
+            }
         } catch (StorageNotFoundException e) {
             return "No " + fileName + " found";
         } catch (Exception e) {
@@ -364,6 +376,25 @@ public class VitamTestHelper {
         } catch (VitamClientException | InternalServerException | BadRequestException e) {
             fail("cannot find process with id = ", opId, e);
         }
+    }
+
+    public static InputStream getTransferSip(String operationId) throws Exception {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            return client.findTransferSIPByID(operationId).readEntity(InputStream.class);
+        }
+    }
+
+    public static String startTransferReplyWorkflow(InputStream atrInputStream, StatusCode expectedStatusCode)
+        throws AccessInternalClientServerException {
+        GUID transferReplyWorkflowGuid = GUIDFactory.newOperationLogbookGUID(
+            VitamThreadUtils.getVitamSession().getTenantId()
+        );
+        VitamThreadUtils.getVitamSession().setRequestId(transferReplyWorkflowGuid);
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            client.startTransferReplyWorkflow(atrInputStream);
+            awaitForWorkflowTerminationWithStatus(transferReplyWorkflowGuid, expectedStatusCode);
+        }
+        return transferReplyWorkflowGuid.getId();
     }
 
     public static void printDebutInformation(String opId) {
