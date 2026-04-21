@@ -36,6 +36,8 @@ import fr.gouv.vitam.common.model.ModelConstants;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AccessionRegisterSummaryModel {
 
+    public static final String ORIGINATING_AGENCY = "OriginatingAgency";
+
     /**
      * unique id
      */
@@ -57,7 +59,7 @@ public class AccessionRegisterSummaryModel {
     /**
      * originating agency (aggregation key for {@link AccessionRegisterDetailModel})
      */
-    @JsonProperty("OriginatingAgency")
+    @JsonProperty(ORIGINATING_AGENCY)
     private String originatingAgency;
 
     /**

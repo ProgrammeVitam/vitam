@@ -136,6 +136,7 @@ import java.util.stream.Collectors;
 import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
 import static fr.gouv.vitam.common.VitamTestHelper.doIngest;
+import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
@@ -270,7 +271,7 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
 
     @After
     public void afterTest() {
-        // FIXME : To removed once temporary v91 restrictions are removed
+        // FIXME : To be removed once temporary v91 restrictions are removed
         OriginatingAgencyReassignmentPreparationPlugin._____Enable_Temporary_V91_Restrictions_____ = true;
 
         VitamThreadUtils.getVitamSession().setContextId(CONTEXT_ID);
@@ -448,7 +449,7 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void givenReassignmentsThenDeleteGotVersions_Report_OK() throws Exception {
-        // FIXME : To removed once temporary v91 restrictions are removed
+        // FIXME : To be removed once temporary v91 restrictions are removed
         OriginatingAgencyReassignmentPreparationPlugin._____Enable_Temporary_V91_Restrictions_____ = false;
 
         try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
@@ -469,7 +470,7 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
                 "FRAN_NP_009913",
                 "RATP",
                 true,
-                ingestSelect,
+                ingestSelect.getFinalSelect(),
                 Set.of(StatusCode.OK, StatusCode.WARNING)
             );
 
@@ -478,7 +479,7 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
                 "RATP",
                 "FRAN_NP_009913",
                 true,
-                ingestSelect,
+                ingestSelect.getFinalSelect(),
                 Set.of(StatusCode.OK, StatusCode.WARNING)
             );
 
@@ -1465,6 +1466,7 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
             // when
             accessClient.startPreservation(preservationRequest);
             waitOperation(operationGuid.toString());
+            verifyOperation(operationGuid.toString(), OK);
 
             // Then
             ArrayNode jsonNode = (ArrayNode) accessClient

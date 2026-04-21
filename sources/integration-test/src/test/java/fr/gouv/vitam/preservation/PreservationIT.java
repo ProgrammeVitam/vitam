@@ -143,6 +143,7 @@ import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
 import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
 import static fr.gouv.vitam.common.VitamTestHelper.doIngest;
+import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
@@ -477,6 +478,7 @@ public class PreservationIT extends VitamRuleRunner {
                 .get("events");
 
             // Then
+            verifyOperation(operationGuid.toString(), StatusCode.OK);
             assertThat(jsonNode.iterator())
                 .toIterable()
                 .extracting(j -> j.get("outcome").asText())
@@ -528,6 +530,7 @@ public class PreservationIT extends VitamRuleRunner {
 
             // Then
             waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+            verifyOperation(operationGuid.toString(), StatusCode.OK);
 
             SelectMultiQuery selectChangeByOperation = new SelectMultiQuery();
             selectChangeByOperation.setQuery(QueryHelper.in(operations(), operationGuid.getId()));
@@ -627,6 +630,7 @@ public class PreservationIT extends VitamRuleRunner {
                 .get("events");
 
             // Then
+            verifyOperation(operationGuid.toString(), StatusCode.OK);
             try (
                 InputStream inputStream = storageClient
                     .getContainerAsync(
@@ -746,8 +750,10 @@ public class PreservationIT extends VitamRuleRunner {
 
             // When
             accessClient.startPreservation(preservationRequest);
+
             // Then
             waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+            verifyOperation(operationGuid.toString(), StatusCode.OK);
 
             SelectMultiQuery selectOp = new SelectMultiQuery();
             selectOp.setQuery(QueryHelper.in(operations(), operationGuid.getId()));
@@ -809,6 +815,7 @@ public class PreservationIT extends VitamRuleRunner {
             waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
 
             // Then
+            verifyOperation(operationGuid.toString(), StatusCode.KO);
             assertThat(getLogbookOperation(logbookClient).getEvents().getLast().getOutcome()).isEqualTo(
                 StatusCode.KO.name()
             );
