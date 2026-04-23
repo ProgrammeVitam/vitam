@@ -1,7 +1,7 @@
 Role Name
 =========
 
-This role clones data from vitam-itest repository (git lfs).
+This role clones data from vitam-itest repository.
 
 License
 -------
