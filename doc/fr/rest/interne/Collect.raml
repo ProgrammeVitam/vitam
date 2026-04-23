@@ -334,6 +334,15 @@ documentation:
       headers:
         X-tenant-Id:
           required: true
+        X-Validation-Mode:
+          type: string
+          required: false
+          default: VALIDATE
+          enum: [ VALIDATE, VALIDATE_IGNORE ]
+          description: |
+            Mode de validation utilisé lors de la fermeture d'une transaction.
+            - `VALIDATE` : validation standard ; refuse la fermeture si au moins un batch est en KO.
+            - `VALIDATE_IGNORE` : ferme la transaction meme si certains batchs sont en KO.
       responses:
         200:
           body:
