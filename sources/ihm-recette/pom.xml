@@ -111,7 +111,7 @@
     <!-- object storing-->
     <jclouds.version>2.7.0</jclouds.version>
     <openstack4j.version>3.12</openstack4j.version>
-    <awssdk.v2.version>2.42.5</awssdk.v2.version>
+    <awssdk.v2.version>2.42.41</awssdk.v2.version>
 
     <!-- jetty -->
     <jetty.version>12.0.19</jetty.version>
@@ -150,7 +150,7 @@
     <rest-assured.version>5.5.5</rest-assured.version>
     <org.json.version>20240303</org.json.version>
     <json-sanitize.version>1.2.2</json-sanitize.version>
-    <commons-collections4.version>4.4</commons-collections4.version>
+    <commons-collections4.version>4.5.0</commons-collections4.version>
     <esapi.version>2.7.0.0</esapi.version>
     <xml-resolver.version>1.2</xml-resolver.version>
     <opencsv.version>5.12.0</opencsv.version>
