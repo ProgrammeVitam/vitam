@@ -1,12 +1,10 @@
-publiccodeYmlVersion: "0.2"
+publiccodeYmlVersion: '0'
 name: Vitam
 url: https://github.com/ProgrammeVitam/vitam
 landingURL: https://www.programmevitam.fr/pages/presentation/
-latestTestedInstallationDate: 2024-09-18
-creationDate: 2017-01-15
-latestRelease:
-  date: "2024-07-17"
-  version: "7.1.1"
+softwareVersion: "7.1.1"
+platforms:
+  - linux
 logo: https://github.com/ProgrammeVitam.png
 usedBy:
    - AMUE
@@ -95,22 +93,39 @@ usedBy:
 
 fundedBy:
   - name: Ministère de la Culture
-    url: https://lannuaire.service-public.fr/gouvernement/da1d6275-6710-485d-a249-282cac69dfe7
+    uri: https://lannuaire.service-public.fr/gouvernement/da1d6275-6710-485d-a249-282cac69dfe7
   - name: Ministère de l'Europe et des Affaires étrangères
-    url: https://lannuaire.service-public.fr/gouvernement/ac1a7fdb-50f4-4599-b306-ec06b7250965
+    uri: https://lannuaire.service-public.fr/gouvernement/ac1a7fdb-50f4-4599-b306-ec06b7250965
   - name: Ministère des Armées
-    url: https://lannuaire.service-public.fr/gouvernement/d24d1af2-c506-4b10-82e8-ab92b8e959d2
-roadmap: "https://www.programmevitam.fr/public/images/Feuille_route_2024_2028.png"
-softwareType: ""
+    uri: https://lannuaire.service-public.fr/gouvernement/d24d1af2-c506-4b10-82e8-ab92b8e959d2
+developmentStatus: stable
+softwareType: standalone/backend
 description:
   en:
-    shortDescription: Digital Archives Management System developped by French
-      government/Programme interministériel archives numériques ; core system.
+    shortDescription: Digital Archives Management System developed by the French government
+    longDescription: >
+      Vitam is an open-source digital archives management system developed
+      by the French government as part of the Programme interministeriel
+      archives numeriques. It provides a scalable back-office solution for
+      ingesting, storing, preserving and accessing large volumes of digital
+      archives. Vitam is designed to be integrated into existing information
+      systems and can handle billions of objects. It implements the OAIS
+      standard and supports SEDA-compliant archival workflows.
     documentation: "https://www.programmevitam.fr/vitam-doc/fr/master/index.html"
+    features:
+      - Ingest and store digital archives at scale
+      - OAIS and SEDA compliance
+      - Metadata and lifecycle management
+      - Access control and audit trails
+      - Multi-tenant architecture
 legal:
-  license: cecill-2.1
-  authorsFile: ""
+  license: CECILL-2.1
 maintenance:
   type: internal
   contacts:
-    - email: "contact@programmevitam.fr"
+    - name: Programme Vitam
+      email: "contact@programmevitam.fr"
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - fr
