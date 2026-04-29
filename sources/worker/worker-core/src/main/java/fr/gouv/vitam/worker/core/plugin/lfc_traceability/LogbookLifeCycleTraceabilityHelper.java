@@ -412,5 +412,5 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     protected abstract Select generateSelectLogbookOperation(LocalDateTime date, String securisationVersion)
-        throws InvalidCreateOperationException;
+        throws InvalidCreateOperationException, InvalidParseOperationException;
 }
