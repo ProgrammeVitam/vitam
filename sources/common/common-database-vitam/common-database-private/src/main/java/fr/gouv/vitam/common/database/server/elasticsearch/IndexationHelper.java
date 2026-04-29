@@ -31,6 +31,7 @@ import com.google.common.collect.Iterators;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
@@ -48,8 +49,12 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import org.apache.commons.collections4.CollectionUtils;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -70,11 +75,25 @@ public class IndexationHelper {
     }
 
     /**
+     * Converts a LocalDate to LocalDateTime at start of day
+     *
+     * @param localDate the LocalDate to convert
+     * @return LocalDateTime or null if localDate is null
+     */
+    private LocalDateTime convertLocalDateToLocalDateTime(LocalDate localDate) {
+        if (localDate == null) {
+            return null;
+        }
+        return localDate.atStartOfDay();
+    }
+
+    /**
      * reindex a collection on a tenant list with a esmapping file
      *
      * @param collection the collection to be reindexed
      * @param esClient the elastic client to be used to reindex
      * @param indexAlias the elastic index alias information
+     * @param indexationStartDate optional start date for indexation. If provided, reindexation will start from this date
      * @return the result of the reindexation as a IndexationResult object
      */
     public ReindexationOK reindex(
@@ -85,7 +104,8 @@ public class IndexationHelper {
         ElasticsearchCollections elasticsearchCollection,
         List<Integer> tenantIds,
         String tenantGroupName,
-        String elasticsearchConfigurationFilePath
+        String elasticsearchConfigurationFilePath,
+        LocalDate indexationStartDate
     ) throws DatabaseException {
         MongoCursor<Document> cursor = null;
         long numberOfDocumentsToIndex;
@@ -93,32 +113,42 @@ public class IndexationHelper {
             // Select data from mongo
             VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection);
 
-            if (CollectionUtils.isNotEmpty(tenantIds)) {
-                LOGGER.warn("Reindexation started on index {} in tenants {}", indexAlias.getName(), tenantIds);
-                cursor = vitamMongoRepository
-                    .findDocuments(
-                        Filters.in(VitamDocument.TENANT_ID, tenantIds),
-                        VitamConfiguration.getMaxElasticsearchBulk()
-                    )
-                    .iterator();
-                numberOfDocumentsToIndex = vitamMongoRepository.count(Filters.in(VitamDocument.TENANT_ID, tenantIds));
-            } else {
-                LOGGER.warn("Reindexation started on index {} in all tenants", indexAlias.getName());
-                cursor = vitamMongoRepository.findDocuments(VitamConfiguration.getMaxElasticsearchBulk()).iterator();
-                numberOfDocumentsToIndex = vitamMongoRepository.count();
-            }
+            Bson filter = buildReindexationFilter(tenantIds, indexationStartDate);
 
-            // Create ElasticSearch new index for a given collection
-            ElasticsearchIndexAlias newIndexWithoutAlias = esClient.createIndexWithoutAlias(
-                indexAlias,
-                indexSettings,
-                elasticsearchConfigurationFilePath
+            logReindexationStart(indexAlias, tenantIds);
+
+            LOGGER.warn("Starting document count for reindexation on collection: {}", elasticsearchCollection.name());
+            numberOfDocumentsToIndex = countDocuments(vitamMongoRepository, filter);
+            LOGGER.warn(
+                "Document count completed for collection {}: {} documents to index",
+                elasticsearchCollection.name(),
+                numberOfDocumentsToIndex
             );
+
+            cursor = (filter != null)
+                ? vitamMongoRepository.findDocuments(filter, VitamConfiguration.getMaxElasticsearchBulk()).iterator()
+                : vitamMongoRepository.findDocuments(VitamConfiguration.getMaxElasticsearchBulk()).iterator();
+
+            ElasticsearchIndexAlias targetIndex;
+
+            if (indexationStartDate != null) {
+                // Use existing index for upserts
+                targetIndex = indexAlias;
+                LOGGER.warn("Using existing index {} for incremental reindexation", indexAlias.getName());
+            } else {
+                // Create ElasticSearch new index for a given collection
+                targetIndex = esClient.createIndexWithoutAlias(
+                    indexAlias,
+                    indexSettings,
+                    elasticsearchConfigurationFilePath
+                );
+                LOGGER.warn("Created new index {} for full reindexation", targetIndex.getName());
+            }
 
             // Create repository for the given indexName
             VitamElasticsearchRepository vitamElasticsearchRepository = new VitamElasticsearchRepository(
                 esClient.getClient(),
-                tenant -> newIndexWithoutAlias
+                tenant -> targetIndex
             );
 
             LOGGER.warn("number of documents to index = {}", numberOfDocumentsToIndex);
@@ -147,7 +177,7 @@ public class IndexationHelper {
                 );
             }
             LOGGER.warn("Reindexation ended successfully");
-            return new ReindexationOK(indexAlias.getName(), newIndexWithoutAlias.getName(), tenantIds, tenantGroupName);
+            return new ReindexationOK(indexAlias.getName(), targetIndex.getName(), tenantIds, tenantGroupName);
         } catch (DatabaseException | RuntimeException e) {
             LOGGER.error("Reindexation failed", e);
             throw e;
@@ -156,6 +186,69 @@ public class IndexationHelper {
                 cursor.close();
             }
         }
+    }
+
+    /**
+     * reindex a collection on a tenant list with a esmapping file
+     *
+     * @param collection the collection to be reindexed
+     * @param esClient the elastic client to be used to reindex
+     * @param indexAlias the elastic index alias information
+     * @return the result of the reindexation as a IndexationResult object
+     */
+    public ReindexationOK reindex(
+        MongoCollection<Document> collection,
+        ElasticsearchAccess esClient,
+        ElasticsearchIndexAlias indexAlias,
+        ElasticsearchIndexSettings indexSettings,
+        ElasticsearchCollections elasticsearchCollection,
+        List<Integer> tenantIds,
+        String tenantGroupName,
+        String elasticsearchConfigurationFilePath
+    ) throws DatabaseException {
+        return reindex(
+            collection,
+            esClient,
+            indexAlias,
+            indexSettings,
+            elasticsearchCollection,
+            tenantIds,
+            tenantGroupName,
+            elasticsearchConfigurationFilePath,
+            null
+        );
+    }
+
+    private Bson buildReindexationFilter(List<Integer> tenantIds, LocalDate indexationStartDate) {
+        List<Bson> filters = new ArrayList<>();
+
+        if (CollectionUtils.isNotEmpty(tenantIds)) {
+            filters.add(Filters.in(VitamDocument.TENANT_ID, tenantIds));
+        }
+
+        if (indexationStartDate != null) {
+            filters.add(
+                Filters.gte("_aud", LocalDateUtil.getFormattedDateTimeForMongo(indexationStartDate.atStartOfDay()))
+            );
+        }
+
+        if (filters.isEmpty()) {
+            return null;
+        }
+
+        return filters.size() == 1 ? filters.getFirst() : Filters.and(filters);
+    }
+
+    private void logReindexationStart(ElasticsearchIndexAlias indexAlias, List<Integer> tenantIds) {
+        if (CollectionUtils.isNotEmpty(tenantIds)) {
+            LOGGER.warn("Reindexation started on index {} in tenants {}", indexAlias.getName(), tenantIds);
+        } else {
+            LOGGER.warn("Reindexation started on index {} in all tenants", indexAlias.getName());
+        }
+    }
+
+    private long countDocuments(VitamMongoRepository vitamMongoRepository, Bson filter) {
+        return filter != null ? vitamMongoRepository.count(filter) : vitamMongoRepository.count();
     }
 
     /**
@@ -184,6 +277,31 @@ public class IndexationHelper {
                 .setStatusCode(StatusCode.OK);
         } catch (IOException | ElasticsearchException e) {
             throw toDatabaseException(e);
+        }
+    }
+
+    /**
+     * Validates indexation parameters according to business rules
+     *
+     * @param indexParameters the parameters to validate
+     * @throws IllegalStateException if indexationStartDate is not null and collection is not UNIT or OBJECTGROUP
+     */
+    public void validateIndexationParameters(List<IndexParameters> indexParameters) {
+        for (IndexParameters index : indexParameters) {
+            if (index.getIndexationStartDate() != null) {
+                String collectionName = index.getCollectionName().toUpperCase();
+                if (
+                    !ElasticsearchCollections.UNIT.getIndexName().toUpperCase().equals(collectionName) &&
+                    !ElasticsearchCollections.OBJECTGROUP.getIndexName().toUpperCase().equals(collectionName)
+                ) {
+                    throw new IllegalStateException(
+                        String.format(
+                            "Indexation with start date is only allowed for UNIT and OBJECTGROUP collections, but was requested for collection: %s",
+                            index.getCollectionName()
+                        )
+                    );
+                }
+            }
         }
     }
 

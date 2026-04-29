@@ -52,12 +52,29 @@ traits:
           Retourne Internal Server Error en cas d'échec de la cohérence
 
   AdminReindex:
-    description: Response model for reindexation order
+    description: |
+      Response model for reindexation order.
+
+      Le paramètre indexationStartDate est optionnel et ne peut être utilisé qu'avec les collections UNIT et OBJECTGROUP.
+      Si indexationStartDate est fourni avec d'autres collections, une erreur 400 sera retournée.
     is: [ StandardTraits.StandardOptionalHeader,
       StandardTraits.StandardHeader400 ]
     body:
       application/json:
-        description: Contient la requête de réindexation au format JSON.
+        description: |
+          Contient la requête de réindexation au format JSON.
+
+          Paramètres:
+          - collection: nom de la collection à réindexer
+          - tenants: liste des tenants concernés
+          - indexationStartDate (optionnel): date de début pour la réindexation incrémentale.
+            Ce paramètre n'est autorisé que pour les collections UNIT et OBJECTGROUP.
+
+            Format attendu:
+            - indexationStartDate doit être fourni au format strict: yyyy-MM-dd (exemple: 2025-12-30).
+            - Tout autre format sera rejeté avec une erreur 400.
+
+            Note: Si indexationStartDate est rempli, aucun nouvel index n'est créé et l'index actuel est réutilisé.
         example: !include examples/reindexation.json
     responses:
       200:
@@ -67,6 +84,24 @@ traits:
           application/json:
             description: Reindexation accepted
             example: !include examples/reindexationResponse.json
+      400:
+        description: |
+          Retourne BAD_REQUEST dans les cas suivants:
+          - Paramètres manquants ou invalides
+          - indexationStartDate fourni avec une collection autre que UNIT ou OBJECTGROUP
+        body:
+          application/json:
+            description: |
+              Erreur de validation des paramètres
+            example: |
+              {
+                "httpCode": 400,
+                "code": "BAD_REQUEST",
+                "context": "FUNCTIONAL_ADMINISTRATION",
+                "state": "code_vitam",
+                "message": "Indexation with start date is only allowed for UNIT and OBJECTGROUP collections, but was requested for collection: FORMATS",
+                "description": "Invalid indexation parameters."
+              }
 
   AdminAlias:
     description: Response model for switch order
@@ -84,4 +119,3 @@ traits:
           application/json:
             description: Reindexation accepted
             example: !include examples/switchResponse.json
-  
