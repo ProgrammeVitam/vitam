@@ -132,6 +132,24 @@ public class ReindexationResource {
     public Response reindex(@Valid List<IndexParameters> indexParameters) {
         ParametersChecker.checkParameter(OPTIONS_IS_MANDATORY_PARAMETER, indexParameters);
 
+        // Validate indexation parameters
+        try {
+            indexationHelper.validateIndexationParameters(indexParameters);
+        } catch (IllegalStateException e) {
+            LOGGER.error("Invalid indexation parameters: " + e.getMessage(), e);
+            final Status returnedStatus = Status.BAD_REQUEST;
+            return Response.status(returnedStatus)
+                .entity(
+                    new VitamError(returnedStatus.name())
+                        .setHttpCode(returnedStatus.getStatusCode())
+                        .setContext(ServiceName.FUNCTIONAL_ADMINISTRATION.getName())
+                        .setState("code_vitam")
+                        .setMessage(e.getMessage())
+                        .setDescription("Invalid indexation parameters.")
+                )
+                .build();
+        }
+
         List<ReindexationResult> results = new ArrayList<>();
         // call the reindexation service
         for (IndexParameters index : indexParameters) {

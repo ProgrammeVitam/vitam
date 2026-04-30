@@ -31,11 +31,13 @@ import co.elastic.clients.elasticsearch.core.search.TotalHits;
 import co.elastic.clients.elasticsearch.indices.GetAliasResponse;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.MongoCollection;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.index.model.ReindexationOK;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
@@ -45,6 +47,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.time.LogicalClockRule;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.assertj.core.util.Lists;
@@ -59,6 +62,9 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -68,6 +74,7 @@ import java.util.Optional;
 
 import static fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil.matchAll;
 import static fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil.termQuery;
+import static fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil.wildcard;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -80,6 +87,9 @@ public class IndexationHelperTest {
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(
@@ -251,6 +261,8 @@ public class IndexationHelperTest {
 
         elasticsearchAccess.deleteIndexForTesting(newIndex0);
         elasticsearchAccess.deleteIndexForTesting(newIndexGrp);
+        elasticsearchAccess.deleteIndexForTesting(indexAlias0);
+        elasticsearchAccess.deleteIndexForTesting(newIndex0);
     }
 
     private long countDocumentsByQuery(
@@ -346,6 +358,147 @@ public class IndexationHelperTest {
         elasticsearchRule.purgeIndex(elasticsearchRule.getClient(), newIndex.getName());
     }
 
+    @Test
+    public void should_apply_date_filter_for_unit_and_objectgroup_collections() throws IOException, DatabaseException {
+        // Given
+        String alias = ALIAS + GUIDFactory.newGUID().getId();
+        final MongoCollection<Document> collection = mongoRule.getMongoCollection(alias);
+        ElasticsearchIndexAliasResolver indexAliasResolver = tenantId ->
+            ElasticsearchIndexAlias.ofMultiTenantCollection(alias, tenantId);
+
+        VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection);
+
+        LocalDateTime baseDate = LocalDateTime.of(2023, 1, 1, 0, 0, 0);
+
+        String mapping = FileUtils.readFileToString(
+            PropertiesUtils.findFile(TEST_ES_MAPPING_JSON),
+            StandardCharsets.UTF_8
+        );
+        ElasticsearchIndexAlias indexAlias = indexAliasResolver.resolveIndexName(0);
+        ElasticsearchIndexSettings indexSettings = new ElasticsearchIndexSettings(2, 1, () -> mapping);
+
+        // Step 1: Create initial index and alias setup
+        // Create an initial index with alias to simulate existing setup
+        elasticsearchAccess.createIndexAndAliasIfAliasNotExists(
+            indexAlias,
+            indexSettings,
+            ElasticsearchTestHelper.loadElasticSearchSettings()
+        );
+        elasticsearchAccess.refreshIndex(indexAlias);
+
+        // Add a small delay to ensure different timestamps for index creation
+        logicalClock.logicalSleep(1, ChronoUnit.SECONDS);
+
+        // Step 2: Insert 5 units in MongoDB
+        List<Document> firstBatch = new ArrayList<>();
+        String thirdUnitDate = "";
+        for (int i = 0; i < 5; i++) {
+            String id = GUIDFactory.newGUID().toString();
+
+            String audDateStr = LocalDateUtil.getFormattedDateTimeForMongo(baseDate.plusDays(i));
+            if (i == 2) { // Save the date of the 3rd unit (index 2)
+                thirdUnitDate = audDateStr;
+            }
+            ObjectNode data = JsonHandler.createObjectNode()
+                .put("_id", id)
+                .put("_tenant", 0)
+                .put("Identifier", "First_Batch_" + i)
+                .put("Name", "Document from first batch " + i)
+                .put("_aud", audDateStr);
+            firstBatch.add(Document.parse(JsonHandler.unprettyPrint(data)));
+        }
+        vitamMongoRepository.save(firstBatch);
+
+        // Step 3: Launch full reindexation (without date)
+        ReindexationOK fullReindexResult = indexationHelper.reindex(
+            collection,
+            elasticsearchAccess,
+            indexAlias,
+            indexSettings,
+            ElasticsearchCollections.UNIT,
+            singletonList(0),
+            null,
+            ElasticsearchTestHelper.loadElasticSearchSettings()
+        );
+        assertThat(fullReindexResult.getAliasName()).isNotEqualTo(fullReindexResult.getIndexName());
+        // Switch to new index after full reindexation
+        ElasticsearchIndexAlias fullReindexIndex = ElasticsearchIndexAlias.ofFullIndexName(
+            fullReindexResult.getIndexName()
+        );
+
+        indexationHelper.switchIndex(indexAlias, fullReindexIndex, elasticsearchAccess);
+
+        // Step 4: Verify that the total count is exactly 5 units from first batch
+        VitamElasticsearchRepository vitamElasticsearchRepository = new VitamElasticsearchRepository(
+            elasticsearchAccess.getClient(),
+            indexAliasResolver
+        );
+
+        long firstBatchDocs = countDocumentsByQuery(
+            indexAlias,
+            vitamElasticsearchRepository,
+            wildcard("Identifier", "First_Batch*")
+        );
+        assertThat(firstBatchDocs).isEqualTo(5);
+
+        // Step 5: Insert 5 more units in MongoDB
+        List<Document> secondBatch = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            String id = GUIDFactory.newGUID().toString();
+            String audDateStr = LocalDateUtil.getFormattedDateTimeForMongo(baseDate.plusDays(10 + i)); // Different dates to distinguish
+            ObjectNode data = JsonHandler.createObjectNode()
+                .put("_id", id)
+                .put("_tenant", 0)
+                .put("Identifier", "Second_Batch_" + i)
+                .put("Name", "Document from second batch " + i)
+                .put("_aud", audDateStr);
+            secondBatch.add(Document.parse(JsonHandler.unprettyPrint(data)));
+        }
+        vitamMongoRepository.save(secondBatch);
+
+        // Step 6: Launch reindexation with date filter from 3rd unit before full indexation
+        LocalDate filterDate = LocalDateUtil.parseMongoFormattedDate(thirdUnitDate).toLocalDate();
+        ReindexationOK filteredReindexResult = indexationHelper.reindex(
+            collection,
+            elasticsearchAccess,
+            indexAlias,
+            indexSettings,
+            ElasticsearchCollections.UNIT,
+            singletonList(0),
+            null,
+            ElasticsearchTestHelper.loadElasticSearchSettings(),
+            filterDate
+        );
+        assertThat(filteredReindexResult.getIndexName()).isEqualTo(filteredReindexResult.getAliasName());
+
+        // For incremental reindexation with date filter on UNIT collection,
+        // the existing index is used (no new index created), so no need to switch
+        elasticsearchAccess.refreshIndex(indexAlias);
+
+        long totalDocs = countDocumentsByQuery(indexAlias, vitamElasticsearchRepository, matchAll());
+        assertThat(totalDocs).isEqualTo(10);
+
+        // Verify we have documents from both batches
+        firstBatchDocs = countDocumentsByQuery(
+            indexAlias,
+            vitamElasticsearchRepository,
+            termQuery("Identifier", "First_Batch_4")
+        );
+        assertThat(firstBatchDocs).isEqualTo(1);
+
+        long secondBatchDocs = countDocumentsByQuery(
+            indexAlias,
+            vitamElasticsearchRepository,
+            termQuery("Identifier", "Second_Batch_0")
+        );
+        assertThat(secondBatchDocs).isEqualTo(1);
+
+        // Clean up
+        elasticsearchRule.purgeIndex(elasticsearchRule.getClient(), indexAlias.getName());
+        elasticsearchAccess.deleteIndexByAliasForTesting(indexAlias);
+        elasticsearchAccess.deleteIndexForTesting(fullReindexIndex);
+    }
+
     private Map<String, Integer> populating(
         MongoCollection<Document> collection,
         ElasticsearchIndexAliasResolver indexAliasResolver
@@ -419,5 +572,163 @@ public class IndexationHelperTest {
         }
         vitamMongoRepository.save(documents);
         vitamElasticsearchRepository.save(documents);
+    }
+
+    @Test
+    public void should_validate_unit_collection_with_indexation_start_date() {
+        // Given
+        IndexParameters indexParameters = new IndexParameters();
+        indexParameters.setCollectionName("UNIT");
+        indexParameters.setTenants(Arrays.asList(0, 1, 2));
+        indexParameters.setIndexationStartDate(LocalDate.of(2023, 1, 1));
+
+        List<IndexParameters> parametersList = singletonList(indexParameters);
+
+        // When & Then - should not throw any exception
+        indexationHelper.validateIndexationParameters(parametersList);
+    }
+
+    @Test
+    public void should_validate_objectgroup_collection_with_indexation_start_date() {
+        // Given
+        IndexParameters indexParameters = new IndexParameters();
+        indexParameters.setCollectionName("OBJECTGROUP");
+        indexParameters.setTenants(Arrays.asList(0, 1, 2));
+        indexParameters.setIndexationStartDate(LocalDate.of(2023, 1, 1));
+
+        List<IndexParameters> parametersList = singletonList(indexParameters);
+
+        // When & Then - should not throw any exception
+        indexationHelper.validateIndexationParameters(parametersList);
+    }
+
+    @Test
+    public void should_validate_unit_collection_with_lowercase_name_and_indexation_start_date() {
+        // Given
+        IndexParameters indexParameters = new IndexParameters();
+        indexParameters.setCollectionName("unit");
+        indexParameters.setTenants(Arrays.asList(0, 1, 2));
+        indexParameters.setIndexationStartDate(LocalDate.of(2023, 1, 1));
+
+        List<IndexParameters> parametersList = singletonList(indexParameters);
+
+        // When & Then - should not throw any exception
+        indexationHelper.validateIndexationParameters(parametersList);
+    }
+
+    @Test
+    public void should_validate_objectgroup_collection_with_lowercase_name_and_indexation_start_date() {
+        // Given
+        IndexParameters indexParameters = new IndexParameters();
+        indexParameters.setCollectionName("objectgroup");
+        indexParameters.setTenants(Arrays.asList(0, 1, 2));
+        indexParameters.setIndexationStartDate(LocalDate.of(2023, 1, 1));
+
+        List<IndexParameters> parametersList = singletonList(indexParameters);
+
+        // When & Then - should not throw any exception
+        indexationHelper.validateIndexationParameters(parametersList);
+    }
+
+    @Test
+    public void should_validate_any_collection_without_indexation_start_date() {
+        // Given
+        IndexParameters indexParameters1 = new IndexParameters();
+        indexParameters1.setCollectionName("FORMATS");
+        indexParameters1.setTenants(Arrays.asList(0, 1, 2));
+        indexParameters1.setIndexationStartDate(null);
+
+        IndexParameters indexParameters2 = new IndexParameters();
+        indexParameters2.setCollectionName("RULES");
+        indexParameters2.setTenants(Arrays.asList(0, 1, 2));
+        indexParameters2.setIndexationStartDate(null);
+
+        IndexParameters indexParameters3 = new IndexParameters();
+        indexParameters3.setCollectionName("UNIT");
+        indexParameters3.setTenants(Arrays.asList(0, 1, 2));
+        indexParameters3.setIndexationStartDate(null);
+
+        List<IndexParameters> parametersList = Arrays.asList(indexParameters1, indexParameters2, indexParameters3);
+
+        // When & Then - should not throw any exception
+        indexationHelper.validateIndexationParameters(parametersList);
+    }
+
+    @Test
+    public void should_do_nothing() {
+        // Given
+        List<IndexParameters> parametersList = new ArrayList<>();
+
+        // When & Then - should not throw any exception
+        indexationHelper.validateIndexationParameters(parametersList);
+    }
+
+    @Test
+    public void should_throw_exception_with_correct_message_for_invalid_collection() {
+        // Given
+        IndexParameters indexParameters = new IndexParameters();
+        indexParameters.setCollectionName("FORMATS");
+        indexParameters.setTenants(Arrays.asList(0, 1, 2));
+        indexParameters.setIndexationStartDate(LocalDate.of(2023, 1, 1));
+
+        List<IndexParameters> parametersList = singletonList(indexParameters);
+
+        // When & Then
+        try {
+            indexationHelper.validateIndexationParameters(parametersList);
+            assertThat(false).as("Expected IllegalStateException to be thrown").isTrue();
+        } catch (IllegalStateException e) {
+            assertThat(e.getMessage()).contains(
+                "Indexation with start date is only allowed for UNIT and OBJECTGROUP collections"
+            );
+            assertThat(e.getMessage()).contains("FORMATS");
+        }
+    }
+
+    @Test
+    public void should_validate_mixed_valid_parameters() {
+        // Given
+        IndexParameters validUnitParams = new IndexParameters();
+        validUnitParams.setCollectionName("UNIT");
+        validUnitParams.setTenants(Arrays.asList(0, 1));
+        validUnitParams.setIndexationStartDate(LocalDate.of(2023, 1, 1));
+
+        IndexParameters validObjectGroupParams = new IndexParameters();
+        validObjectGroupParams.setCollectionName("OBJECTGROUP");
+        validObjectGroupParams.setTenants(Arrays.asList(2, 3));
+        validObjectGroupParams.setIndexationStartDate(LocalDate.of(2023, 2, 1));
+
+        IndexParameters validFormatsParams = new IndexParameters();
+        validFormatsParams.setCollectionName("FORMATS");
+        validFormatsParams.setTenants(Arrays.asList(4, 5));
+        validFormatsParams.setIndexationStartDate(null);
+
+        List<IndexParameters> parametersList = Arrays.asList(
+            validUnitParams,
+            validObjectGroupParams,
+            validFormatsParams
+        );
+
+        // When & Then - should not throw any exception
+        indexationHelper.validateIndexationParameters(parametersList);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void should_throw_exception_when_one_parameter_is_invalid_in_mixed_list() {
+        // Given
+        IndexParameters validUnitParams = new IndexParameters();
+        validUnitParams.setCollectionName("UNIT");
+        validUnitParams.setTenants(Arrays.asList(0, 1));
+        validUnitParams.setIndexationStartDate(LocalDate.of(2023, 1, 1));
+
+        IndexParameters invalidFormatsParams = new IndexParameters();
+        invalidFormatsParams.setCollectionName("FORMATS");
+        invalidFormatsParams.setTenants(Arrays.asList(2, 3));
+        invalidFormatsParams.setIndexationStartDate(LocalDate.of(2023, 2, 1));
+
+        List<IndexParameters> parametersList = Arrays.asList(validUnitParams, invalidFormatsParams);
+
+        // When & Then - should throw IllegalStateException
+        indexationHelper.validateIndexationParameters(parametersList);
     }
 }

@@ -359,4 +359,40 @@ public class ReindexationResourceTest {
                 .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
     }
+
+    @Test
+    @RunWithCustomExecutor
+    public void launchReindexationWithInvalidDateFilterTest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("reindex_order_with_invalid_date_filter.json")) {
+            final JsonNode reindexOrder = JsonHandler.getFromInputStream(stream);
+            given()
+                .contentType(ContentType.JSON)
+                .body(reindexOrder)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .accept(ContentType.JSON)
+                .when()
+                .post(REINDEX_URI)
+                .then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void launchReindexationWithValidDateFilterAndInvalidCollectionTest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("reindex_order_with_valid_date_filter.json")) {
+            final JsonNode reindexOrder = JsonHandler.getFromInputStream(stream);
+            given()
+                .contentType(ContentType.JSON)
+                .body(reindexOrder)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .accept(ContentType.JSON)
+                .when()
+                .post(REINDEX_URI)
+                .then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
+        }
+    }
 }

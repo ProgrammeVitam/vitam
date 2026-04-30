@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.time.LogicalClockRule;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
@@ -90,9 +91,11 @@ import jakarta.ws.rs.core.Response.Status;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.InputStream;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -122,6 +125,9 @@ public class ReindexSwitchIT extends VitamRuleRunner {
             ProcessManagementMain.class
         )
     );
+
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
 
     private static final Integer TENANT_ID = 0;
 
@@ -213,6 +219,8 @@ public class ReindexSwitchIT extends VitamRuleRunner {
 
             launchReindexationAndSwitchAndCheckValues("Operation", "logbookoperation_0", client, "0");
             launchReindexationAndSwitchAndCheckValues("Unit", "unit_0", client, "0");
+            logicalClock.logicalSleep(1, ChronoUnit.SECONDS);
+            launchReindexationAndSwitchIfNecessaryAndCheckValues("Unit", "unit_0", client, "0", "2022-01-30");
             launchReindexationAndSwitchAndCheckValues("ObjectGroup", "objectgroup_0", client, "0");
 
             JsonNode logbookResultAfter = logbookClient.selectOperationById(containerName);
@@ -239,6 +247,16 @@ public class ReindexSwitchIT extends VitamRuleRunner {
         AdminManagementClient client,
         String tenants
     ) throws Exception {
+        launchReindexationAndSwitchIfNecessaryAndCheckValues(collection, alias, client, tenants, null);
+    }
+
+    private void launchReindexationAndSwitchIfNecessaryAndCheckValues(
+        String collection,
+        String alias,
+        AdminManagementClient client,
+        String tenants,
+        String indexationStartDate
+    ) throws Exception {
         String order = "[{\"collection\" : \"" + collection + "\", \"tenants\" : [" + tenants + "]}]";
         Select select = new Select();
         JsonNode queryDsl = select.getFinalSelect();
@@ -249,16 +267,29 @@ public class ReindexSwitchIT extends VitamRuleRunner {
         List<ReindexationResult> idxResults = ((RequestResponseOK<ReindexationResult>) result).getResults();
         String newIndexName = idxResults.get(0).getIndexOK().get(0).getIndexName();
 
-        String switchOrder =
-            "[{\"collection\" : \"" +
+        String switchOrder = (indexationStartDate != null)
+            ? "[{\"collection\" : \"" +
+            collection +
+            "\", \"alias\" : \"" +
+            alias +
+            "\", \"indexName\" : \"" +
+            newIndexName +
+            "\", \"reindexationStartDate\" : \"" +
+            indexationStartDate +
+            "\"}]"
+            : "[{\"collection\" : \"" +
             collection +
             "\", \"alias\" : \"" +
             alias +
             "\", \"indexName\" : \"" +
             newIndexName +
             "\"}]";
-        RequestResponse<ReindexationResult> resultSwitch = client.switchIndexes(JsonHandler.getFromString(switchOrder));
-        assertTrue(resultSwitch.isOk());
+        if (indexationStartDate == null) {
+            RequestResponse<ReindexationResult> resultSwitch = client.switchIndexes(
+                JsonHandler.getFromString(switchOrder)
+            );
+            assertTrue(resultSwitch.isOk());
+        }
 
         int sizeAfter = countCollection(collection, client, queryDsl);
 

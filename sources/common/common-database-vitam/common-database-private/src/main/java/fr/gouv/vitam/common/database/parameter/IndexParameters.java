@@ -26,8 +26,11 @@
  */
 package fr.gouv.vitam.common.database.parameter;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.LocalDateUtil;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -46,6 +49,13 @@ public class IndexParameters {
      */
     @JsonProperty("tenants")
     private List<Integer> tenants;
+
+    /**
+     * Optional start date for indexation. If provided, reindexation will start from this date.
+     */
+    @JsonProperty("indexationStartDate")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = LocalDateUtil.SIMPLE_DATE_FORMAT)
+    private LocalDate indexationStartDate;
 
     /**
      * @return tenants
@@ -73,5 +83,19 @@ public class IndexParameters {
      */
     public void setCollectionName(String collectionName) {
         this.collectionName = collectionName;
+    }
+
+    /**
+     * @return indexationStartDate
+     */
+    public LocalDate getIndexationStartDate() {
+        return indexationStartDate;
+    }
+
+    /**
+     * @param indexationStartDate the start date for indexation
+     */
+    public void setIndexationStartDate(LocalDate indexationStartDate) {
+        this.indexationStartDate = indexationStartDate;
     }
 }

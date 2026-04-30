@@ -1235,7 +1235,8 @@ public class MetaDataImpl {
                             collection.getElasticsearchCollection(),
                             Collections.singletonList(tenantId),
                             null,
-                            this.indexManager.getElasticSearchConfigurationFile()
+                            this.indexManager.getElasticSearchConfigurationFile(),
+                            indexParameters.getIndexationStartDate()
                         );
                 indexationResult.addIndexOK(reindexResult);
             } catch (Exception exc) {
@@ -1294,7 +1295,8 @@ public class MetaDataImpl {
                             collection.getElasticsearchCollection(),
                             tenantIds,
                             tenantGroupName,
-                            this.indexManager.getElasticSearchConfigurationFile()
+                            this.indexManager.getElasticSearchConfigurationFile(),
+                            indexParameters.getIndexationStartDate()
                         );
                 indexationResult.addIndexOK(reindexResult);
             } catch (Exception exc) {
