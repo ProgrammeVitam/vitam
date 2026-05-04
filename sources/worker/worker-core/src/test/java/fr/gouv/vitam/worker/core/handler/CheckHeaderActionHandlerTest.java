@@ -28,17 +28,22 @@ package fr.gouv.vitam.worker.core.handler;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ManagementContractModel;
+import fr.gouv.vitam.common.model.administration.ProfileFormat;
+import fr.gouv.vitam.common.model.administration.ProfileStatus;
+import fr.gouv.vitam.common.model.administration.profile.ProfileModel;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
@@ -49,7 +54,10 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientMock;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -65,6 +73,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import org.assertj.core.util.Lists;
@@ -77,7 +86,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -103,6 +114,8 @@ public class CheckHeaderActionHandlerTest {
     private static final String MANIFEST_WITHOUT_ARCHIVAL_PROFILE =
         "CheckHeaderActionHandler/manifest_no_archival_profile.xml";
     private static final String SEDA_PARAMS = "extractSedaActionHandler/SedaParams.json";
+    private static final String PROFILE_RNG = "CheckHeaderActionHandler/ProfileRNG.rng";
+    private static final String PROFILE_RNG_KO = "CheckHeaderActionHandler/ProfileRngKO.rng";
 
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
@@ -413,5 +426,201 @@ public class CheckHeaderActionHandlerTest {
         assertThat(evDetData).contains("English Comment");
         assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("DIFF");
         action.partialClose();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testDefinedProfileInIngestContractAndManifestWithProfileRngKO()
+        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, InvalidParseOperationException, AdminManagementClientServerException, ProfileNotFoundException {
+        handler = new CheckHeaderActionHandler(
+            adminManagementClientFactory,
+            storageClientFactory,
+            SedaUtilsFactory.getInstance()
+        );
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml"))).thenReturn(
+            Response.status(Status.OK).entity(sedaLocal).build()
+        );
+
+        final InputStream sedaParams = new FileInputStream(PropertiesUtils.findFile(SEDA_PARAMS));
+        when(workspaceClient.isExistingObject(any(), eq(SEDA_PARAMS_JSON))).thenReturn(true);
+        when(workspaceClient.getObject(any(), eq(SEDA_PARAMS_JSON))).thenReturn(
+            Response.status(Status.OK).entity(sedaParams).build()
+        );
+
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaLocal);
+        when(handlerIO.getNewLocalFile(any())).thenReturn(temporaryFolder.newFile());
+        when(handlerIO.getOutput(anyInt())).thenReturn(new ProcessingUri().setPath("ANY_PATH"));
+
+        when(adminManagementClient.findProfiles(any())).thenReturn(
+            createProfileRNG("ProfileRngKO.rng", ProfileStatus.ACTIVE)
+        );
+
+        Response mockResponse = new AbstractMockClient.FakeInboundResponse(
+            Status.OK,
+            PropertiesUtils.getResourceAsStream(PROFILE_RNG_KO),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            null
+        );
+
+        when(adminManagementClient.downloadProfileFile(any())).thenReturn(mockResponse);
+
+        when(adminManagementClient.findIngestContracts(any())).thenReturn(
+            createIngestContract(ActivationStatus.ACTIVE)
+        );
+
+        assertNotNull(CheckHeaderActionHandler.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters(WorkFlowExecutionContext.VITAM)
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
+
+        HandlerIOImpl action = spy(
+            new HandlerIOImpl(
+                WorkFlowExecutionContext.VITAM,
+                workspaceClientFactory,
+                null,
+                logbookLifeCyclesClientFactory,
+                guid.getId(),
+                "workerId",
+                com.google.common.collect.Lists.newArrayList()
+            )
+        );
+        doReturn(adminManagementClient).when(action).getAdminManagementClient();
+
+        action.getInput().add("true");
+        action.getInput().add("true");
+        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "contracts.json"));
+
+        final ItemStatus response = handler.execute(params, action);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER)).isNotNull();
+        assertThat(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER)).isEqualTo("Entrée avec groupe d'objet");
+        String evDetData = response.getEvDetailData();
+        assertThat(evDetData)
+            .contains("element \\\"Comment\\\" not allowed here; expected element \\\"Date\\\"")
+            .contains("ArchivalAgreement0");
+        Map<String, Object> masterData = response.getMasterData();
+        assertThat(masterData)
+            .hasSize(2)
+            .containsEntry(LogbookParameterName.objectIdentifierIncome.name(), "Entrée avec groupe d'objet");
+        action.partialClose();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testDefinedProfileInIngestContractAndManifestWithProfileRng_OK()
+        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, InvalidParseOperationException, AdminManagementClientServerException, ProfileNotFoundException {
+        handler = new CheckHeaderActionHandler(
+            adminManagementClientFactory,
+            storageClientFactory,
+            SedaUtilsFactory.getInstance()
+        );
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml"))).thenReturn(
+            Response.status(Status.OK).entity(sedaLocal).build()
+        );
+
+        final InputStream sedaParams = new FileInputStream(PropertiesUtils.findFile(SEDA_PARAMS));
+        when(workspaceClient.isExistingObject(any(), eq(SEDA_PARAMS_JSON))).thenReturn(true);
+        when(workspaceClient.getObject(any(), eq(SEDA_PARAMS_JSON))).thenReturn(
+            Response.status(Status.OK).entity(sedaParams).build()
+        );
+
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaLocal);
+        when(handlerIO.getNewLocalFile(any())).thenReturn(temporaryFolder.newFile());
+        when(handlerIO.getOutput(anyInt())).thenReturn(new ProcessingUri().setPath("ANY_PATH"));
+
+        when(adminManagementClient.findProfiles(any())).thenReturn(
+            createProfileRNG("ProfileRNG.rng", ProfileStatus.ACTIVE)
+        );
+
+        Response mockResponse = new AbstractMockClient.FakeInboundResponse(
+            Status.OK,
+            PropertiesUtils.getResourceAsStream(PROFILE_RNG),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            null
+        );
+
+        when(adminManagementClient.downloadProfileFile(any())).thenReturn(mockResponse);
+
+        when(adminManagementClient.findIngestContracts(any())).thenReturn(
+            createIngestContract(ActivationStatus.ACTIVE)
+        );
+
+        assertNotNull(CheckHeaderActionHandler.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters(WorkFlowExecutionContext.VITAM)
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
+
+        HandlerIOImpl action = spy(
+            new HandlerIOImpl(
+                WorkFlowExecutionContext.VITAM,
+                workspaceClientFactory,
+                null,
+                logbookLifeCyclesClientFactory,
+                guid.getId(),
+                "workerId",
+                com.google.common.collect.Lists.newArrayList()
+            )
+        );
+        doReturn(adminManagementClient).when(action).getAdminManagementClient();
+
+        action.getInput().add("true");
+        action.getInput().add("true");
+        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "contracts.json"));
+
+        final ItemStatus response = handler.execute(params, action);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER)).isNotNull();
+        assertThat(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER)).isEqualTo("Entrée avec groupe d'objet");
+        String evDetData = response.getEvDetailData();
+        assertThat(evDetData).contains("ArchivalProfile0").contains("English Comment").contains("ArchivalAgreement0");
+        Map<String, Object> masterData = response.getMasterData();
+        assertThat(masterData)
+            .hasSize(2)
+            .containsEntry(LogbookParameterName.objectIdentifierIncome.name(), "Entrée avec groupe d'objet");
+        action.partialClose();
+    }
+
+    private static RequestResponse createProfile(ProfileStatus status) {
+        ProfileModel profile = new ProfileModel();
+        profile.setIdentifier("FakeProfile");
+        profile.setId(GUIDFactory.newProfileGUID(0).toString());
+        profile.setStatus(status);
+        return ClientMockResultHelper.createResponse(profile);
+    }
+
+    private static RequestResponse createProfileRNG(String path, ProfileStatus status) {
+        ProfileModel profile = new ProfileModel();
+        profile.setIdentifier("FakeProfile");
+        profile.setId(GUIDFactory.newProfileGUID(0).toString());
+        profile.setPath(path);
+        profile.setFormat(ProfileFormat.RNG);
+        profile.setStatus(status);
+        return ClientMockResultHelper.createResponse(profile);
+    }
+
+    private static RequestResponse createIngestContract(ActivationStatus status) {
+        IngestContractModel contract = new IngestContractModel();
+        contract.setName("ArchivalAgreement0");
+        contract.setStatus(status);
+        Set<String> profiles = new HashSet<>();
+        profiles.add("ArchivalProfile0");
+        contract.setArchiveProfiles(profiles);
+        return ClientMockResultHelper.createResponse(contract);
     }
 }
