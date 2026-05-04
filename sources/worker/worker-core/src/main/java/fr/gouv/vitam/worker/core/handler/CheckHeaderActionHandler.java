@@ -296,6 +296,12 @@ public class CheckHeaderActionHandler extends ActionHandler {
                 final ItemStatus checkProfilItemStatus = checkArchiveProfile.execute(params, handlerIO);
                 itemStatus.setItemsStatus(CheckArchiveProfileActionHandler.getId(), checkProfilItemStatus);
                 checkArchiveProfile.close();
+                if (mandatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER) != null) {
+                    itemStatus.setMasterData(
+                        LogbookParameterName.objectIdentifierIncome.name(),
+                        mandatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER)
+                    );
+                }
                 if (checkProfilItemStatus.shallStop(true)) {
                     return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                 }
