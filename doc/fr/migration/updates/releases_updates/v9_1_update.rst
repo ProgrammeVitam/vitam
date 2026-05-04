@@ -203,4 +203,15 @@ Lancement du master playbook extra
 Procédures à exécuter APRÈS la montée de version
 ================================================
 
-N/A
+Migration des mappings elasticsearch pour les métadonnées
+---------------------------------------------------------
+
+Cette migration de données consiste à mettre à jour le modèle d'indexation des métadonnées sur elasticsearch-data.
+
+Elle est réalisée en exécutant la procédure suivante sur **tous les sites** (primaire et secondaire(s)) :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_elasticsearch_mapping.yml --ask-vault-pass
+
+..
