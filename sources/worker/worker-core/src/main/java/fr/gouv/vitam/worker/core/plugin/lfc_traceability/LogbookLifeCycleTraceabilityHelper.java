@@ -258,7 +258,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     public byte[] getPreviousMonthTimestampToken(String securisationVersion)
         throws InvalidParseOperationException, TraceabilityException {
         if (!isLastMonthEventInit) {
-            extractPreviousEvent(this.traceabilityEndDate.minusMonths(1), true, securisationVersion);
+            extractPreviousEvent(this.traceabilityEndDate.minusMonths(1), securisationVersion);
         }
         return previousMonthTimestampToken;
     }
@@ -267,7 +267,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     public byte[] getPreviousYearTimestampToken(String securisationVersion)
         throws InvalidParseOperationException, TraceabilityException {
         if (!isLastYearEventInit) {
-            extractPreviousEvent(this.traceabilityEndDate.minusYears(1), false, securisationVersion);
+            extractPreviousYearEvent(this.traceabilityEndDate.minusYears(1), securisationVersion);
         }
         return previousYearTimestampToken;
     }
@@ -284,7 +284,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     public String getPreviousMonthStartDate(String securisationVersion)
         throws InvalidParseOperationException, TraceabilityException {
         if (!isLastMonthEventInit) {
-            extractPreviousEvent(this.traceabilityEndDate.minusMonths(1), true, securisationVersion);
+            extractPreviousEvent(this.traceabilityEndDate.minusMonths(1), securisationVersion);
         }
         return previousMonthStartDate;
     }
@@ -293,7 +293,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     public String getPreviousYearStartDate(String securisationVersion)
         throws InvalidParseOperationException, TraceabilityException {
         if (!isLastYearEventInit) {
-            extractPreviousEvent(this.traceabilityEndDate.minusYears(1), false, securisationVersion);
+            extractPreviousYearEvent(this.traceabilityEndDate.minusYears(1), securisationVersion);
         }
         return previousYearStartDate;
     }
@@ -337,7 +337,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
         isLastEventInit = true;
     }
 
-    private void extractPreviousEvent(LocalDateTime specificDate, Boolean isMonth, String securisationVersion)
+    private void extractPreviousEvent(LocalDateTime specificDate, String securisationVersion)
         throws InvalidParseOperationException, TraceabilityException {
         try {
             previousMonthTimestampToken = findHashByTraceabilityEventExpect(specificDate, securisationVersion);
@@ -357,11 +357,30 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
             throw new TraceabilityException(e);
         }
 
-        if (isMonth) {
-            isLastMonthEventInit = true;
-        } else {
-            isLastYearEventInit = true;
+        isLastMonthEventInit = true;
+    }
+
+    private void extractPreviousYearEvent(LocalDateTime specificDate, String securisationVersion)
+        throws InvalidParseOperationException, TraceabilityException {
+        try {
+            previousYearTimestampToken = findHashByTraceabilityEventExpect(specificDate, securisationVersion);
+            final LogbookOperation oneYearBeforeTraceabilityOperation = findFirstTraceabilityOperationOKAfterDate(
+                specificDate,
+                securisationVersion
+            );
+            if (oneYearBeforeTraceabilityOperation != null) {
+                TraceabilityEvent oneYearBeforeTraceabilityEvent = extractEventDetData(
+                    oneYearBeforeTraceabilityOperation
+                );
+                if (oneYearBeforeTraceabilityEvent != null) {
+                    previousYearStartDate = oneYearBeforeTraceabilityEvent.getStartDate();
+                }
+            }
+        } catch (InvalidCreateOperationException | LogbookClientException e) {
+            throw new TraceabilityException(e);
         }
+
+        isLastYearEventInit = true;
     }
 
     byte[] extractTimestampToken(LogbookOperation logbookOperation) throws InvalidParseOperationException {

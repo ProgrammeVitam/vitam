@@ -1499,9 +1499,8 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
             traceabilityEvent5,
             traceabilityEvent6
         );
-        // fixme 16398 The monthly chaining is not working correctly.
-        //  verifyTraceabilityChaining("previousTimestampTokenMinusOneMonth", traceabilityEvent4, traceabilityEvent6);
 
+        verifyTraceabilityChaining("previousTimestampTokenMinusOneMonth", traceabilityEvent4, traceabilityEvent6);
     }
 
     @Test
@@ -1569,7 +1568,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
 
         String traceabilityOperationId5 = launchLogbookLFC(context);
 
-        logicalClock.logicalSleep(300, ChronoUnit.DAYS);
+        logicalClock.logicalSleep(260, ChronoUnit.DAYS);
         launchIngest(SIP_3_UNITS_2_GOTS);
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
 
@@ -1627,11 +1626,10 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
             traceabilityEvent6,
             traceabilityEvent7
         );
-        //fixMe Fix the bug related to chaining monthly and yearly periods.
-        // verifyTraceabilityChaining("previousTimestampTokenMinusOneMonth", unitTraceabilityEvent1, traceabilityEvent5);
 
-        //verifyTraceabilityChaining("previousTimestampTokenMinusOneYear", unitTraceabilityEvent1, traceabilityEvent6);
+        verifyTraceabilityChaining("previousTimestampTokenMinusOneMonth", traceabilityEvent1, traceabilityEvent4);
 
+        verifyTraceabilityChaining("previousTimestampTokenMinusOneYear", traceabilityEvent1, traceabilityEvent5);
     }
 
     private void downloadZip(String fileName, File folder)
