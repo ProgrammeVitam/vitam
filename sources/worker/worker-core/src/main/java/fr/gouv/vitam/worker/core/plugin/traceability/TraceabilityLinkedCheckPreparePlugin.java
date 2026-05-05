@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.traceability;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
@@ -39,7 +40,9 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.WorkspaceConstants;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -82,6 +85,7 @@ public class TraceabilityLinkedCheckPreparePlugin extends ActionHandler {
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         ItemStatus itemStatus = new ItemStatus(PLUGIN_NAME);
         JsonNode dslQuery = filterQuery(handler.getJsonFromWorkspace(WorkspaceConstants.QUERY));
+
         File logbookOperationDistributionFile = handler.getNewLocalFile(LOGBOOK_OPERATIONS_JSONL_FILE);
 
         List<String> skippedOperations = new ArrayList<>();
@@ -100,7 +104,27 @@ public class TraceabilityLinkedCheckPreparePlugin extends ActionHandler {
                     JsonNode eventDetail = JsonHandler.getFromString(
                         logbookOperation.get(LogbookMongoDbName.eventDetailData.getDbname()).asText()
                     );
-                    if (eventDetail instanceof NullNode || eventDetail.isEmpty()) {
+
+                    // Get evType from logbook operation
+                    String evType = logbookOperation.get(LogbookEvent.EV_TYPE).asText();
+
+                    // Determine expected version based on evType
+                    String expectedVersion = getTraceabilityVersionByEventType(
+                        evType,
+                        VitamThreadUtils.getVitamSession().getTenantId()
+                    );
+
+                    // Check if eventDetail is null/empty or version is different
+                    boolean shouldSkip = eventDetail instanceof NullNode || eventDetail.isEmpty();
+
+                    if (!shouldSkip && eventDetail.has(LogbookDocument.SECURISATION_VERSION)) {
+                        String actualVersion = eventDetail.get(LogbookDocument.SECURISATION_VERSION).asText();
+                        if (!expectedVersion.equals(actualVersion)) {
+                            shouldSkip = true;
+                        }
+                    }
+
+                    if (shouldSkip) {
                         skippedOperations.add(logbookOperation.get(LogbookEvent.EV_ID).asText());
                     } else {
                         JsonLineModel entry = new JsonLineModel(
@@ -131,7 +155,7 @@ public class TraceabilityLinkedCheckPreparePlugin extends ActionHandler {
                     StatusCode.WARNING,
                     PluginHelper.EventDetails.of(
                         String.format(
-                            "These operations %s does not contains data. they will be skipped !",
+                            "These operations %s does not contains data or have incompatible traceability version. they will be skipped !",
                             skippedOperations.toString()
                         )
                     )
@@ -144,11 +168,33 @@ public class TraceabilityLinkedCheckPreparePlugin extends ActionHandler {
         return itemStatus;
     }
 
+    /**
+     * Get the traceability version based on event type
+     *
+     * @param eventType the event type
+     * @param tenantId  the tenant id
+     * @return the appropriate traceability version
+     */
+    private String getTraceabilityVersionByEventType(String eventType, int tenantId) {
+        if (LOGBOOK_TRACEABILITY.getEventType().equals(eventType)) {
+            return VitamConfiguration.getLogbookOperationTraceabilityVersion(tenantId);
+        } else if (UNIT_LFC_TRACEABILITY.getEventType().equals(eventType)) {
+            return VitamConfiguration.getLfcUnitTraceabilityVersion(tenantId);
+        } else if (OBJECTGROUP_LFC_TRACEABILITY.getEventType().equals(eventType)) {
+            return VitamConfiguration.getLfcGotTraceabilityVersion(tenantId);
+        } else if (LOGBOOK_STORAGE_TRACEABILITY.getEventType().equals(eventType)) {
+            return VitamConfiguration.getDefaultTraceabilityVersion();
+        } else {
+            throw new IllegalStateException();
+        }
+    }
+
     private JsonNode filterQuery(JsonNode dslQuery) throws ProcessingException {
         try {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(dslQuery);
             parser.addCondition(QueryHelper.in(EV_TYPE, EVENT_TRACEABILITY_TYPES));
+
             return parser.getRootNode();
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new ProcessingException(e);

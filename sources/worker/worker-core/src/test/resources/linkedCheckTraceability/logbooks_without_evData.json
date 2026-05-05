@@ -10,11 +10,13 @@
     {
       "_id": "aecaaaaaacc4hjizabv54alrxqcrb3qaaaaq",
       "evId": "aecaaaaaacc4hjizabv54alrxqcrb3qaaaaq",
+      "evType": "STP_OP_SECURISATION",
       "evDetData": null
     },
     {
       "_id": "aecaaaaaacc4hjizabv54alrxqct7aqaaaaq",
       "evId": "aecaaaaaacc4hjizabv54alrxqct7aqaaaaq",
+      "evType": "LOGBOOK_UNIT_LFC_TRACEABILITY",
       "evDetData": "{}"
     }
   ],

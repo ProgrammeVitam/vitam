@@ -352,13 +352,13 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         List<String> secureOpGUID = new ArrayList<>();
         // storage logbackup
         storageLogBackup();
-
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
         // run operations to audit
         secureOpGUID.add(secureStorageData());
 
         VitamServerRunner.cleanOffers();
 
-        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+        logicalClock.logicalSleep(13, ChronoUnit.HOURS);
 
         secureOpGUID.add(secureTenant());
 
@@ -417,6 +417,151 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
             StatusCode.KO.name(),
             report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.STATUS).asText()
         );
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_execute_linked_check_traceability_audit_workflow_with_securisation_version_v2() {
+        VitamTestHelper.prepareVitamSession(TENANT_ID, CONTRACT_ID, CONTEXT_ID);
+
+        // Switch to V2 and create second traceability operation
+        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V2");
+        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V2");
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V2");
+
+        // Inject test data
+        storageLogBackup();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+        // run operations to audit
+        String secureStorageDataOpId = secureStorageData();
+
+        VitamTestHelper.prepareVitamSession(TENANT_ID, CONTRACT_ID, CONTEXT_ID);
+        try {
+            VitamTestHelper.doIngest(TENANT_ID, "integration-processing/4_UNITS_2_GOTS.zip");
+        } catch (VitamException e) {
+            fail("error while ingest", e);
+        }
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        String secureTenantOpIdV1 = secureTenant();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        String secureGOTLFCDataOpId = secureGOTLFCData();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        String secureUnitLFCDataOpId = secureUnitLFCData();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        // Build query that includes both V1 and V2 operations
+        List<String> allOperations = Arrays.asList(
+            secureGOTLFCDataOpId,
+            secureUnitLFCDataOpId,
+            secureStorageDataOpId,
+            secureTenantOpIdV1
+        );
+        JsonNode query = buildQuery(allOperations);
+
+        // Run LinkedCheckTraceabilityWorkflow with V2 - should only process V2 operations
+        String opId = runLinkedCheckTraceability(query);
+
+        VitamTestHelper.verifyOperation(opId, StatusCode.OK);
+
+        List<JsonNode> report = VitamTestHelper.getReports(opId);
+        assertEquals(report.size(), 7);
+        assertEquals(ReportStatus.OK.name(), report.get(0).get(LogbookEvent.OUTCOME).asText());
+        assertEquals(ReportType.TRACEABILITY.name(), report.get(1).get("reportType").asText());
+
+        assertEquals(4, report.get(1).get("vitamResults").get("OK").asInt());
+        assertEquals(1, report.get(1).get("extendedInfo").get("nbOperations").asInt());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_execute_linked_check_traceability_audit_with_v2_and_securisation_version_v1() {
+        VitamTestHelper.prepareVitamSession(TENANT_ID, CONTRACT_ID, CONTEXT_ID);
+
+        // Inject test data
+        injectTestLogbookOperation();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        // Set SecurisationVersion to V1
+        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V1");
+        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V1");
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V1");
+
+        // Create first traceability operation with V1
+        String secureTenantOpIdV1 = secureTenant();
+
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+        // Switch to V2 and create another traceability operation
+        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V2");
+        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V2");
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V2");
+
+        String secureTenantOpIdV2 = secureTenant();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+        // Build query that includes both V1 and V2 operations
+        List<String> allOperations = Arrays.asList(secureTenantOpIdV1, secureTenantOpIdV2);
+        JsonNode query = buildQuery(allOperations);
+
+        // Run LinkedCheckTraceabilityWorkflow - should only process V1 operations
+        String opId = runLinkedCheckTraceability(query);
+
+        // The operation should result in WARNING because no operations match the V2 filter
+        VitamTestHelper.verifyOperation(opId, StatusCode.WARNING);
+
+        List<JsonNode> report = VitamTestHelper.getReports(opId);
+        assertEquals(report.size(), 4);
+        assertEquals(ReportStatus.OK.name(), report.get(0).get(LogbookEvent.OUTCOME).asText());
+        assertEquals(ReportType.TRACEABILITY.name(), report.get(1).get("reportType").asText());
+
+        // Should only process 1 operation (the V1 one), not both
+        assertEquals(1, report.get(1).get("vitamResults").get("OK").asInt());
+        assertEquals(0, report.get(1).get("vitamResults").get("WARNING").asInt());
+        assertEquals(1, report.get(1).get("extendedInfo").get("nbOperations").asInt());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_fail_when_securisation_v1_and_audit_chainage_v2() {
+        VitamTestHelper.prepareVitamSession(TENANT_ID, CONTRACT_ID, CONTEXT_ID);
+
+        // Inject test data
+        injectTestLogbookOperation();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        // Set SecurisationVersion to V1 and create traceability operation
+        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V1");
+        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V1");
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V1");
+
+        // Create traceability operation with V1
+        String secureTenantOpIdV1 = secureTenant();
+        assertThat(secureTenantOpIdV1).isNotNull();
+
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        // Switch to V2 for the audit chainage
+        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V2");
+        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V2");
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V2");
+
+        // Build query for the V1 operation
+        JsonNode query = buildQuery(Collections.singletonList(secureTenantOpIdV1));
+
+        // Run LinkedCheckTraceabilityWorkflow with V2 - should fail because operation was created with V1
+        String opId = runLinkedCheckTraceability(query);
+
+        // The operation should result in WARNING because no operations match the V2 filter
+        VitamTestHelper.verifyOperation(opId, StatusCode.WARNING);
+
+        List<JsonNode> report = VitamTestHelper.getReports(opId);
+        assertEquals(report.size(), 3); // Should have fewer reports due to no matching operations
+        assertEquals(ReportStatus.WARNING.name(), report.get(0).get(LogbookEvent.OUTCOME).asText());
+        assertEquals(ReportType.TRACEABILITY.name(), report.get(1).get("reportType").asText());
+
+        // Should process 0 operations because V1 operation is filtered out when running with V2
+        assertEquals(0, report.get(1).get("extendedInfo").get("nbOperations").asInt());
     }
 
     private void updateHash(String secureTenantOpId) {
@@ -568,5 +713,8 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
     public void tearDown() {
         mongoRule.handleAfter();
         elasticsearchRule.handleAfter();
+        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V1");
+        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V1");
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V1");
     }
 }
