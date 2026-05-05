@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
@@ -797,14 +798,23 @@ public class EvidenceService {
 
     private Select createLastSecureSelect(String lastPersistedDate, String eventType)
         throws InvalidCreateOperationException, InvalidParseOperationException {
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        String securisationVersion = LOGBOOK_UNIT_LFC_TRACEABILITY.equals(eventType)
+            ? VitamConfiguration.getLfcUnitTraceabilityVersion(tenantId)
+            : VitamConfiguration.getLfcGotTraceabilityVersion(tenantId);
+
         Select select = new Select();
+
+        // Get tenant ID and securisation version
+
         BooleanQuery query = and()
             .add(
                 eq(LogbookMongoDbName.eventType.getDbname(), eventType),
                 in(EVENTS_OUT_DETAIL, eventType + OK, eventType + WARNING),
                 exists(EVENTS_EVDETDATA_FILENAME),
                 QueryHelper.lte("events.evDetData.StartDate", lastPersistedDate),
-                gte("events.evDetData.EndDate", lastPersistedDate)
+                gte("events.evDetData.EndDate", lastPersistedDate),
+                eq("events.evDetData.SecurisationVersion", securisationVersion)
             );
 
         select.setQuery(query);
@@ -823,6 +833,9 @@ public class EvidenceService {
     private boolean isLastLifeCycleTraceabilityOperation(String operationId, MetadataType metadataType)
         throws EvidenceAuditException {
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
+            // Get tenant ID and securisation version
+            int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+
             BooleanQuery query;
             switch (metadataType) {
                 case UNIT:
@@ -834,7 +847,11 @@ public class EvidenceService {
                                 LOGBOOK_UNIT_LFC_TRACEABILITY_OK,
                                 LOGBOOK_UNIT_LFC_TRACEABILITY_WARNING
                             ),
-                            exists(EVENTS_EVDETDATA_FILENAME)
+                            exists(EVENTS_EVDETDATA_FILENAME),
+                            eq(
+                                "events.evDetData.SecurisationVersion",
+                                VitamConfiguration.getLfcUnitTraceabilityVersion(tenantId)
+                            )
                         );
                     break;
                 case OBJECTGROUP:
@@ -846,7 +863,11 @@ public class EvidenceService {
                                 EvidenceService.LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_OK,
                                 EvidenceService.LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_WARNING
                             ),
-                            exists(EVENTS_EVDETDATA_FILENAME)
+                            exists(EVENTS_EVDETDATA_FILENAME),
+                            eq(
+                                "events.evDetData.SecurisationVersion",
+                                VitamConfiguration.getLfcGotTraceabilityVersion(tenantId)
+                            )
                         );
                     break;
                 default:
