@@ -161,6 +161,10 @@ public class VitamConfigurationTest {
             assertThat(VitamConfiguration.getDefaultDigestType()).isEqualTo(DigestType.SHA384);
             assertThat(VitamConfiguration.getEnvironmentName()).isEqualTo("ENV");
             assertEquals("V2", VitamConfiguration.getLogbookOperationTraceabilityVersion(0));
+            assertEquals("V3", VitamConfiguration.getLfcUnitTraceabilityVersion(0));
+            assertEquals("V4", VitamConfiguration.getLfcGotTraceabilityVersion(0));
+            assertEquals("V1", VitamConfiguration.getLogbookOperationTraceabilityVersion(1));
+            assertEquals("V1", VitamConfiguration.getLogbookOperationTraceabilityVersion(2));
         }
     }
 }

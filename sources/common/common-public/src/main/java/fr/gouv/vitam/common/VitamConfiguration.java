@@ -155,7 +155,7 @@ public class VitamConfiguration {
      * Default strategy id
      */
     private static final String DEFAULT_STRATEGY = "default";
-    private static final String DEFAULT_TRACEABILITY_VERSION = "V1";
+    public static final String DEFAULT_TRACEABILITY_VERSION = "V1";
     private static Map<Integer, String> logbookOperationTraceabilityVersionMap = new HashMap<>();
     private static Map<Integer, String> lfcUnitTraceabilityVersionMap = new HashMap<>();
     private static Map<Integer, String> lfcGotTraceabilityVersionMap = new HashMap<>();
@@ -1431,13 +1431,6 @@ public class VitamConfiguration {
      */
     public static String getDefaultStrategy() {
         return DEFAULT_STRATEGY;
-    }
-
-    /**
-     * @return the default traceability version
-     */
-    public static String getDefaultTraceabilityVersion() {
-        return DEFAULT_TRACEABILITY_VERSION;
     }
 
     /**

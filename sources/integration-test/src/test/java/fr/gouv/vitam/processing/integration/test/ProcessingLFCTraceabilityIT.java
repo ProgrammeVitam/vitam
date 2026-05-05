@@ -129,6 +129,7 @@ import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static fr.gouv.vitam.common.VitamConfiguration.DEFAULT_TRACEABILITY_VERSION;
 import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFiles;
 import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
@@ -145,7 +146,6 @@ import static org.junit.Assert.assertTrue;
 public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
 
     public static final int TEMPORIZATION_IN_SECONDS = 300;
-    public static final String DEFAULT_TRACEABILITY_VERSION = VitamConfiguration.getDefaultTraceabilityVersion();
 
     @ClassRule
     public static VitamServerRunner runner = new VitamServerRunner(
@@ -1382,9 +1382,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         launchIngest(SIP_3_UNITS_2_GOTS);
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
 
-        LocalDateTime beforeTraceability2 = LocalDateUtil.now();
         String traceabilityOperation2 = launchLogbookLFC(context);
-        LocalDateTime afterTraceability2 = LocalDateUtil.now();
 
         // Inject more data
         logicalClock.logicalSleep(45, ChronoUnit.MINUTES);
@@ -1395,7 +1393,6 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         String traceabilityOperation3 = launchLogbookLFC(context);
         LocalDateTime afterTraceability3 = LocalDateUtil.now();
 
-        // Switch back to V1
         if (Contexts.UNIT_LFC_TRACEABILITY.equals(context)) {
             fr.gouv.vitam.common.VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V2");
         } else {
@@ -1405,7 +1402,6 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         logicalClock.logicalSleep(45, ChronoUnit.MINUTES);
         launchIngest(SIP_3_UNITS_2_GOTS);
 
-        // Third traceability with V1 again
         logicalClock.logicalSleep(15, ChronoUnit.MINUTES);
         LocalDateTime beforeTraceability4 = LocalDateUtil.now();
         String traceabilityOperation4 = launchLogbookLFC(context);
@@ -1415,31 +1411,25 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         logicalClock.logicalSleep(45, ChronoUnit.MINUTES);
         launchIngest(SIP_3_UNITS_2_GOTS);
 
-        // Third traceability with V1 again
         logicalClock.logicalSleep(15, ChronoUnit.MINUTES);
-        LocalDateTime beforeTraceability5 = LocalDateUtil.now();
         String traceabilityOperation5 = launchLogbookLFC(context);
-        LocalDateTime afterTraceability5 = LocalDateUtil.now();
 
         // Inject more data
         logicalClock.logicalSleep(45, ChronoUnit.MINUTES);
         launchIngest(SIP_3_UNITS_2_GOTS);
 
-        // Second traceability with V2
         logicalClock.logicalSleep(15, ChronoUnit.MINUTES);
         LocalDateTime beforeTraceability6 = LocalDateUtil.now();
         String traceabilityOperation6 = launchLogbookLFC(context);
         LocalDateTime afterTraceability6 = LocalDateUtil.now();
 
         // Then
-        assertThat(traceabilityOperation1).isNotNull();
         assertCompletedWithStatus(traceabilityOperation1, StatusCode.OK);
-
-        assertThat(traceabilityOperation2).isNotNull();
         assertCompletedWithStatus(traceabilityOperation2, StatusCode.OK);
-
-        assertThat(traceabilityOperation3).isNotNull();
         assertCompletedWithStatus(traceabilityOperation3, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperation4, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperation5, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperation6, StatusCode.OK);
 
         // Verify securisation versions
         TraceabilityEvent traceabilityEvent1 = getTraceabilityEvent(traceabilityOperation1);
@@ -1452,6 +1442,9 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThat(traceabilityEvent1).isNotNull();
         assertThat(traceabilityEvent2).isNotNull();
         assertThat(traceabilityEvent3).isNotNull();
+        assertThat(traceabilityEvent4).isNotNull();
+        assertThat(traceabilityEvent5).isNotNull();
+        assertThat(traceabilityEvent6).isNotNull();
 
         // Check securisation versions
         assertThat(traceabilityEvent1.getSecurisationVersion()).isEqualTo(DEFAULT_TRACEABILITY_VERSION);
@@ -1470,10 +1463,26 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         );
 
         assertThat(traceabilityEvent2.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
+        assertThat(traceabilityEvent3.getStartDate()).isEqualTo(traceabilityEvent2.getEndDate());
         assertThatDateIsBetween(
             traceabilityEvent3.getEndDate(),
             beforeTraceability3.minusSeconds(TEMPORIZATION_IN_SECONDS),
             afterTraceability3.minusSeconds(TEMPORIZATION_IN_SECONDS)
+        );
+
+        assertThat(traceabilityEvent4.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
+        assertThatDateIsBetween(
+            traceabilityEvent4.getEndDate(),
+            beforeTraceability4.minusSeconds(TEMPORIZATION_IN_SECONDS),
+            afterTraceability4.minusSeconds(TEMPORIZATION_IN_SECONDS)
+        );
+
+        assertThat(traceabilityEvent5.getStartDate()).isEqualTo(traceabilityEvent4.getEndDate());
+        assertThat(traceabilityEvent6.getStartDate()).isEqualTo(traceabilityEvent5.getEndDate());
+        assertThatDateIsBetween(
+            traceabilityEvent6.getEndDate(),
+            beforeTraceability6.minusSeconds(TEMPORIZATION_IN_SECONDS),
+            afterTraceability6.minusSeconds(TEMPORIZATION_IN_SECONDS)
         );
 
         downloadZips(
@@ -1495,8 +1504,38 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
 
     }
 
-    public void testLfcTraceability_ComprehensiveVersionChangeWithYearProgression(String version, Contexts context)
-        throws Exception {
+    @Test
+    @RunWithCustomExecutor
+    public void testLfcTraceability_ComprehensiveVersionChangeWithYearProgressionV1() throws Exception {
+        // Test both Unit and ObjectGroup LFC traceability with V1
+
+        fr.gouv.vitam.common.VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, DEFAULT_TRACEABILITY_VERSION);
+        testLfcTraceability_ComprehensiveVersionChangeWithYearProgression(
+            DEFAULT_TRACEABILITY_VERSION,
+            Contexts.UNIT_LFC_TRACEABILITY
+        );
+        fr.gouv.vitam.common.VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, DEFAULT_TRACEABILITY_VERSION);
+        testLfcTraceability_ComprehensiveVersionChangeWithYearProgression(
+            DEFAULT_TRACEABILITY_VERSION,
+            Contexts.OBJECTGROUP_LFC_TRACEABILITY
+        );
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testLfcTraceability_ComprehensiveVersionChangeWithYearProgressionV2() throws Exception {
+        // Test both Unit and ObjectGroup LFC traceability with V2
+
+        fr.gouv.vitam.common.VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V2");
+        testLfcTraceability_ComprehensiveVersionChangeWithYearProgression("V2", Contexts.UNIT_LFC_TRACEABILITY);
+        fr.gouv.vitam.common.VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V2");
+        testLfcTraceability_ComprehensiveVersionChangeWithYearProgression("V2", Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+    }
+
+    public void testLfcTraceability_ComprehensiveVersionChangeWithYearProgression(
+        String securisationVersion,
+        Contexts context
+    ) throws Exception {
         // Test both Unit and ObjectGroup LFC traceability with comprehensive version changes and time progression
 
         // ===== LFC TRACEABILITY SECTION =====
@@ -1504,13 +1543,12 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         launchIngest(SIP_3_UNITS_2_GOTS);
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
 
-        // When: First LFC traceability with V2
-
+        // When: First LFC traceability
         String traceabilityOperationId1 = launchLogbookLFC(context);
         String traceabilityOperationNull = launchLogbookLFC(context);
         logicalClock.logicalSleep(13, ChronoUnit.HOURS);
 
-        // Step 3: Run LFC traceability without new operations (should be WARNING )
+        // Step 3: Run LFC traceability without new operations (should be WARNING)
         String traceabilityOperationId2 = launchLogbookLFC(context);
 
         // Step 4: Ingest + LFC traceability
@@ -1568,9 +1606,9 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThat(traceabilityEvent4.getStartDate()).isEqualTo(traceabilityEvent3.getEndDate());
 
         // Verify securisation versions
-        assertThat(traceabilityEvent1.getSecurisationVersion()).isEqualTo(version);
-        assertThat(traceabilityEvent3.getSecurisationVersion()).isEqualTo(version);
-        assertThat(traceabilityEvent7.getSecurisationVersion()).isEqualTo(version);
+        assertThat(traceabilityEvent1.getSecurisationVersion()).isEqualTo(securisationVersion);
+        assertThat(traceabilityEvent3.getSecurisationVersion()).isEqualTo(securisationVersion);
+        assertThat(traceabilityEvent7.getSecurisationVersion()).isEqualTo(securisationVersion);
 
         downloadZips(
             traceabilityEvent1,
@@ -1594,34 +1632,6 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
 
         //verifyTraceabilityChaining("previousTimestampTokenMinusOneYear", unitTraceabilityEvent1, traceabilityEvent6);
 
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void testLfcTraceability_ComprehensiveVersionChangeWithYearProgressionV1() throws Exception {
-        // Test both Unit and ObjectGroup LFC traceability with V1
-
-        fr.gouv.vitam.common.VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, DEFAULT_TRACEABILITY_VERSION);
-        testLfcTraceability_ComprehensiveVersionChangeWithYearProgression(
-            DEFAULT_TRACEABILITY_VERSION,
-            Contexts.UNIT_LFC_TRACEABILITY
-        );
-        fr.gouv.vitam.common.VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, DEFAULT_TRACEABILITY_VERSION);
-        testLfcTraceability_ComprehensiveVersionChangeWithYearProgression(
-            DEFAULT_TRACEABILITY_VERSION,
-            Contexts.OBJECTGROUP_LFC_TRACEABILITY
-        );
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void testLfcTraceability_ComprehensiveVersionChangeWithYearProgressionV2() throws Exception {
-        // Test both Unit and ObjectGroup LFC traceability with V2
-
-        fr.gouv.vitam.common.VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V2");
-        testLfcTraceability_ComprehensiveVersionChangeWithYearProgression("V2", Contexts.UNIT_LFC_TRACEABILITY);
-        fr.gouv.vitam.common.VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V2");
-        testLfcTraceability_ComprehensiveVersionChangeWithYearProgression("V2", Contexts.OBJECTGROUP_LFC_TRACEABILITY);
     }
 
     private void downloadZip(String fileName, File folder)

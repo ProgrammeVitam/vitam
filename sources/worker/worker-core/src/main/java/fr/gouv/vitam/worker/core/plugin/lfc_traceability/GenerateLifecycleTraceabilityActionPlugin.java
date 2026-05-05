@@ -122,10 +122,12 @@ public abstract class GenerateLifecycleTraceabilityActionPlugin extends ActionHa
             securisationVersion = VitamConfiguration.getLfcUnitTraceabilityVersion(
                 VitamThreadUtils.getVitamSession().getTenantId()
             );
-        } else {
+        } else if (helper.getTraceabilityType() == TraceabilityType.OBJECTGROUP_LIFECYCLE) {
             securisationVersion = VitamConfiguration.getLfcGotTraceabilityVersion(
                 VitamThreadUtils.getVitamSession().getTenantId()
             );
+        } else {
+            throw new IllegalStateException("Invalid LFC traceability type " + helper.getTraceabilityType());
         }
         traceabilityService.secureData(VitamConfiguration.getDefaultStrategy(), securisationVersion);
     }

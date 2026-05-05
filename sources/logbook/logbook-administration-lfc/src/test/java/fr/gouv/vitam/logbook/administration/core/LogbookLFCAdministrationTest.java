@@ -90,6 +90,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static fr.gouv.vitam.common.VitamConfiguration.DEFAULT_TRACEABILITY_VERSION;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.assertj.core.api.Java6Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
@@ -143,7 +144,6 @@ public class LogbookLFCAdministrationTest {
 
     private static final Integer tenantId = 0;
     static final List<Integer> tenantList = Collections.singletonList(tenantId);
-    private static final String DEFAULT_LFC_TRACEABILITY_VERSION = VitamConfiguration.getDefaultTraceabilityVersion();
     private static final ElasticsearchLogbookIndexManager indexManager =
         LogbookCollectionsTestUtils.createTestIndexManager(
             tenantList,
@@ -225,15 +225,15 @@ public class LogbookLFCAdministrationTest {
     @After
     public void tearDown() {
         LogbookCollectionsTestUtils.afterTest(indexManager);
-        VitamConfiguration.setLfcGotTraceabilityVersion(tenantId, DEFAULT_LFC_TRACEABILITY_VERSION);
-        VitamConfiguration.setLfcUnitTraceabilityVersion(tenantId, DEFAULT_LFC_TRACEABILITY_VERSION);
+        VitamConfiguration.setLfcGotTraceabilityVersion(tenantId, DEFAULT_TRACEABILITY_VERSION);
+        VitamConfiguration.setLfcUnitTraceabilityVersion(tenantId, DEFAULT_TRACEABILITY_VERSION);
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenNoExistingTraceabilityThenGenerateUnitLfcTraceabilityWithV2() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        VitamConfiguration.setLfcGotTraceabilityVersion(tenantId, DEFAULT_LFC_TRACEABILITY_VERSION);
+        VitamConfiguration.setLfcGotTraceabilityVersion(tenantId, DEFAULT_TRACEABILITY_VERSION);
         VitamConfiguration.setLfcUnitTraceabilityVersion(tenantId, "V2");
         givenNoExistingTraceabilityThenGenerateUnitLfcTraceabilityWithVersion("V2");
     }
@@ -243,8 +243,8 @@ public class LogbookLFCAdministrationTest {
     public void givenNoExistingTraceabilityThenGenerateUnitLfcTraceabilityWithV1() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         VitamConfiguration.setLfcGotTraceabilityVersion(tenantId, "V2");
-        VitamConfiguration.setLfcUnitTraceabilityVersion(tenantId, DEFAULT_LFC_TRACEABILITY_VERSION);
-        givenNoExistingTraceabilityThenGenerateUnitLfcTraceabilityWithVersion(DEFAULT_LFC_TRACEABILITY_VERSION);
+        VitamConfiguration.setLfcUnitTraceabilityVersion(tenantId, DEFAULT_TRACEABILITY_VERSION);
+        givenNoExistingTraceabilityThenGenerateUnitLfcTraceabilityWithVersion(DEFAULT_TRACEABILITY_VERSION);
     }
 
     public void givenNoExistingTraceabilityThenGenerateUnitLfcTraceabilityWithVersion(String traceabilityVersion)
@@ -332,7 +332,7 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 false
             );
 
@@ -356,7 +356,7 @@ public class LogbookLFCAdministrationTest {
         verify(processingManagementClient).listOperationsDetails(any());
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             false
         );
 
@@ -399,7 +399,7 @@ public class LogbookLFCAdministrationTest {
 
         doReturn(new LogbookOperation(PropertiesUtils.getResourceAsString("unit_lfc_traceability_with_zip.json")))
             .when(logbookOperations)
-            .findLastLifecycleTraceabilityOperation(anyString(), eq(DEFAULT_LFC_TRACEABILITY_VERSION), eq(false));
+            .findLastLifecycleTraceabilityOperation(anyString(), eq(DEFAULT_TRACEABILITY_VERSION), eq(false));
 
         LocalDateTime lastTraceabilityDate = LocalDateUtil.parseMongoFormattedDate("2020-06-26T04:47:31.865");
         LocalDateTime now = LocalDateUtil.now();
@@ -426,7 +426,7 @@ public class LogbookLFCAdministrationTest {
         verify(processingManagementClient).listOperationsDetails(any());
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             false
         );
         verify(logbookOperations).create(anyString(), any(LogbookOperationParameters.class));
@@ -472,7 +472,7 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 false
             );
 
@@ -503,7 +503,7 @@ public class LogbookLFCAdministrationTest {
 
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             false
         );
         verify(logbookOperations).create(anyString(), any(LogbookOperationParameters.class));
@@ -547,7 +547,7 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 false
             );
 
@@ -581,7 +581,7 @@ public class LogbookLFCAdministrationTest {
         verify(processingManagementClient).close();
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             false
         );
 
@@ -616,7 +616,7 @@ public class LogbookLFCAdministrationTest {
             new LogbookOperation(PropertiesUtils.getResourceAsString("objectgroup_lfc_traceability_with_zip.json"))
         )
             .when(logbookOperations)
-            .findLastLifecycleTraceabilityOperation(anyString(), eq(DEFAULT_LFC_TRACEABILITY_VERSION), eq(false));
+            .findLastLifecycleTraceabilityOperation(anyString(), eq(DEFAULT_TRACEABILITY_VERSION), eq(false));
 
         doReturn(false)
             .when(logbookLifeCycles)
@@ -648,7 +648,7 @@ public class LogbookLFCAdministrationTest {
         verify(processingManagementClient).close();
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             false
         );
 
@@ -684,7 +684,7 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 false
             );
 
@@ -692,7 +692,7 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 true
             );
 
@@ -726,12 +726,12 @@ public class LogbookLFCAdministrationTest {
         verify(processingManagementClient).close();
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             false
         );
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             true
         );
 
@@ -767,7 +767,7 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 false
             );
         doReturn(
@@ -776,7 +776,7 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 true
             );
 
@@ -810,12 +810,12 @@ public class LogbookLFCAdministrationTest {
         verify(processingManagementClient).close();
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             false
         );
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             true
         );
 
@@ -851,14 +851,14 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 false
             );
         doReturn(null)
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 true
             );
 
@@ -892,12 +892,12 @@ public class LogbookLFCAdministrationTest {
         verify(processingManagementClient).close();
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             false
         );
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             true
         );
 
@@ -933,14 +933,14 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 false
             );
         doReturn(null)
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 true
             );
 
@@ -974,12 +974,12 @@ public class LogbookLFCAdministrationTest {
         verify(processingManagementClient).close();
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             false
         );
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             true
         );
 
@@ -1014,7 +1014,7 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 false
             );
 
@@ -1047,7 +1047,7 @@ public class LogbookLFCAdministrationTest {
         verify(processingManagementClient).listOperationsDetails(any());
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             false
         );
 
@@ -1099,7 +1099,7 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 false
             );
 
@@ -1132,7 +1132,7 @@ public class LogbookLFCAdministrationTest {
         verify(processingManagementClient).listOperationsDetails(any());
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             false
         );
 
@@ -1183,12 +1183,12 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 false
             );
         doReturn(new LogbookOperation(PropertiesUtils.getResourceAsString("unit_lfc_traceability_with_zip.json")))
             .when(logbookOperations)
-            .findLastLifecycleTraceabilityOperation(anyString(), eq(DEFAULT_LFC_TRACEABILITY_VERSION), eq(true));
+            .findLastLifecycleTraceabilityOperation(anyString(), eq(DEFAULT_TRACEABILITY_VERSION), eq(true));
 
         doReturn(true)
             .when(logbookLifeCycles)
@@ -1220,12 +1220,12 @@ public class LogbookLFCAdministrationTest {
         verify(processingManagementClient).listOperationsDetails(any());
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             false
         );
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             anyString(),
-            eq(DEFAULT_LFC_TRACEABILITY_VERSION),
+            eq(DEFAULT_TRACEABILITY_VERSION),
             eq(true)
         );
 
@@ -1276,7 +1276,7 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 false
             );
         doReturn(
@@ -1285,7 +1285,7 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 true
             );
 
@@ -1318,12 +1318,12 @@ public class LogbookLFCAdministrationTest {
         verify(processingManagementClient).listOperationsDetails(any());
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             false
         );
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             true
         );
 
@@ -1374,14 +1374,14 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 false
             );
         doReturn(null)
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 true
             );
 
@@ -1414,12 +1414,12 @@ public class LogbookLFCAdministrationTest {
         verify(processingManagementClient).listOperationsDetails(any());
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             false
         );
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             true
         );
 
@@ -1470,14 +1470,14 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 false
             );
         doReturn(null)
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 true
             );
 
@@ -1510,12 +1510,12 @@ public class LogbookLFCAdministrationTest {
         verify(processingManagementClient).listOperationsDetails(any());
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             false
         );
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-            DEFAULT_LFC_TRACEABILITY_VERSION,
+            DEFAULT_TRACEABILITY_VERSION,
             true
         );
 
@@ -1597,7 +1597,7 @@ public class LogbookLFCAdministrationTest {
             .when(logbookOperations)
             .findLastLifecycleTraceabilityOperation(
                 Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
-                DEFAULT_LFC_TRACEABILITY_VERSION,
+                DEFAULT_TRACEABILITY_VERSION,
                 false
             );
 

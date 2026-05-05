@@ -2663,16 +2663,7 @@ public class LogbookResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findLastLifecycleTraceabilityOperation(@PathParam("eventType") String eventType) {
         try {
-            String securisationVersion;
-            if (Contexts.UNIT_LFC_TRACEABILITY.getEventType().equals(eventType)) {
-                securisationVersion = VitamConfiguration.getLfcUnitTraceabilityVersion(
-                    VitamThreadUtils.getVitamSession().getTenantId()
-                );
-            } else {
-                securisationVersion = VitamConfiguration.getLfcGotTraceabilityVersion(
-                    VitamThreadUtils.getVitamSession().getTenantId()
-                );
-            }
+            String securisationVersion = getLfcSecurisationVersion(eventType);
 
             LogbookOperation lastLifecycleTraceabilityOperation =
                 this.logbookOperation.findLastLifecycleTraceabilityOperation(eventType, securisationVersion, true);
@@ -2692,6 +2683,16 @@ public class LogbookResource extends ApplicationStatusResource {
                     )
                 )
                 .build();
+        }
+    }
+
+    private String getLfcSecurisationVersion(String eventType) {
+        if (Contexts.UNIT_LFC_TRACEABILITY.getEventType().equals(eventType)) {
+            return VitamConfiguration.getLfcUnitTraceabilityVersion(VitamThreadUtils.getVitamSession().getTenantId());
+        } else if (Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType().equals(eventType)) {
+            return VitamConfiguration.getLfcGotTraceabilityVersion(VitamThreadUtils.getVitamSession().getTenantId());
+        } else {
+            throw new IllegalArgumentException("Invalid LFC traceability event type: " + eventType);
         }
     }
 }

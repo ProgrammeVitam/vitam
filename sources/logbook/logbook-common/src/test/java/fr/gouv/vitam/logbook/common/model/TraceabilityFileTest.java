@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.logbook.common.model;
 
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.security.merkletree.MerkleTree;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import org.junit.Rule;
@@ -50,7 +49,6 @@ import static org.mockito.Mockito.mock;
 public class TraceabilityFileTest {
 
     private static final String LOGBOOK_OPERATION = "logbookOperationKO.json";
-    private static final String DEFAULT_TRACEABILITY_VERSION = VitamConfiguration.getDefaultTraceabilityVersion();
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -74,12 +72,7 @@ public class TraceabilityFileTest {
 
         traceabilityFile.storeTimeStampToken(timeStampToken);
 
-        traceabilityFile.storeAdditionalInformation(
-            1,
-            "2016-11-21T16:19:13.469",
-            "2016-11-21T16:19:14.469",
-            DEFAULT_TRACEABILITY_VERSION
-        );
+        traceabilityFile.storeAdditionalInformation(1, "2016-11-21T16:19:13.469", "2016-11-21T16:19:14.469", "V2");
         traceabilityFile.storeComputedInformation("hah11111", "hahss11221", "h12334", "hs12334SS");
         traceabilityFile.close();
 
@@ -94,7 +87,7 @@ public class TraceabilityFileTest {
             assertThat(prop.getProperty("startDate")).isEqualTo("2016-11-21T16:19:13.469");
             assertThat(prop.getProperty("numberOfElements")).isEqualTo("1");
             assertThat(prop.getProperty("endDate")).isEqualTo("2016-11-21T16:19:14.469");
-            assertThat(prop.getProperty(SECURISATION_VERSION_LABEL)).isEqualTo(DEFAULT_TRACEABILITY_VERSION);
+            assertThat(prop.getProperty(SECURISATION_VERSION_LABEL)).isEqualTo("V2");
         }
     }
 }

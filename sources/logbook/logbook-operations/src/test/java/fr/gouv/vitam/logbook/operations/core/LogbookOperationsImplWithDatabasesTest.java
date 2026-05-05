@@ -85,6 +85,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static fr.gouv.vitam.common.VitamConfiguration.DEFAULT_TRACEABILITY_VERSION;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static org.junit.Assert.assertEquals;
@@ -103,7 +104,6 @@ import static org.mockito.Mockito.when;
 public class LogbookOperationsImplWithDatabasesTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
-    private static final String DEFAULT_TRACEABILITY_VERSION = VitamConfiguration.getDefaultTraceabilityVersion();
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
@@ -326,6 +326,10 @@ public class LogbookOperationsImplWithDatabasesTest {
             eip4
         );
         securityEvent.putParameterValue(LogbookParameterName.eventDateTime, dateStringSecurity);
+        securityEvent.putParameterValue(
+            LogbookParameterName.eventDetailData,
+            "{\"" + LogbookDocument.SECURISATION_VERSION + "\":\"" + DEFAULT_TRACEABILITY_VERSION + "\"}"
+        );
     }
 
     @AfterClass

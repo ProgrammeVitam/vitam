@@ -59,6 +59,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
+import static fr.gouv.vitam.common.VitamConfiguration.DEFAULT_TRACEABILITY_VERSION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -75,7 +76,6 @@ public class LogbookOperationTraceabilityHelperTest {
     private static final String LOGBOOK_OPERATION_START_DATE = "2017-10-31T15:11:15.405";
     public static final int TRACEABILITY_EXPIRATION_IN_SECONDS = 24 * 60 * 60;
     private static final int OPERATION_TRACEABILITY_MAX_ENTRIES = 100_000;
-    private static final String DEFAULT_TRACEABILITY_VERSION = VitamConfiguration.getDefaultTraceabilityVersion();
     private static LocalDateTime LOGBOOK_OPERATION_EVENT_DATE;
 
     private static final String LAST_OPERATION_HASH =

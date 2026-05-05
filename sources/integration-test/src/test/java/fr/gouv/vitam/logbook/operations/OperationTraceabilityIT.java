@@ -93,6 +93,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -106,6 +107,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static fr.gouv.vitam.common.VitamConfiguration.DEFAULT_TRACEABILITY_VERSION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class OperationTraceabilityIT extends VitamRuleRunner {
@@ -765,10 +767,7 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void testOperationTraceability_GivenVersionChangeWhenTraceabilityThenCorrectBehavior() throws Exception {
-        VitamConfiguration.setLogbookOperationTraceabilityVersion(
-            TENANT_0,
-            VitamConfiguration.getDefaultTraceabilityVersion()
-        );
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_0, DEFAULT_TRACEABILITY_VERSION);
         // Given: An operation to secure
         String operation1 = injectTestLogbookOperation();
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
@@ -877,10 +876,7 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
         );
 
         // Given: Change version back to V1
-        VitamConfiguration.setLogbookOperationTraceabilityVersion(
-            TENANT_0,
-            VitamConfiguration.getDefaultTraceabilityVersion()
-        );
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_0, DEFAULT_TRACEABILITY_VERSION);
         String operation5 = injectTestLogbookOperation();
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
 
@@ -1011,45 +1007,32 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void testOperationTraceability_ComprehensiveVersionChangeWithYearProgression() throws Exception {
         VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_0, "V2");
-        String operation1 = injectTestLogbookOperation();
+        injectTestLogbookOperation();
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
-        LocalDateTime beforeTraceability1 = LocalDateUtil.now();
         String traceabilityOperationId1 = runTraceability();
-        LocalDateTime afterTraceability1 = LocalDateUtil.now();
 
         logicalClock.logicalSleep(13, ChronoUnit.HOURS);
-        //Run traceability without new operations (should be WARNING )
         String traceabilityOperationId2 = runTraceability();
 
-        String operation3 = injectTestLogbookOperation();
+        injectTestLogbookOperation();
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
-        LocalDateTime beforeTraceability3 = LocalDateUtil.now();
         String traceabilityOperationId3 = runTraceability();
-        LocalDateTime afterTraceability3 = LocalDateUtil.now();
 
         logicalClock.logicalSleep(21, ChronoUnit.DAYS);
-        String operation4 = injectTestLogbookOperation();
-        LocalDateTime beforeTraceability4 = LocalDateUtil.now();
+        injectTestLogbookOperation();
         String traceabilityOperationId4 = runTraceability();
-        LocalDateTime afterTraceability4 = LocalDateUtil.now();
 
         logicalClock.logicalSleep(14, ChronoUnit.DAYS);
-        String operation5 = injectTestLogbookOperation();
-        LocalDateTime beforeTraceability5 = LocalDateUtil.now();
+        injectTestLogbookOperation();
         String traceabilityOperationId5 = runTraceability();
-        LocalDateTime afterTraceability5 = LocalDateUtil.now();
 
         logicalClock.logicalSleep(300, ChronoUnit.DAYS);
-        String operation6 = injectTestLogbookOperation();
-        LocalDateTime beforeTraceability6 = LocalDateUtil.now();
+        injectTestLogbookOperation();
         String traceabilityOperationId6 = runTraceability();
-        LocalDateTime afterTraceability6 = LocalDateUtil.now();
 
         logicalClock.logicalSleep(90, ChronoUnit.DAYS);
-        String operation7 = injectTestLogbookOperation();
-        LocalDateTime beforeTraceability7 = LocalDateUtil.now();
+        injectTestLogbookOperation();
         String traceabilityOperationId7 = runTraceability();
-        LocalDateTime afterTraceability7 = LocalDateUtil.now();
 
         // Get traceability events for verification
         LogbookOperation logbookOperation1 = getLogbookInformation(traceabilityOperationId1);
@@ -1170,7 +1153,7 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
     private void downloadZips(TraceabilityEvent... allEvents) throws Exception {
         for (TraceabilityEvent traceabilityEvent : allEvents) {
             File dedicatedFolder = new File(tmpFolder.getRoot(), traceabilityEvent.getFileName());
-            dedicatedFolder.mkdirs();
+            Files.createDirectories(dedicatedFolder.toPath());
             downloadZip(traceabilityEvent.getFileName(), dedicatedFolder);
         }
     }

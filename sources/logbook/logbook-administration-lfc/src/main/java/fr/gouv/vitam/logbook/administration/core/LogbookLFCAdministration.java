@@ -179,18 +179,8 @@ public class LogbookLFCAdministration {
             LOGGER.error("There is another traceability operation in progress...");
             return false;
         }
-        String securisationVersion;
-        if (LfcTraceabilityType.Unit.equals(lfcTraceabilityType)) {
-            securisationVersion = VitamConfiguration.getLfcUnitTraceabilityVersion(
-                VitamThreadUtils.getVitamSession().getTenantId()
-            );
-        } else {
-            securisationVersion = VitamConfiguration.getLfcGotTraceabilityVersion(
-                VitamThreadUtils.getVitamSession().getTenantId()
-            );
-        }
 
-        LogbookOperation lastLfcTraceabilityOperation = getLastTraceability(lfcTraceabilityType, securisationVersion);
+        LogbookOperation lastLfcTraceabilityOperation = getLastTraceability(lfcTraceabilityType);
         LogbookOperation lastLfcTraceabilityOperationWithZip = getLastTraceabilityWithZip(
             lfcTraceabilityType,
             lastLfcTraceabilityOperation
@@ -239,11 +229,10 @@ public class LogbookLFCAdministration {
         }
     }
 
-    private LogbookOperation getLastTraceability(LfcTraceabilityType lfcTraceabilityType, String securisationVersion)
-        throws VitamException {
+    private LogbookOperation getLastTraceability(LfcTraceabilityType lfcTraceabilityType) throws VitamException {
         return logbookOperations.findLastLifecycleTraceabilityOperation(
             getWorkflowContext(lfcTraceabilityType).getEventType(),
-            securisationVersion,
+            getLfcSecurisationVersion(lfcTraceabilityType),
             false
         );
     }
@@ -264,9 +253,7 @@ public class LogbookLFCAdministration {
             return lastLfcTraceabilityOperation;
         }
 
-        String securisationVersion = LfcTraceabilityType.Unit.equals(lfcTraceabilityType)
-            ? VitamConfiguration.getLfcUnitTraceabilityVersion(VitamThreadUtils.getVitamSession().getTenantId())
-            : VitamConfiguration.getLfcGotTraceabilityVersion(VitamThreadUtils.getVitamSession().getTenantId());
+        String securisationVersion = getLfcSecurisationVersion(lfcTraceabilityType);
 
         // Retrieve last traceability with zip file
         return logbookOperations.findLastLifecycleTraceabilityOperation(
@@ -513,5 +500,16 @@ public class LogbookLFCAdministration {
 
             return lifecycleTraceabilityStatus;
         }
+    }
+
+    private String getLfcSecurisationVersion(LfcTraceabilityType lfcTraceabilityType) {
+        return switch (lfcTraceabilityType) {
+            case Unit -> VitamConfiguration.getLfcUnitTraceabilityVersion(
+                VitamThreadUtils.getVitamSession().getTenantId()
+            );
+            case ObjectGroup -> VitamConfiguration.getLfcGotTraceabilityVersion(
+                VitamThreadUtils.getVitamSession().getTenantId()
+            );
+        };
     }
 }
