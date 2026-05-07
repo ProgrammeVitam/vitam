@@ -36,20 +36,17 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
-import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -64,7 +61,6 @@ import fr.gouv.vitam.common.time.LogicalClockRule;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.model.TraceabilityType;
@@ -86,12 +82,7 @@ import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
@@ -99,10 +90,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import io.restassured.RestAssured;
-import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -114,26 +102,21 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
+import static fr.gouv.vitam.common.TraceabilityITUtils.downloadZips;
+import static fr.gouv.vitam.common.TraceabilityITUtils.getTraceabilityEvent;
+import static fr.gouv.vitam.common.TraceabilityITUtils.verifyChaining;
 import static fr.gouv.vitam.common.VitamConfiguration.DEFAULT_TRACEABILITY_VERSION;
 import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFiles;
+import static fr.gouv.vitam.common.VitamTestHelper.selectLogbookOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
-import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -624,9 +607,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         corruptOneUnitLfcInDb();
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
 
-        LocalDateTime beforeTraceability3 = LocalDateUtil.now();
         String traceabilityOperation3 = launchLogbookLFC(Contexts.UNIT_LFC_TRACEABILITY);
-        LocalDateTime afterTraceability3 = LocalDateUtil.now();
 
         // Traceability 4 : No new data for 12h + empty traceability
         logicalClock.logicalSleep(12, ChronoUnit.HOURS);
@@ -636,9 +617,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         launchIngest(SIP_3_UNITS_2_GOTS);
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
 
-        LocalDateTime beforeTraceability5 = LocalDateUtil.now();
         String traceabilityOperation5 = launchLogbookLFC(Contexts.UNIT_LFC_TRACEABILITY);
-        LocalDateTime afterTraceability5 = LocalDateUtil.now();
 
         // Then
 
@@ -1330,8 +1309,8 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         // traceabilityOperationId2 should be null in most cases
         // traceabilityOperationId2 can be non-null when the first traceability ended too quickly (inconclusive test).
         if (traceabilityOperationId2 != null) {
-            LogbookOperation traceabilityOperation1 = getLogbookOperation(traceabilityOperationId1);
-            LogbookOperation traceabilityOperation2 = getLogbookOperation(traceabilityOperationId2);
+            LogbookOperation traceabilityOperation1 = selectLogbookOperation(traceabilityOperationId1);
+            LogbookOperation traceabilityOperation2 = selectLogbookOperation(traceabilityOperationId2);
 
             String traceability1EndDate = traceabilityOperation1
                 .getEvents()
@@ -1368,13 +1347,17 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
     }
 
     public void testWorkflowLfcTraceability_withSecurisationVersions(Contexts context) throws Exception {
+        // Reset time to ensure deterministic dates
+        logicalClock.freezeTime(LocalDateUtil.parseMongoFormattedDate("2026-01-27T01:23:45.678"));
+        logicalClock.resumeTime();
+
         // Given
         launchIngest(SIP_3_UNITS_2_GOTS);
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
 
         // When - First traceability with V1 (default)
         LocalDateTime beforeTraceability1 = LocalDateUtil.now();
-        String traceabilityOperation1 = launchLogbookLFC(context);
+        String traceabilityOperationId1 = launchLogbookLFC(context);
         LocalDateTime afterTraceability1 = LocalDateUtil.now();
 
         // Inject more data
@@ -1382,15 +1365,15 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         launchIngest(SIP_3_UNITS_2_GOTS);
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
 
-        String traceabilityOperation2 = launchLogbookLFC(context);
+        String traceabilityOperationId2 = launchLogbookLFC(context);
 
         // Inject more data
         logicalClock.logicalSleep(45, ChronoUnit.MINUTES);
         launchIngest(SIP_3_UNITS_2_GOTS);
-        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+        logicalClock.logicalSleep(35, ChronoUnit.DAYS);
 
         LocalDateTime beforeTraceability3 = LocalDateUtil.now();
-        String traceabilityOperation3 = launchLogbookLFC(context);
+        String traceabilityOperationId3 = launchLogbookLFC(context);
         LocalDateTime afterTraceability3 = LocalDateUtil.now();
 
         if (Contexts.UNIT_LFC_TRACEABILITY.equals(context)) {
@@ -1404,7 +1387,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
 
         logicalClock.logicalSleep(15, ChronoUnit.MINUTES);
         LocalDateTime beforeTraceability4 = LocalDateUtil.now();
-        String traceabilityOperation4 = launchLogbookLFC(context);
+        String traceabilityOperationId4 = launchLogbookLFC(context);
         LocalDateTime afterTraceability4 = LocalDateUtil.now();
 
         // Inject more data
@@ -1412,26 +1395,33 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         launchIngest(SIP_3_UNITS_2_GOTS);
 
         logicalClock.logicalSleep(15, ChronoUnit.MINUTES);
-        String traceabilityOperation5 = launchLogbookLFC(context);
+        String traceabilityOperationId5 = launchLogbookLFC(context);
 
         // Inject more data
         logicalClock.logicalSleep(45, ChronoUnit.MINUTES);
         launchIngest(SIP_3_UNITS_2_GOTS);
 
-        logicalClock.logicalSleep(15, ChronoUnit.MINUTES);
+        logicalClock.logicalSleep(35, ChronoUnit.DAYS);
         LocalDateTime beforeTraceability6 = LocalDateUtil.now();
-        String traceabilityOperation6 = launchLogbookLFC(context);
+        String traceabilityOperationId6 = launchLogbookLFC(context);
         LocalDateTime afterTraceability6 = LocalDateUtil.now();
 
         // Then
-        assertCompletedWithStatus(traceabilityOperation1, StatusCode.OK);
-        assertCompletedWithStatus(traceabilityOperation2, StatusCode.OK);
-        assertCompletedWithStatus(traceabilityOperation3, StatusCode.OK);
-        assertCompletedWithStatus(traceabilityOperation4, StatusCode.OK);
-        assertCompletedWithStatus(traceabilityOperation5, StatusCode.OK);
-        assertCompletedWithStatus(traceabilityOperation6, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperationId1, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperationId2, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperationId3, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperationId4, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperationId5, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperationId6, StatusCode.OK);
 
         // Verify securisation versions
+        LogbookOperation traceabilityOperation1 = selectLogbookOperation(traceabilityOperationId1);
+        LogbookOperation traceabilityOperation2 = selectLogbookOperation(traceabilityOperationId2);
+        LogbookOperation traceabilityOperation3 = selectLogbookOperation(traceabilityOperationId3);
+        LogbookOperation traceabilityOperation4 = selectLogbookOperation(traceabilityOperationId4);
+        LogbookOperation traceabilityOperation5 = selectLogbookOperation(traceabilityOperationId5);
+        LogbookOperation traceabilityOperation6 = selectLogbookOperation(traceabilityOperationId6);
+
         TraceabilityEvent traceabilityEvent1 = getTraceabilityEvent(traceabilityOperation1);
         TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
         TraceabilityEvent traceabilityEvent3 = getTraceabilityEvent(traceabilityOperation3);
@@ -1486,21 +1476,33 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         );
 
         downloadZips(
-            traceabilityEvent1,
-            traceabilityEvent2,
-            traceabilityEvent3,
-            traceabilityEvent4,
-            traceabilityEvent5,
-            traceabilityEvent6
+            tmpFolder.getRoot(),
+            DEFAULT_TRACEABILITY_VERSION,
+            traceabilityOperation1,
+            traceabilityOperation2,
+            traceabilityOperation3
         );
-        verifyTraceabilityChaining(
-            "previousTimestampToken",
-            traceabilityEvent4,
-            traceabilityEvent5,
-            traceabilityEvent6
+        downloadZips(tmpFolder.getRoot(), "V2", traceabilityOperation4, traceabilityOperation5, traceabilityOperation6);
+
+        verifyChaining(tmpFolder.getRoot(), traceabilityOperation1, null, null, null);
+        verifyChaining(tmpFolder.getRoot(), traceabilityOperation2, traceabilityOperation1, null, null);
+        verifyChaining(
+            tmpFolder.getRoot(),
+            traceabilityOperation3,
+            traceabilityOperation2,
+            traceabilityOperation2,
+            null
         );
 
-        verifyTraceabilityChaining("previousTimestampTokenMinusOneMonth", traceabilityEvent4, traceabilityEvent6);
+        verifyChaining(tmpFolder.getRoot(), traceabilityOperation4, null, null, null);
+        verifyChaining(tmpFolder.getRoot(), traceabilityOperation5, traceabilityOperation4, null, null);
+        verifyChaining(
+            tmpFolder.getRoot(),
+            traceabilityOperation6,
+            traceabilityOperation5,
+            traceabilityOperation5,
+            null
+        );
     }
 
     @Test
@@ -1593,131 +1595,53 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThat(traceabilityOperationId7).isNotNull();
 
         // Get LFC traceability events for verification
-        TraceabilityEvent traceabilityEvent1 = getTraceabilityEvent(traceabilityOperationId1);
-        TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperationId2);
-        TraceabilityEvent traceabilityEvent3 = getTraceabilityEvent(traceabilityOperationId3);
-        TraceabilityEvent traceabilityEvent4 = getTraceabilityEvent(traceabilityOperationId4);
-        TraceabilityEvent traceabilityEvent5 = getTraceabilityEvent(traceabilityOperationId5);
-        TraceabilityEvent traceabilityEvent6 = getTraceabilityEvent(traceabilityOperationId6);
-        TraceabilityEvent traceabilityEvent7 = getTraceabilityEvent(traceabilityOperationId7);
+        LogbookOperation traceabilityOperation1 = selectLogbookOperation(traceabilityOperationId1);
+        LogbookOperation traceabilityOperation2 = selectLogbookOperation(traceabilityOperationId2);
+        LogbookOperation traceabilityOperation3 = selectLogbookOperation(traceabilityOperationId3);
+        LogbookOperation traceabilityOperation4 = selectLogbookOperation(traceabilityOperationId4);
+        LogbookOperation traceabilityOperation5 = selectLogbookOperation(traceabilityOperationId5);
+        LogbookOperation traceabilityOperation6 = selectLogbookOperation(traceabilityOperationId6);
+        LogbookOperation traceabilityOperation7 = selectLogbookOperation(traceabilityOperationId7);
 
+        TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
         assertThat(traceabilityEvent2).isNull();
-        assertThat(traceabilityEvent4.getStartDate()).isEqualTo(traceabilityEvent3.getEndDate());
 
-        // Verify securisation versions
-        assertThat(traceabilityEvent1.getSecurisationVersion()).isEqualTo(securisationVersion);
-        assertThat(traceabilityEvent3.getSecurisationVersion()).isEqualTo(securisationVersion);
-        assertThat(traceabilityEvent7.getSecurisationVersion()).isEqualTo(securisationVersion);
-
+        // Verify and download ZIPs
         downloadZips(
-            traceabilityEvent1,
-            traceabilityEvent3,
-            traceabilityEvent4,
-            traceabilityEvent5,
-            traceabilityEvent6,
-            traceabilityEvent7
-        );
-        verifyTraceabilityChaining(
-            "previousTimestampToken",
-            traceabilityEvent1,
-            traceabilityEvent3,
-            traceabilityEvent4,
-            traceabilityEvent5,
-            traceabilityEvent6,
-            traceabilityEvent7
+            tmpFolder.getRoot(),
+            securisationVersion,
+            traceabilityOperation1,
+            traceabilityOperation3,
+            traceabilityOperation4,
+            traceabilityOperation5,
+            traceabilityOperation6,
+            traceabilityOperation7
         );
 
-        verifyTraceabilityChaining("previousTimestampTokenMinusOneMonth", traceabilityEvent1, traceabilityEvent4);
-
-        verifyTraceabilityChaining("previousTimestampTokenMinusOneYear", traceabilityEvent1, traceabilityEvent5);
-    }
-
-    private void downloadZip(String fileName, File folder)
-        throws IOException, StorageNotFoundException, StorageServerClientException, StorageUnavailableDataFromAsyncOfferClientException {
-        try (
-            StorageClient storageClient = StorageClientFactory.getInstance().getClient();
-            Response containerAsync = storageClient.getContainerAsync(
-                VitamConfiguration.getDefaultStrategy(),
-                fileName,
-                DataCategory.LOGBOOK,
-                AccessLogUtils.getNoLogAccessLog()
-            );
-            InputStream inputStream = containerAsync.readEntity(InputStream.class);
-            ZipInputStream zipInputStream = new ZipInputStream(inputStream)
-        ) {
-            ZipEntry entry;
-            while ((entry = zipInputStream.getNextEntry()) != null) {
-                try (FileOutputStream fileOutputStream = new FileOutputStream(new File(folder, entry.getName()))) {
-                    IOUtils.copy(zipInputStream, fileOutputStream);
-                }
-            }
-        }
-    }
-
-    /**
-     * Gets the token content from a traceability zip file
-     */
-    private String getTokenContentFromZip(TraceabilityEvent traceabilityEvent)
-        throws IOException, StorageServerClientException, StorageUnavailableDataFromAsyncOfferClientException, StorageNotFoundException {
-        // Use already unzipped dedicated folder
-        File dedicatedFolder = new File(tmpFolder.getRoot(), traceabilityEvent.getFileName());
-
-        // Read token content
-        File tokenFile = new File(dedicatedFolder, "token.tsp");
-        return FileUtils.readFileToString(tokenFile, StandardCharsets.UTF_8);
-    }
-
-    /**
-     * Extracts a value from content based on key=value format
-     */
-    private String extractValueFromContent(String content, String key) throws IOException {
-        Properties properties = new Properties();
-        properties.load(new StringReader(content));
-        return properties.getProperty(key);
-    }
-
-    private void downloadZips(TraceabilityEvent... allEvents) throws Exception {
-        for (TraceabilityEvent traceabilityEvent : allEvents) {
-            File dedicatedFolder = new File(tmpFolder.getRoot(), traceabilityEvent.getFileName());
-            dedicatedFolder.mkdirs();
-            downloadZip(traceabilityEvent.getFileName(), dedicatedFolder);
-        }
-    }
-
-    /**
-     * Verifies the traceability chaining by checking currentHash and previousTimestampToken relationships
-     */
-    private void verifyTraceabilityChaining(String key, TraceabilityEvent... events) throws Exception {
-        for (int i = 1; i < events.length; i++) {
-            TraceabilityEvent currentEvent = events[i];
-            TraceabilityEvent previousEvent = events[i - 1];
-
-            String tokenContentFromOperation3 = getTokenContentFromZip(previousEvent);
-
-            // Use already unzipped folder for current event
-            File currentEventFolder = new File(tmpFolder.getRoot(), currentEvent.getFileName());
-
-            // Verify computing_information.txt contains correct previousTimestampToken
-            File computingInfoFile = new File(currentEventFolder, "computing_information.txt");
-            String computingInfoContent = FileUtils.readFileToString(computingInfoFile, StandardCharsets.UTF_8);
-
-            String previousTimestampTokenFromFile = extractValueFromContent(computingInfoContent, key);
-            assertThat(previousTimestampTokenFromFile).isNotEqualTo("null");
-
-            assertThat(previousTimestampTokenFromFile).isEqualTo(String.valueOf(tokenContentFromOperation3));
-        }
-    }
-
-    private static LogbookOperation getLogbookOperation(String operationId)
-        throws LogbookClientException, InvalidParseOperationException {
-        try (
-            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()
-        ) {
-            return JsonHandler.getFromJsonNode(
-                logbookOperationsClient.selectOperationById(operationId).get(TAG_RESULTS).get(0),
-                LogbookOperation.class
-            );
-        }
+        verifyChaining(tmpFolder.getRoot(), traceabilityOperation1, null, null, null);
+        verifyChaining(tmpFolder.getRoot(), traceabilityOperation3, traceabilityOperation1, null, null);
+        verifyChaining(tmpFolder.getRoot(), traceabilityOperation4, traceabilityOperation3, null, null);
+        verifyChaining(
+            tmpFolder.getRoot(),
+            traceabilityOperation5,
+            traceabilityOperation4,
+            traceabilityOperation3,
+            null
+        );
+        verifyChaining(
+            tmpFolder.getRoot(),
+            traceabilityOperation6,
+            traceabilityOperation5,
+            traceabilityOperation5,
+            null
+        );
+        verifyChaining(
+            tmpFolder.getRoot(),
+            traceabilityOperation7,
+            traceabilityOperation6,
+            traceabilityOperation6,
+            traceabilityOperation3
+        );
     }
 
     private static void inconclusiveOrFail(boolean inconclusive, String inconclusiveMessage, String failMessage) {
@@ -1887,16 +1811,6 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(expected, processWorkflow.getStatus());
-    }
-
-    private TraceabilityEvent getTraceabilityEvent(String containerName)
-        throws LogbookClientException, InvalidParseOperationException {
-        final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-        JsonNode response = logbookClient.selectOperationById(containerName);
-        JsonNode jsonNode = response.get("$results").get(0);
-        JsonNode evDetData = jsonNode.get("evDetData");
-        if (evDetData == null || evDetData.isNull()) return null;
-        return JsonHandler.getFromString(evDetData.textValue(), TraceabilityEvent.class);
     }
 
     private void assertThatDateIsBetween(String mongoDate, LocalDateTime expectedMin, LocalDateTime expectedMax) {

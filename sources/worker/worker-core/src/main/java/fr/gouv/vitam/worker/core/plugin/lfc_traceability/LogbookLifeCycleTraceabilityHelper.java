@@ -29,6 +29,8 @@ package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -45,6 +47,9 @@ import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
 import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -55,17 +60,15 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
 
-import static com.google.common.collect.Lists.newArrayList;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName.eventDateTime;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName.eventTypeProcess;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventIdentifier;
 
 public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHelper {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCycleTraceabilityHelper.class);
 
-    private static final String EVENT_ID = eventIdentifier.getDbname();
     private static final String EVENT_DETAIL_DATA = eventDetailData.getDbname();
     private static final String HANDLER_ID = "FINALIZE_LC_TRACEABILITY";
     private static final String HANDLER_SUB_ACTION_TIMESTAMP = "OP_SECURISATION_TIMESTAMP";
@@ -81,23 +84,26 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     private final String operationID;
     private final String traceabilityEventFileName;
     private final String traceabilityZipFileName;
+    private final String securisationVersion;
 
     private LogbookOperation lastTraceabilityOperation = null;
-    private List<String> expectedLogbookId = null;
     private JsonNode traceabilityInformation = null;
     private TraceabilityStatistics traceabilityStatistics;
     private LocalDateTime traceabilityStartDate;
     private LocalDateTime traceabilityEndDate;
 
-    private Boolean isLastEventInit = false;
-    private Boolean isLastMonthEventInit = false;
-    private Boolean isLastYearEventInit = false;
+    private String previousOperationId = null;
+    private String previousMonthOperationId = null;
+    private String previousYearOperationId = null;
+
     private String previousStartDate = null;
     private String previousMonthStartDate = null;
     private String previousYearStartDate = null;
+
     private byte[] previousTimestampToken = null;
     private byte[] previousMonthTimestampToken = null;
     private byte[] previousYearTimestampToken = null;
+
     private boolean maxEntriesReached;
 
     /**
@@ -114,7 +120,8 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
         ItemStatus itemStatus,
         String operationID,
         String traceabilityEventFileName,
-        String traceabilityZipFileName
+        String traceabilityZipFileName,
+        String securisationVersion
     ) {
         this.handlerIO = handlerIO;
         this.logbookOperationsClient = logbookOperationsClient;
@@ -122,6 +129,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
         this.operationID = operationID;
         this.traceabilityEventFileName = traceabilityEventFileName;
         this.traceabilityZipFileName = traceabilityZipFileName;
+        this.securisationVersion = securisationVersion;
     }
 
     @Override
@@ -142,16 +150,11 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
             }
 
             File statsFile = (File) handlerIO.getInput(TRACEABILITY_STATISTICS_RANK);
-            if (operationFile != null) {
+            if (statsFile != null) {
                 traceabilityStatistics = JsonHandler.getFromFile(statsFile, TraceabilityStatistics.class);
             }
         } catch (InvalidParseOperationException e) {
             throw new TraceabilityException("Cannot parse logbook operation", e);
-        }
-
-        expectedLogbookId = newArrayList(operationID);
-        if (lastTraceabilityOperation != null) {
-            expectedLogbookId.add(lastTraceabilityOperation.getString(EVENT_ID));
         }
 
         this.traceabilityStartDate = LocalDateUtil.parseMongoFormattedDate(
@@ -161,6 +164,10 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
             traceabilityInformation.get("endDate").asText()
         );
         this.maxEntriesReached = traceabilityInformation.get("maxEntriesReached").asBoolean();
+
+        initPreviousTraceabilityOperation();
+        initPreviousMonthTraceabilityOperation();
+        initPreviousYearTraceabilityOperation();
     }
 
     @Override
@@ -169,7 +176,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
         String eventType,
         StatusCode status,
         TraceabilityEvent event
-    ) throws TraceabilityException {
+    ) {
         if (!getStepName().equals(eventType)) {
             final ItemStatus subItemStatusTimestamp = new ItemStatus(eventType);
             itemStatus.setItemsStatus(eventType, subItemStatusTimestamp.increment(status));
@@ -247,55 +254,53 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     @Override
-    public byte[] getPreviousTimestampToken() throws InvalidParseOperationException {
-        if (!isLastEventInit) {
-            extractPreviousEvent();
-        }
+    public String getPreviousOperationId() {
+        return previousOperationId;
+    }
+
+    @Override
+    public String getPreviousMonthOperationId() {
+        return previousMonthOperationId;
+    }
+
+    @Override
+    public String getPreviousYearOperationId() {
+        return previousYearOperationId;
+    }
+
+    @Override
+    public byte[] getPreviousTimestampToken() {
         return previousTimestampToken;
     }
 
     @Override
-    public byte[] getPreviousMonthTimestampToken(String securisationVersion)
-        throws InvalidParseOperationException, TraceabilityException {
-        if (!isLastMonthEventInit) {
-            extractPreviousEvent(this.traceabilityEndDate.minusMonths(1), securisationVersion);
-        }
+    public byte[] getPreviousMonthTimestampToken() {
         return previousMonthTimestampToken;
     }
 
     @Override
-    public byte[] getPreviousYearTimestampToken(String securisationVersion)
-        throws InvalidParseOperationException, TraceabilityException {
-        if (!isLastYearEventInit) {
-            extractPreviousYearEvent(this.traceabilityEndDate.minusYears(1), securisationVersion);
-        }
+    public byte[] getPreviousYearTimestampToken() {
         return previousYearTimestampToken;
     }
 
     @Override
-    public String getPreviousStartDate() throws InvalidParseOperationException {
-        if (!isLastEventInit) {
-            extractPreviousEvent();
-        }
+    public String getPreviousStartDate() {
         return previousStartDate;
     }
 
     @Override
-    public String getPreviousMonthStartDate(String securisationVersion)
-        throws InvalidParseOperationException, TraceabilityException {
-        if (!isLastMonthEventInit) {
-            extractPreviousEvent(this.traceabilityEndDate.minusMonths(1), securisationVersion);
-        }
+    public String getPreviousMonthStartDate() {
         return previousMonthStartDate;
     }
 
     @Override
-    public String getPreviousYearStartDate(String securisationVersion)
-        throws InvalidParseOperationException, TraceabilityException {
-        if (!isLastYearEventInit) {
-            extractPreviousYearEvent(this.traceabilityEndDate.minusYears(1), securisationVersion);
-        }
+    public String getPreviousYearStartDate() {
         return previousYearStartDate;
+    }
+
+    @Override
+    public String getSecurisationVersion() {
+        return securisationVersion;
     }
 
     /**
@@ -326,114 +331,106 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
         }
     }
 
-    private void extractPreviousEvent() throws InvalidParseOperationException {
-        previousTimestampToken = extractTimestampToken(lastTraceabilityOperation);
-        if (lastTraceabilityOperation != null) {
-            TraceabilityEvent lastTraceabilityEvent = extractEventDetData(lastTraceabilityOperation);
-            if (lastTraceabilityEvent != null) {
-                previousStartDate = lastTraceabilityEvent.getStartDate();
-            }
+    private void initPreviousTraceabilityOperation() throws TraceabilityException {
+        TraceabilityEvent lastTraceabilityEvent = extractEventDetData(lastTraceabilityOperation);
+        if (lastTraceabilityEvent != null) {
+            previousOperationId = lastTraceabilityOperation.getId();
+            previousTimestampToken = lastTraceabilityEvent.getTimeStampToken();
+            previousStartDate = lastTraceabilityEvent.getStartDate();
         }
-        isLastEventInit = true;
     }
 
-    private void extractPreviousEvent(LocalDateTime specificDate, String securisationVersion)
-        throws InvalidParseOperationException, TraceabilityException {
+    private void initPreviousMonthTraceabilityOperation() throws TraceabilityException {
         try {
-            previousMonthTimestampToken = findHashByTraceabilityEventExpect(specificDate, securisationVersion);
-            final LogbookOperation oneMounthBeforeTraceabilityOperation = findFirstTraceabilityOperationOKAfterDate(
-                specificDate,
-                securisationVersion
+            final LogbookOperation oneMouthBeforeTraceabilityOperation = findLastTraceabilityOperationOKBeforeDate(
+                this.traceabilityEndDate.minusMonths(1)
             );
-            if (oneMounthBeforeTraceabilityOperation != null) {
-                TraceabilityEvent oneMonthBeforeTraceabilityEvent = extractEventDetData(
-                    oneMounthBeforeTraceabilityOperation
-                );
-                if (oneMonthBeforeTraceabilityEvent != null) {
-                    previousMonthStartDate = oneMonthBeforeTraceabilityEvent.getStartDate();
-                }
+            TraceabilityEvent oneMonthBeforeTraceabilityEvent = extractEventDetData(
+                oneMouthBeforeTraceabilityOperation
+            );
+            if (oneMonthBeforeTraceabilityEvent != null) {
+                this.previousMonthOperationId = oneMouthBeforeTraceabilityOperation.getId();
+                this.previousMonthTimestampToken = oneMonthBeforeTraceabilityEvent.getTimeStampToken();
+                this.previousMonthStartDate = oneMonthBeforeTraceabilityEvent.getStartDate();
             }
-        } catch (InvalidCreateOperationException | LogbookClientException e) {
+        } catch (InvalidCreateOperationException | LogbookClientException | InvalidParseOperationException e) {
             throw new TraceabilityException(e);
         }
-
-        isLastMonthEventInit = true;
     }
 
-    private void extractPreviousYearEvent(LocalDateTime specificDate, String securisationVersion)
-        throws InvalidParseOperationException, TraceabilityException {
+    private void initPreviousYearTraceabilityOperation() throws TraceabilityException {
         try {
-            previousYearTimestampToken = findHashByTraceabilityEventExpect(specificDate, securisationVersion);
-            final LogbookOperation oneYearBeforeTraceabilityOperation = findFirstTraceabilityOperationOKAfterDate(
-                specificDate,
-                securisationVersion
+            final LogbookOperation oneYearBeforeTraceabilityOperation = findLastTraceabilityOperationOKBeforeDate(
+                this.traceabilityEndDate.minusYears(1)
             );
-            if (oneYearBeforeTraceabilityOperation != null) {
-                TraceabilityEvent oneYearBeforeTraceabilityEvent = extractEventDetData(
-                    oneYearBeforeTraceabilityOperation
-                );
-                if (oneYearBeforeTraceabilityEvent != null) {
-                    previousYearStartDate = oneYearBeforeTraceabilityEvent.getStartDate();
-                }
+            TraceabilityEvent oneYearBeforeTraceabilityEvent = extractEventDetData(oneYearBeforeTraceabilityOperation);
+            if (oneYearBeforeTraceabilityEvent != null) {
+                this.previousYearOperationId = oneYearBeforeTraceabilityOperation.getId();
+                this.previousYearTimestampToken = oneYearBeforeTraceabilityEvent.getTimeStampToken();
+                this.previousYearStartDate = oneYearBeforeTraceabilityEvent.getStartDate();
             }
-        } catch (InvalidCreateOperationException | LogbookClientException e) {
+        } catch (InvalidCreateOperationException | LogbookClientException | InvalidParseOperationException e) {
             throw new TraceabilityException(e);
         }
-
-        isLastYearEventInit = true;
     }
 
-    byte[] extractTimestampToken(LogbookOperation logbookOperation) throws InvalidParseOperationException {
-        TraceabilityEvent traceabilityEvent = extractEventDetData(logbookOperation);
-        if (traceabilityEvent == null) {
-            return null;
-        }
-        return traceabilityEvent.getTimeStampToken();
-    }
-
-    private TraceabilityEvent extractEventDetData(LogbookOperation logbookOperation)
-        throws InvalidParseOperationException {
+    private TraceabilityEvent extractEventDetData(LogbookOperation logbookOperation) throws TraceabilityException {
         if (logbookOperation == null) {
             return null;
         }
-        return JsonHandler.getFromString((String) logbookOperation.get(EVENT_DETAIL_DATA), TraceabilityEvent.class);
+        try {
+            return JsonHandler.getFromString((String) logbookOperation.get(EVENT_DETAIL_DATA), TraceabilityEvent.class);
+        } catch (InvalidParseOperationException e) {
+            throw new TraceabilityException(e);
+        }
     }
 
-    private byte[] findHashByTraceabilityEventExpect(LocalDateTime date, String securisationVersion)
+    private LogbookOperation findLastTraceabilityOperationOKBeforeDate(LocalDateTime date)
         throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
         RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(
-            logbookOperationsClient.selectOperation(
-                generateSelectLogbookOperation(date, securisationVersion).getFinalSelect()
-            )
+            logbookOperationsClient.selectOperation(generateSelectPreviousTraceabilityOperation(date).getFinalSelect())
         );
-        List<JsonNode> foundOperation = requestResponseOK.getResults();
-        if (foundOperation != null && !foundOperation.isEmpty()) {
-            LogbookOperation lastOperationTraceabilityLifecycle = new LogbookOperation(foundOperation.get(0));
-            if (!expectedLogbookId.contains(lastOperationTraceabilityLifecycle.getString(EVENT_ID))) {
-                expectedLogbookId.add(lastOperationTraceabilityLifecycle.getString(EVENT_ID));
-                return extractTimestampToken(lastOperationTraceabilityLifecycle);
+        if (!requestResponseOK.isEmpty()) {
+            LogbookOperation logbookOperation = new LogbookOperation(requestResponseOK.getFirstResult());
+            if (!logbookOperation.getId().equals(operationID)) {
+                return logbookOperation;
             }
         }
-
         LOGGER.warn("Logbook operation not found, there is no Operation");
         return null;
     }
 
-    private LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date, String securisationVersion)
-        throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
-        RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(
-            logbookOperationsClient.selectOperation(
-                generateSelectLogbookOperation(date, securisationVersion).getFinalSelect()
-            )
+    private Select generateSelectPreviousTraceabilityOperation(LocalDateTime date)
+        throws InvalidCreateOperationException, InvalidParseOperationException {
+        final Select select = new Select();
+        final Query query = QueryHelper.lte(
+            eventDateTime.getDbname(),
+            LocalDateUtil.getFormattedDateTimeForMongo(date)
         );
-        List<JsonNode> foundOperation = requestResponseOK.getResults();
-        if (foundOperation != null && foundOperation.size() == 1) {
-            return new LogbookOperation(foundOperation.get(0));
-        }
-        LOGGER.warn("Logbook operation not found, there is no Operation");
-        return null;
+        final Query type = QueryHelper.eq(eventTypeProcess.getDbname(), LogbookTypeProcess.TRACEABILITY.name());
+        final Query eventStatus = QueryHelper.in(
+            String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcomeDetail.getDbname()),
+            getEventType() + ".OK",
+            getEventType() + ".WARNING"
+        );
+        final Query hasTraceabilityFile = QueryHelper.exists(
+            String.format("%s.%s.%s", LogbookDocument.EVENTS, eventDetailData.getDbname(), "FileName")
+        );
+
+        final Query findVersion = QueryHelper.eq(
+            String.format(
+                "%s.%s.%s",
+                LogbookDocument.EVENTS,
+                eventDetailData.getDbname(),
+                LogbookDocument.SECURISATION_VERSION
+            ),
+            securisationVersion
+        );
+        select.addOrderByDescFilter("evDateTime");
+        select.setQuery(QueryHelper.and().add(query, type, eventStatus, hasTraceabilityFile, findVersion));
+        select.setLimitFilter(0, 1);
+        return select;
     }
 
-    protected abstract Select generateSelectLogbookOperation(LocalDateTime date, String securisationVersion)
-        throws InvalidCreateOperationException, InvalidParseOperationException;
+    protected abstract String getEventType();
 }

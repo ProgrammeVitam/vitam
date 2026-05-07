@@ -30,7 +30,6 @@ import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.TimeStampException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -90,7 +89,7 @@ public class TraceabilityService {
      *
      * @throws TraceabilityException if any error or problem occurs
      */
-    public void secureData(String strategyId, String securisationVersion) throws TraceabilityException {
+    public void secureData(String strategyId) throws TraceabilityException {
         helper.startTraceability();
 
         TraceabilityEvent event;
@@ -117,22 +116,28 @@ public class TraceabilityService {
                 String rootHash = BaseXx.getBase64(merkleRootHash);
 
                 // Compute and store token
-                byte[] timestampToken = computeAndStoreTimestampToken(
-                    traceabilityFile,
-                    merkleRootHash,
-                    securisationVersion
-                );
+                byte[] timestampToken = computeAndStoreTimestampToken(traceabilityFile, merkleRootHash);
 
                 final long numberOfLine = helper.getDataSize();
                 final String startDate = helper.getTraceabilityStartDate();
                 final String endDate = helper.getTraceabilityEndDate();
 
-                traceabilityFile.storeAdditionalInformation(numberOfLine, startDate, endDate, securisationVersion);
+                traceabilityFile.storeAdditionalInformation(
+                    numberOfLine,
+                    startDate,
+                    endDate,
+                    helper.getSecurisationVersion()
+                );
 
                 // fill traceability event
                 String previousDate = helper.getPreviousStartDate();
-                String previousMonthDate = helper.getPreviousMonthStartDate(securisationVersion);
-                String previousYearDate = helper.getPreviousYearStartDate(securisationVersion);
+                String previousMonthDate = helper.getPreviousMonthStartDate();
+                String previousYearDate = helper.getPreviousYearStartDate();
+
+                String previousOperationId = helper.getPreviousOperationId();
+                String previousMonthOperationId = helper.getPreviousMonthOperationId();
+                String previousYearOperationId = helper.getPreviousYearOperationId();
+
                 long size = zipFile.length();
                 boolean maxEntriesReached = helper.getMaxEntriesReached();
                 TraceabilityStatistics traceabilityStatistics = helper.getTraceabilityStatistics();
@@ -143,6 +148,9 @@ public class TraceabilityService {
                     endDate,
                     rootHash,
                     timestampToken,
+                    previousOperationId,
+                    previousMonthOperationId,
+                    previousYearOperationId,
                     previousDate,
                     previousMonthDate,
                     previousYearDate,
@@ -151,7 +159,7 @@ public class TraceabilityService {
                     size,
                     VitamConfiguration.getDefaultDigestType(),
                     maxEntriesReached,
-                    securisationVersion,
+                    helper.getSecurisationVersion(),
                     traceabilityStatistics
                 );
             } else {
@@ -163,7 +171,7 @@ public class TraceabilityService {
                 }
                 return;
             }
-        } catch (IOException | ArchiveException | InvalidParseOperationException e) {
+        } catch (IOException | ArchiveException e) {
             helper.createLogbookOperationEvent(tenantId, helper.getStepName(), StatusCode.FATAL, null);
 
             if (!zipFile.delete()) {
@@ -183,16 +191,13 @@ public class TraceabilityService {
         return fileName;
     }
 
-    private byte[] computeAndStoreTimestampToken(
-        TraceabilityFile file,
-        byte[] merkleRootHash,
-        String securisationVersion
-    ) throws IOException, TraceabilityException, InvalidParseOperationException {
+    private byte[] computeAndStoreTimestampToken(TraceabilityFile file, byte[] merkleRootHash)
+        throws IOException, TraceabilityException {
         final String rootHash = BaseXx.getBase64(merkleRootHash);
 
         final byte[] timestampToken1 = helper.getPreviousTimestampToken();
-        final byte[] timestampToken2 = helper.getPreviousMonthTimestampToken(securisationVersion);
-        final byte[] timestampToken3 = helper.getPreviousYearTimestampToken(securisationVersion);
+        final byte[] timestampToken2 = helper.getPreviousMonthTimestampToken();
+        final byte[] timestampToken3 = helper.getPreviousYearTimestampToken();
 
         final String timestampToken1Base64 = (timestampToken1 == null) ? null : BaseXx.getBase64(timestampToken1);
         final String timestampToken2Base64 = (timestampToken2 == null) ? null : BaseXx.getBase64(timestampToken2);

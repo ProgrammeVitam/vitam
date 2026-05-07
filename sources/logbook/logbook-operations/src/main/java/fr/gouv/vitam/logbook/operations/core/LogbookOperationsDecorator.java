@@ -86,9 +86,9 @@ public abstract class LogbookOperationsDecorator implements LogbookOperations {
     }
 
     @Override
-    public LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date, String securisationVersion)
+    public LogbookOperation findLastTraceabilityOperationOKBeforeDate(LocalDateTime date, String securisationVersion)
         throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException, InvalidParseOperationException {
-        return logbookOperations.findFirstTraceabilityOperationOKAfterDate(date, securisationVersion);
+        return logbookOperations.findLastTraceabilityOperationOKBeforeDate(date, securisationVersion);
     }
 
     @Override

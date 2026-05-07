@@ -27,7 +27,6 @@
 package fr.gouv.vitam.logbook.common.traceability;
 
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
@@ -111,15 +110,13 @@ public interface LogbookTraceabilityHelper {
 
     /**
      * @return the start date of the traceability (computed from the end date of the last traceability)
-     * @throws TraceabilityException on error
      */
-    String getTraceabilityStartDate() throws TraceabilityException;
+    String getTraceabilityStartDate();
 
     /**
      * @return the end date of the traceability (now)
-     * @throws TraceabilityException on error
      */
-    String getTraceabilityEndDate() throws TraceabilityException;
+    String getTraceabilityEndDate();
 
     /**
      * Warning: This method MUST be used after "saveDataInZip" witch initialize traceabilityIterator
@@ -129,66 +126,69 @@ public interface LogbookTraceabilityHelper {
     long getDataSize();
 
     /**
+     * Get the last traceability operation Id
+     *
+     * @return the operation id of the last traceability entry or null if no previous traceability found
+     */
+    String getPreviousOperationId();
+
+    /**
      * Get the last traceability (in logbook) event and return the timestampToken of the entry
      *
      * @return the timestamp token of the last traceability entry or null if no previous traceability OK for that type
-     * @throws InvalidParseOperationException if any errors occurs while deserializing entry's data.
      */
-    byte[] getPreviousTimestampToken() throws InvalidParseOperationException;
+    byte[] getPreviousTimestampToken();
 
     /**
      * Get the first traceability (in logbook) one month before the given currentDate and return the timestampToken of the entry
      * for a specific securisation version
      *
-     * @param securisationVersion the securisation version to filter by
      * @return the timestamp token of the matching entry or null if no matching entry
-     * @throws InvalidParseOperationException if any errors occurs while deserializing entry's data.
-     * @throws TraceabilityException if any other error occurs
      */
-    byte[] getPreviousMonthTimestampToken(String securisationVersion)
-        throws InvalidParseOperationException, TraceabilityException;
+    byte[] getPreviousMonthTimestampToken();
 
     /**
      * Get the first traceability (in logbook) one year before the given currentDate and return the timestampToken of the entry
      * for a specific securisation version
      *
-     * @param securisationVersion the securisation version to filter by
      * @return the timestamp token of the matching entry or null if no matching entry
-     * @throws InvalidParseOperationException if any errors occurs while deserializing entry's data.
-     * @throws TraceabilityException if any other error occurs
      */
-    byte[] getPreviousYearTimestampToken(String securisationVersion)
-        throws InvalidParseOperationException, TraceabilityException;
+    byte[] getPreviousYearTimestampToken();
 
     /**
      * Get the last traceability (in logbook) event and return the startDate of the entry
      *
      * @return the start date of the last traceability entry
-     * @throws InvalidParseOperationException if any errors occurs while deserializing entry's data.
      */
-    String getPreviousStartDate() throws InvalidParseOperationException;
+    String getPreviousStartDate();
+
+    /**
+     * Get the first traceability operation id (in logbook) one month before the given currentDate
+     *
+     * @return the operation id, or null
+     */
+    String getPreviousMonthOperationId();
 
     /**
      * Get the first traceability (in logbook) one month before the given currentDate and return the startDate of the entry
      *
-     * @param securisationVersion the securisation version to filter by
      * @return the start date of the matching entry or null if no matching entry
-     * @throws InvalidParseOperationException if any errors occurs while deserializing entry's data.
-     * @throws TraceabilityException if any other error occurs
      */
-    String getPreviousMonthStartDate(String securisationVersion)
-        throws InvalidParseOperationException, TraceabilityException;
+    String getPreviousMonthStartDate();
+
+    /**
+     * Get the first traceability operation id (in logbook) one year before the given currentDate
+     *
+     * @return the operation id
+     */
+    String getPreviousYearOperationId();
 
     /**
      * Get the first traceability (in logbook) one year before the given currentDate and return the startDate of the entry
      *
-     * @param securisationVersion the securisation version to filter by
      * @return the start date of the matching entry or null if no matching entry
-     * @throws InvalidParseOperationException if any errors occurs while deserializing entry's data.
-     * @throws TraceabilityException if any other error occurs
      */
-    String getPreviousYearStartDate(String securisationVersion)
-        throws InvalidParseOperationException, TraceabilityException;
+    String getPreviousYearStartDate();
 
     /**
      * Save the close master event if needed
@@ -204,4 +204,6 @@ public interface LogbookTraceabilityHelper {
     boolean getMaxEntriesReached();
 
     TraceabilityStatistics getTraceabilityStatistics();
+
+    String getSecurisationVersion();
 }

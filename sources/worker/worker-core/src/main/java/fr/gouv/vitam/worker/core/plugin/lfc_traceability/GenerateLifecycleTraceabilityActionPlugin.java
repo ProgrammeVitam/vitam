@@ -31,12 +31,10 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.timestamp.TimeStampSignature;
 import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
-import fr.gouv.vitam.logbook.common.model.TraceabilityType;
 import fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper;
 import fr.gouv.vitam.logbook.common.traceability.TraceabilityService;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -117,18 +115,6 @@ public abstract class GenerateLifecycleTraceabilityActionPlugin extends ActionHa
             tenantId,
             tmpFolder
         );
-        String securisationVersion;
-        if (helper.getTraceabilityType() == TraceabilityType.UNIT_LIFECYCLE) {
-            securisationVersion = VitamConfiguration.getLfcUnitTraceabilityVersion(
-                VitamThreadUtils.getVitamSession().getTenantId()
-            );
-        } else if (helper.getTraceabilityType() == TraceabilityType.OBJECTGROUP_LIFECYCLE) {
-            securisationVersion = VitamConfiguration.getLfcGotTraceabilityVersion(
-                VitamThreadUtils.getVitamSession().getTenantId()
-            );
-        } else {
-            throw new IllegalStateException("Invalid LFC traceability type " + helper.getTraceabilityType());
-        }
-        traceabilityService.secureData(VitamConfiguration.getDefaultStrategy(), securisationVersion);
+        traceabilityService.secureData(VitamConfiguration.getDefaultStrategy());
     }
 }
