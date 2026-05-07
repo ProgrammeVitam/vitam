@@ -27,46 +27,52 @@
 
 package fr.gouv.vitam.worker.core.handler;
 
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.junit.Test;
 
 import java.io.IOException;
-import java.io.InputStream;
 
-import static fr.gouv.vitam.common.model.IngestWorkflowConstants.STP_UPLOAD_RESULT_JSON;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
-public class UploadSIPActionHandler extends ActionHandler {
+public class UploadSIPActionHandlerTest {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UploadSIPActionHandler.class);
-    private static final String HANDLER_ID = "UPLOAD_SIP";
+    @Test
+    public void testReturnStatus() throws Exception {
+        // Given
+        ItemStatus uploadStatus = new ItemStatus("STEP").increment(StatusCode.OK).increment(StatusCode.WARNING);
+        HandlerIO handler = mock(HandlerIO.class);
+        doReturn(JsonHandler.writeToInpustream(uploadStatus)).when(handler).getInputStreamFromWorkspace(anyString());
+        WorkerParameters params = mock(WorkerParameters.class);
 
-    public static final String getId() {
-        return HANDLER_ID;
+        // When
+        UploadSIPActionHandler plugin = new UploadSIPActionHandler();
+        final ItemStatus response = plugin.execute(params, handler);
+
+        // Then
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
     }
 
-    public UploadSIPActionHandler() {}
+    @Test
+    public void testException() throws Exception {
+        // Given
+        HandlerIO handler = mock(HandlerIO.class);
+        doThrow(new IOException("prb")).when(handler).getInputStreamFromWorkspace(anyString());
+        WorkerParameters params = mock(WorkerParameters.class);
 
-    @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
-        LOGGER.info("Upload SIP");
-        try {
-            InputStream externalJsonResults = handler.getInputStreamFromWorkspace(STP_UPLOAD_RESULT_JSON);
-            return JsonHandler.getFromInputStream(externalJsonResults, ItemStatus.class);
-        } catch (
-            InvalidParseOperationException
-            | IOException
-            | ContentAddressableStorageNotFoundException
-            | ContentAddressableStorageServerException e
-        ) {
-            throw new ProcessingException("An exception occurred while retrieving ingest upload result", e);
-        }
+        // When / Then
+        UploadSIPActionHandler plugin = new UploadSIPActionHandler();
+        assertThatThrownBy(() -> plugin.execute(params, handler))
+            .isInstanceOf(ProcessingException.class)
+            .hasCauseInstanceOf(IOException.class);
     }
 }
