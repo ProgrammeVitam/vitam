@@ -152,15 +152,15 @@ public class EvidenceServiceTest {
 
     @After
     public void setUpAfter() {
-        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, VitamConfiguration.getDefaultTraceabilityVersion());
-        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, VitamConfiguration.getDefaultTraceabilityVersion());
+        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
+        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
     }
 
     @RunWithCustomExecutor
     @Test
     public void auditEvidenceNominalCaseForUnitV1() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        auditEvidenceNominalCaseForUnit(VitamConfiguration.getDefaultTraceabilityVersion());
+        auditEvidenceNominalCaseForUnit(VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
     }
 
     @RunWithCustomExecutor
@@ -272,7 +272,7 @@ public class EvidenceServiceTest {
 
     private JsonNode getSelectlogbookLCsecure() throws Exception {
         // Get the securisation version for the tenant (same as in the actual code)
-        String securisationVersion = VitamConfiguration.getDefaultTraceabilityVersion();
+        String securisationVersion = VitamConfiguration.DEFAULT_TRACEABILITY_VERSION;
         return getSelectlogbookLCsecure(securisationVersion);
     }
 

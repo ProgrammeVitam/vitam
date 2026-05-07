@@ -798,14 +798,9 @@ public class EvidenceService {
 
     private Select createLastSecureSelect(String lastPersistedDate, String eventType)
         throws InvalidCreateOperationException, InvalidParseOperationException {
-        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        String securisationVersion = LOGBOOK_UNIT_LFC_TRACEABILITY.equals(eventType)
-            ? VitamConfiguration.getLfcUnitTraceabilityVersion(tenantId)
-            : VitamConfiguration.getLfcGotTraceabilityVersion(tenantId);
+        String securisationVersion = getLfcSecurisationVersion(eventType);
 
         Select select = new Select();
-
-        // Get tenant ID and securisation version
 
         BooleanQuery query = and()
             .add(
@@ -993,5 +988,16 @@ public class EvidenceService {
         }
 
         return metadataOptimisticBasicStorageInfos;
+    }
+
+    private String getLfcSecurisationVersion(String eventType) {
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        if (LOGBOOK_UNIT_LFC_TRACEABILITY.equals(eventType)) {
+            return VitamConfiguration.getLfcUnitTraceabilityVersion(tenantId);
+        } else if (LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.equals(eventType)) {
+            return VitamConfiguration.getLfcGotTraceabilityVersion(tenantId);
+        } else {
+            throw new IllegalStateException("Unsupported LFC traceability event type " + eventType);
+        }
     }
 }
