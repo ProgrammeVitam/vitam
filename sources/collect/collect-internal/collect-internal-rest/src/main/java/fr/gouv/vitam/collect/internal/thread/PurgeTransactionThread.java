@@ -68,37 +68,38 @@ public class PurgeTransactionThread implements Runnable {
         this.transactionService = transactionService;
         purgeTransactionDelayInMinutes = collectInternalConfiguration.getPurgeTransactionDelayInMinutes();
 
+        threadPoolSize = Math.min(
+            collectInternalConfiguration.getPurgeTransactionThreadPoolSize(),
+            VitamConfiguration.getTenants().size()
+        );
+
         Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance()).scheduleAtFixedRate(
             this,
             collectInternalConfiguration.getPurgeTransactionThreadFrequency(),
             collectInternalConfiguration.getPurgeTransactionThreadFrequency(),
             TimeUnit.MINUTES
         );
-
-        threadPoolSize = Math.min(
-            collectInternalConfiguration.getPurgeTransactionThreadPoolSize(),
-            VitamConfiguration.getTenants().size()
-        );
     }
 
     @Override
     public void run() {
-        try {
-            process();
-        } catch (CollectInternalException e) {
-            LOGGER.error("Error when processing purge transaction:", e);
-        }
+        process();
     }
 
-    public void deleteTransaction(Integer tenantId, Integer delay) throws CollectInternalException, ParseException {
-        LOGGER.debug("start delete transaction content" + tenantId + " " + Thread.currentThread().getId());
+    public void deleteTransaction(Integer tenantId, Integer delay) throws CollectInternalException {
+        LOGGER.info("start deleting transaction content for tenant " + tenantId + " " + Thread.currentThread().getId());
         List<TransactionModel> transactionModelList = transactionService.getListTransactionToDeleteByTenant(tenantId);
         if (transactionModelList.isEmpty()) {
             LOGGER.debug(TRANSACTION_NOT_FOUND);
+            return;
         }
         for (TransactionModel transactionModel : transactionModelList) {
-            if (isToDelete(transactionModel.getLastUpdate(), delay)) {
-                transactionService.deleteTransactionContent(transactionModel.getId());
+            try {
+                if (isToDelete(transactionModel.getLastUpdate(), delay)) {
+                    transactionService.deleteTransactionContent(transactionModel.getId());
+                }
+            } catch (CollectInternalException | ParseException e) {
+                LOGGER.info("Error deleting transaction  with id " + transactionModel.getId());
             }
         }
     }
@@ -110,7 +111,7 @@ public class PurgeTransactionThread implements Runnable {
         return differenceInMinutes >= delay;
     }
 
-    public void process() throws CollectInternalException {
+    public void process() {
         Thread.currentThread().setName(PurgeTransactionThread.class.getName());
         VitamThreadUtils.getVitamSession()
             .setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
@@ -123,7 +124,7 @@ public class PurgeTransactionThread implements Runnable {
                         VitamThreadUtils.getVitamSession().setTenantId(entry.getKey());
                         try {
                             deleteTransaction(entry.getKey(), entry.getValue());
-                        } catch (ParseException | CollectInternalException e) {
+                        } catch (CollectInternalException e) {
                             LOGGER.error("Error when deleting transaction:", e);
                         }
                     },
