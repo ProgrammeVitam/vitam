@@ -266,12 +266,12 @@ public class LogbookOperationsImpl implements LogbookOperations {
     }
 
     @Override
-    public LogbookOperation findFirstTraceabilityOperationOKAfterDate(
+    public LogbookOperation findLastTraceabilityOperationOKBeforeDate(
         final LocalDateTime date,
         String securisationVersion
     ) throws InvalidCreateOperationException, LogbookDatabaseException, InvalidParseOperationException {
         final Select select = new Select();
-        final Query query = QueryHelper.gt("evDateTime", LocalDateUtil.getFormattedDateTimeForMongo(date));
+        final Query query = QueryHelper.lte("evDateTime", LocalDateUtil.getFormattedDateTimeForMongo(date));
         final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
         final Query status = QueryHelper.eq(
             LogbookDocument.EVENTS + "." + outcomeDetail.getDbname(),
@@ -290,7 +290,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
         select.setQuery(QueryHelper.and().add(query, type, status, findVersion));
         select.setLimitFilter(0, 1);
-        select.addOrderByAscFilter("evDateTime");
+        select.addOrderByDescFilter("evDateTime");
         LogbookOperation logbookOperation = null;
         try {
             logbookOperation = mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false).next();

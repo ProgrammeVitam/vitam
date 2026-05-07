@@ -29,11 +29,13 @@ package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -100,15 +102,19 @@ public class GenerateUnitLifecycleTraceabilityActionPlugin extends GenerateLifec
                 TYPE_REFERENCE
             )
         ) {
+            String securisationVersion = VitamConfiguration.getLfcUnitTraceabilityVersion(
+                VitamThreadUtils.getVitamSession().getTenantId()
+            );
+
             LogbookLifeCycleTraceabilityHelper helper = new LogbookUnitLifeCycleTraceabilityHelper(
                 handler,
                 logbookOperationsClient,
                 itemStatus,
                 params.getContainerName(),
-                workspaceClientFactory,
                 traceabilityDataIterator,
                 TRACEABILITY_EVENT_FILE_NAME,
-                TRACEABILITY_ZIP_FILE_NAME
+                TRACEABILITY_ZIP_FILE_NAME,
+                securisationVersion
             );
 
             generateLifecycleTraceabilityFile(helper);
