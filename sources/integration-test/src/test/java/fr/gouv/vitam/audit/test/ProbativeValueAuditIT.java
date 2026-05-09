@@ -158,9 +158,12 @@ public class ProbativeValueAuditIT extends VitamRuleRunner {
     public void afterTest() {
         handleAfter();
         // Reset SecurisationVersion to default for other tests
-        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V1");
-        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V1");
-        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V1");
+        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
+        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(
+            TENANT_ID,
+            VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
+        );
     }
 
     @Test
@@ -394,6 +397,15 @@ public class ProbativeValueAuditIT extends VitamRuleRunner {
         VitamTestHelper.doTraceabilityGots();
         VitamTestHelper.doTraceabilityOperations();
 
+        String ingestOperationId2 = VitamTestHelper.doIngest(TENANT_ID, SIP_1_UNIT_1_GOTS);
+        verifyOperation(ingestOperationId2, OK);
+
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        VitamTestHelper.doTraceabilityUnits();
+        VitamTestHelper.doTraceabilityGots();
+        VitamTestHelper.doTraceabilityOperations();
+
         SelectMultiQuery query = new SelectMultiQuery();
         query.setQuery(QueryHelper.and().add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationId1)));
 
@@ -405,20 +417,20 @@ public class ProbativeValueAuditIT extends VitamRuleRunner {
             ProbativeReportV2.class
         );
 
-        // Verify the audit completed successfully
+        // Verify the audit completed successfully (audit might be WARNING for the very first traceability)
         assertThat(report.getOperationSummary().getOutcome()).isIn("OK", "WARNING");
         assertThat(report.getReportEntries()).hasSize(1);
         assertThat(report.getReportSummary().getVitamResults().getNbKo()).isEqualTo(0);
 
         // When - Run probative value audit for the second ingest (V2)
-        SelectMultiQuery queryV1 = new SelectMultiQuery();
-        queryV1.setQuery(
-            QueryHelper.and().add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationId1))
+        SelectMultiQuery query2 = new SelectMultiQuery();
+        query2.setQuery(
+            QueryHelper.and().add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationId2))
         );
 
-        String evidenceAuditOperationV1 = runProbativeValueAudit(queryV1.getFinalSelect(), false);
+        String evidenceAuditOperation2 = runProbativeValueAudit(query2.getFinalSelect(), false);
 
-        verifyOperation(evidenceAuditOperationV1, OK);
+        verifyOperation(evidenceAuditOperation2, OK);
     }
 
     @Test
@@ -443,13 +455,10 @@ public class ProbativeValueAuditIT extends VitamRuleRunner {
         VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V2");
         VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V2");
 
-        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
-
         // When - Run probative value audit with V2 (should fail)
         SelectMultiQuery query = new SelectMultiQuery();
         query.setQuery(QueryHelper.and().add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationId)));
 
-        boolean auditFailed = false;
         String operationId;
 
         try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
@@ -461,22 +470,17 @@ public class ProbativeValueAuditIT extends VitamRuleRunner {
             assertThat(requestResponse.isOk()).isTrue();
             operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
-            // Try to wait for the operation - it should fail due to version mismatch
-
+            // Await termination and check status ==> should be due to version mismatch
             waitOperation(operationId);
-
-            // Try to verify the operation - it should fail due to version mismatch
-
             verifyOperation(operationId, KO);
-
-            //  check if the report has KO entries due to version mismatch
 
             ProbativeReportV2 report = JsonHandler.getFromString(
                 readReportFile(operationId + ".json"),
                 ProbativeReportV2.class
             );
-
-            assertThat(report.getReportSummary().getVitamResults().getNbKo() == 1).isTrue();
+            assertThat(report.getReportSummary().getVitamResults().getNbOk()).isEqualTo(0);
+            assertThat(report.getReportSummary().getVitamResults().getNbWarning()).isEqualTo(0);
+            assertThat(report.getReportSummary().getVitamResults().getNbKo()).isEqualTo(1);
         }
     }
 
@@ -506,8 +510,6 @@ public class ProbativeValueAuditIT extends VitamRuleRunner {
             VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V2");
             VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V2");
 
-            logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
-
             // Second ingest with V2
             String ingestOperationId2 = VitamTestHelper.doIngest(TENANT_ID, SIP_1_UNIT_1_GOTS);
             verifyOperation(ingestOperationId2, OK);
@@ -521,11 +523,15 @@ public class ProbativeValueAuditIT extends VitamRuleRunner {
             VitamTestHelper.doTraceabilityOperations();
 
             // Third cycle: Switch back to V1
-            VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V1");
-            VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V1");
-            VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V1");
-
-            logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+            VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
+            VitamConfiguration.setLfcUnitTraceabilityVersion(
+                TENANT_ID,
+                VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
+            );
+            VitamConfiguration.setLogbookOperationTraceabilityVersion(
+                TENANT_ID,
+                VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
+            );
 
             // Third ingest with V1 again
             String ingestOperationId3 = VitamTestHelper.doIngest(TENANT_ID, SIP_1_UNIT_1_GOTS);
@@ -544,8 +550,6 @@ public class ProbativeValueAuditIT extends VitamRuleRunner {
             VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V2");
             VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V2");
 
-            logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
-
             // Fourth ingest with V2
             String ingestOperationId4 = VitamTestHelper.doIngest(TENANT_ID, SIP_1_UNIT_1_GOTS);
             verifyOperation(ingestOperationId4, OK);
@@ -559,11 +563,15 @@ public class ProbativeValueAuditIT extends VitamRuleRunner {
             VitamTestHelper.doTraceabilityOperations();
 
             // Fifth cycle: Switch back to V1
-            VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V1");
-            VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V1");
-            VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V1");
-
-            logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+            VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
+            VitamConfiguration.setLfcUnitTraceabilityVersion(
+                TENANT_ID,
+                VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
+            );
+            VitamConfiguration.setLogbookOperationTraceabilityVersion(
+                TENANT_ID,
+                VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
+            );
 
             // Fifth ingest with V1
             String ingestOperationId5 = VitamTestHelper.doIngest(TENANT_ID, SIP_1_UNIT_1_GOTS);
@@ -582,8 +590,6 @@ public class ProbativeValueAuditIT extends VitamRuleRunner {
             VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V2");
             VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V2");
 
-            logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
-
             // Sixth ingest with V2
             String ingestOperationId6 = VitamTestHelper.doIngest(TENANT_ID, SIP_1_UNIT_1_GOTS);
             verifyOperation(ingestOperationId6, OK);
@@ -597,11 +603,15 @@ public class ProbativeValueAuditIT extends VitamRuleRunner {
             VitamTestHelper.doTraceabilityOperations();
 
             // Seventh cycle: Final switch back to V1
-            VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V1");
-            VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V1");
-            VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V1");
-
-            logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+            VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
+            VitamConfiguration.setLfcUnitTraceabilityVersion(
+                TENANT_ID,
+                VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
+            );
+            VitamConfiguration.setLogbookOperationTraceabilityVersion(
+                TENANT_ID,
+                VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
+            );
 
             // Seventh ingest with V1
             String ingestOperationId7 = VitamTestHelper.doIngest(TENANT_ID, SIP_1_UNIT_1_GOTS);
@@ -637,10 +647,16 @@ public class ProbativeValueAuditIT extends VitamRuleRunner {
             assertThat(report.getReportEntries()).hasSize(7);
             assertThat(report.getReportSummary().getVitamResults().getNbKo()).isEqualTo(0);
         } finally {
-            // Reset SecurisationVersion to default for other tests
-            VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V1");
-            VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V1");
-            VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V1");
+            // Reset SecurisationVersion to default for other tests (audit might be WARNING for the very first traceability)
+            VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
+            VitamConfiguration.setLfcUnitTraceabilityVersion(
+                TENANT_ID,
+                VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
+            );
+            VitamConfiguration.setLogbookOperationTraceabilityVersion(
+                TENANT_ID,
+                VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
+            );
         }
     }
 

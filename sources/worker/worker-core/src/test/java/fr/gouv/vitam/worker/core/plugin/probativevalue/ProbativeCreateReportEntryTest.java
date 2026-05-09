@@ -161,12 +161,9 @@ public class ProbativeCreateReportEntryTest {
 
     @After
     public void after() {
-        VitamConfiguration.setLfcGotTraceabilityVersion(0, VitamConfiguration.getDefaultTraceabilityVersion());
-        VitamConfiguration.setLfcUnitTraceabilityVersion(0, VitamConfiguration.getDefaultTraceabilityVersion());
-        VitamConfiguration.setLogbookOperationTraceabilityVersion(
-            0,
-            VitamConfiguration.getDefaultTraceabilityVersion()
-        );
+        VitamConfiguration.setLfcGotTraceabilityVersion(0, VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
+        VitamConfiguration.setLfcUnitTraceabilityVersion(0, VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(0, VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
     }
 
     @Test
@@ -414,7 +411,7 @@ public class ProbativeCreateReportEntryTest {
                 createSelectTraceabilityWithVersion(
                     OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
                     logbookLFCDate,
-                    VitamConfiguration.getDefaultTraceabilityVersion()
+                    VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
                 )
             )
         ).willReturn(objectMapper.valueToTree(logbookOperationResponse(logBookOperationWith)));
@@ -423,7 +420,7 @@ public class ProbativeCreateReportEntryTest {
                 createSelectTraceabilityWithVersion(
                     LOGBOOK_TRACEABILITY.getEventType(),
                     logbookOperationLastpersiteddate,
-                    VitamConfiguration.getDefaultTraceabilityVersion()
+                    VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
                 )
             )
         ).willReturn(objectMapper.valueToTree(logbookOperationResponse(logBookOperationWith1)));
@@ -432,7 +429,7 @@ public class ProbativeCreateReportEntryTest {
             logbookOperationsClient.selectOperation(
                 createSelectClosestTraceabilityWithVersion(
                     logBookOperationWith1,
-                    VitamConfiguration.getDefaultTraceabilityVersion()
+                    VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
                 )
             )
         ).willReturn(
@@ -446,7 +443,7 @@ public class ProbativeCreateReportEntryTest {
             logbookOperationsClient.selectOperation(
                 createSelectClosestTraceabilityWithVersion(
                     logBookOperationWith1,
-                    VitamConfiguration.getDefaultTraceabilityVersion()
+                    VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
                 )
             )
         ).willReturn(
@@ -468,7 +465,7 @@ public class ProbativeCreateReportEntryTest {
     @RunWithCustomExecutor
     public void should_return_OK_with_V1() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        should_return_OK_with_version(VitamConfiguration.getDefaultTraceabilityVersion());
+        should_return_OK_with_version(VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
     }
 
     @Test
