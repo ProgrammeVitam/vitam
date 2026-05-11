@@ -257,14 +257,18 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     @Override
     public byte[] getPreviousMonthTimestampToken(String securisationVersion)
         throws InvalidParseOperationException, TraceabilityException {
-        extractPreviousEvent(this.traceabilityEndDate.minusMonths(1), true, securisationVersion);
+        if (!isLastMonthEventInit) {
+            extractPreviousEvent(this.traceabilityEndDate.minusMonths(1), true, securisationVersion);
+        }
         return previousMonthTimestampToken;
     }
 
     @Override
     public byte[] getPreviousYearTimestampToken(String securisationVersion)
         throws InvalidParseOperationException, TraceabilityException {
-        extractPreviousEvent(this.traceabilityEndDate.minusYears(1), false, securisationVersion);
+        if (!isLastYearEventInit) {
+            extractPreviousEvent(this.traceabilityEndDate.minusYears(1), false, securisationVersion);
+        }
         return previousYearTimestampToken;
     }
 
@@ -412,5 +416,5 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     protected abstract Select generateSelectLogbookOperation(LocalDateTime date, String securisationVersion)
-        throws InvalidCreateOperationException;
+        throws InvalidCreateOperationException, InvalidParseOperationException;
 }
