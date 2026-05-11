@@ -266,8 +266,10 @@ public class LogbookOperationsImpl implements LogbookOperations {
     }
 
     @Override
-    public LogbookOperation findFirstTraceabilityOperationOKAfterDate(final LocalDateTime date)
-        throws InvalidCreateOperationException, LogbookDatabaseException {
+    public LogbookOperation findFirstTraceabilityOperationOKAfterDate(
+        final LocalDateTime date,
+        String securisationVersion
+    ) throws InvalidCreateOperationException, LogbookDatabaseException {
         final Select select = new Select();
         final Query query = QueryHelper.gt("evDateTime", LocalDateUtil.getFormattedDateTimeForMongo(date));
         final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
@@ -275,8 +277,21 @@ public class LogbookOperationsImpl implements LogbookOperations {
             LogbookDocument.EVENTS + "." + outcomeDetail.getDbname(),
             "STP_OP_SECURISATION.OK"
         );
-        select.setQuery(QueryHelper.and().add(query, type, status));
+
+        final Query findVersion = QueryHelper.eq(
+            String.format(
+                "%s.%s.%s",
+                LogbookDocument.EVENTS,
+                LogbookMongoDbName.eventDetailData.getDbname(),
+                LogbookDocument.SECURISATION_VERSION
+            ),
+            securisationVersion
+        );
+
+        select.setQuery(QueryHelper.and().add(query, type, status, findVersion));
         select.setLimitFilter(0, 1);
+        // fixme 16398 The monthly chaining is not working correctly.
+        //  select.addOrderByAscFilter("evDateTime");
         LogbookOperation logbookOperation = null;
         try {
             logbookOperation = mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false).next();
@@ -287,7 +302,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
     }
 
     @Override
-    public LogbookOperation findLastTraceabilityOperationOK()
+    public LogbookOperation findLastTraceabilityOperationOK(String version)
         throws InvalidCreateOperationException, LogbookDatabaseException, InvalidParseOperationException {
         final Select select = new Select();
         final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
@@ -295,8 +310,17 @@ public class LogbookOperationsImpl implements LogbookOperations {
             String.format("%s.%s", LogbookDocument.EVENTS, outcomeDetail.getDbname()),
             "STP_OP_SECURISATION.OK"
         );
+        final Query findVersion = QueryHelper.eq(
+            String.format(
+                "%s.%s.%s",
+                LogbookDocument.EVENTS,
+                LogbookMongoDbName.eventDetailData.getDbname(),
+                LogbookDocument.SECURISATION_VERSION
+            ),
+            version
+        );
         select.setLimitFilter(0, 1);
-        select.setQuery(QueryHelper.and().add(type, findEvent));
+        select.setQuery(QueryHelper.and().add(type, findEvent, findVersion));
         select.addOrderByDescFilter("evDateTime");
         try {
             return mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false).next();
@@ -306,8 +330,11 @@ public class LogbookOperationsImpl implements LogbookOperations {
     }
 
     @Override
-    public LogbookOperation findLastLifecycleTraceabilityOperation(String eventType, boolean traceabilityWithZipOnly)
-        throws VitamException {
+    public LogbookOperation findLastLifecycleTraceabilityOperation(
+        String eventType,
+        String version,
+        boolean traceabilityWithZipOnly
+    ) throws VitamException {
         try {
             final Select query = new Select();
             final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
@@ -317,7 +344,33 @@ public class LogbookOperationsImpl implements LogbookOperations {
                 eventType + ".WARNING"
             );
 
-            BooleanQuery add = and().add(type, eventStatus);
+            // Apply SecurisationVersion filter: include operations where SecurisationVersion equals version OR evDetData is null
+            final BooleanQuery findVersion = QueryHelper.or()
+                .add(
+                    QueryHelper.eq(
+                        String.format(
+                            "%s.%s.%s",
+                            LogbookDocument.EVENTS,
+                            LogbookMongoDbName.eventDetailData.getDbname(),
+                            LogbookDocument.SECURISATION_VERSION
+                        ),
+                        version
+                    )
+                )
+                .add(
+                    not()
+                        .add(
+                            exists(
+                                String.format(
+                                    "%s.%s",
+                                    LogbookDocument.EVENTS,
+                                    LogbookMongoDbName.eventDetailData.getDbname()
+                                )
+                            )
+                        )
+                );
+
+            BooleanQuery add = and().add(type, eventStatus, findVersion);
             if (traceabilityWithZipOnly) {
                 ExistsQuery hasTraceabilityFile = exists("events.evDetData.FileName");
                 add.add(hasTraceabilityFile);

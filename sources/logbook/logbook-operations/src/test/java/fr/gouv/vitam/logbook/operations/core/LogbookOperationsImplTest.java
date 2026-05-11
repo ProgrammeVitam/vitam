@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterators;
 import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -60,6 +61,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,6 +70,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static fr.gouv.vitam.common.VitamConfiguration.DEFAULT_TRACEABILITY_VERSION;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -84,6 +87,8 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class LogbookOperationsImplTest {
+
+    private static final Integer TENANT_ID = 0;
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
@@ -132,6 +137,11 @@ public class LogbookOperationsImplTest {
             indexationHelper,
             indexManager
         );
+    }
+
+    @After
+    public void resetConf() throws Exception {
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, DEFAULT_TRACEABILITY_VERSION);
     }
 
     @Test(expected = LogbookDatabaseException.class)
@@ -201,9 +211,18 @@ public class LogbookOperationsImplTest {
 
     @Test
     public void findFirstTraceabilityOperationOKAfterDateTest() throws Exception {
+        findFirstTraceabilityOperationOKAfterDateTestWithVersion(DEFAULT_TRACEABILITY_VERSION);
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V2");
+        findFirstTraceabilityOperationOKAfterDateTestWithVersion("V2");
+    }
+
+    public void findFirstTraceabilityOperationOKAfterDateTestWithVersion(String traceabilityVersion) throws Exception {
         reset(mongoDbAccess);
         doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(any(), anyBoolean());
-        LogbookOperation lo = logbookOperationsImpl.findFirstTraceabilityOperationOKAfterDate(LocalDateUtil.now());
+        LogbookOperation lo = logbookOperationsImpl.findFirstTraceabilityOperationOKAfterDate(
+            LocalDateUtil.now(),
+            traceabilityVersion
+        );
         assertNotNull(lo);
     }
 

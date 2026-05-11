@@ -126,9 +126,18 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
     }
 
     @Override
-    public LogbookOperation findLastLifecycleTraceabilityOperation(String eventType, boolean traceabilityWithZipOnly)
-        throws VitamException {
-        return logbookOperations.findLastLifecycleTraceabilityOperation(eventType, traceabilityWithZipOnly);
+    public LogbookOperation findLastTraceabilityOperationOK(String version)
+        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException, InvalidParseOperationException {
+        return logbookOperations.findLastTraceabilityOperationOK(version);
+    }
+
+    @Override
+    public LogbookOperation findLastLifecycleTraceabilityOperation(
+        String eventType,
+        String version,
+        boolean traceabilityWithZipOnly
+    ) throws VitamException {
+        return logbookOperations.findLastLifecycleTraceabilityOperation(eventType, version, traceabilityWithZipOnly);
     }
 
     @Override

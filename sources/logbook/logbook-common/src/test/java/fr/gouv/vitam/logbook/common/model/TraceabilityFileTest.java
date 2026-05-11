@@ -72,7 +72,7 @@ public class TraceabilityFileTest {
 
         traceabilityFile.storeTimeStampToken(timeStampToken);
 
-        traceabilityFile.storeAdditionalInformation(1, "2016-11-21T16:19:13.469", "2016-11-21T16:19:14.469");
+        traceabilityFile.storeAdditionalInformation(1, "2016-11-21T16:19:13.469", "2016-11-21T16:19:14.469", "V2");
         traceabilityFile.storeComputedInformation("hah11111", "hahss11221", "h12334", "hs12334SS");
         traceabilityFile.close();
 
@@ -87,7 +87,7 @@ public class TraceabilityFileTest {
             assertThat(prop.getProperty("startDate")).isEqualTo("2016-11-21T16:19:13.469");
             assertThat(prop.getProperty("numberOfElements")).isEqualTo("1");
             assertThat(prop.getProperty("endDate")).isEqualTo("2016-11-21T16:19:14.469");
-            assertThat(prop.getProperty(SECURISATION_VERSION_LABEL)).isEqualTo("V1");
+            assertThat(prop.getProperty(SECURISATION_VERSION_LABEL)).isEqualTo("V2");
         }
     }
 }

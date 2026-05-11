@@ -268,25 +268,25 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     }
 
     @Override
-    public String getPreviousMonthStartDate() {
+    public String getPreviousMonthStartDate(String securisationVersion) {
         // Never link to previous Year/Month token for storage
         return null;
     }
 
     @Override
-    public byte[] getPreviousMonthTimestampToken() {
+    public byte[] getPreviousMonthTimestampToken(String securisationVersion) {
         // Never link to previous Year/Month token for storage
         return null;
     }
 
     @Override
-    public String getPreviousYearStartDate() {
+    public String getPreviousYearStartDate(String securisationVersion) {
         // Never link to previous Year/Month token for storage
         return null;
     }
 
     @Override
-    public byte[] getPreviousYearTimestampToken() {
+    public byte[] getPreviousYearTimestampToken(String securisationVersion) {
         // Never link to previous Year/Month token for storage
         return null;
     }
