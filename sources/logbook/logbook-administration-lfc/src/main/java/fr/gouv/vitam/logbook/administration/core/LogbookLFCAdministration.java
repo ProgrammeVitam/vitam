@@ -28,6 +28,7 @@ package fr.gouv.vitam.logbook.administration.core;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -50,6 +51,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
@@ -230,6 +232,7 @@ public class LogbookLFCAdministration {
     private LogbookOperation getLastTraceability(LfcTraceabilityType lfcTraceabilityType) throws VitamException {
         return logbookOperations.findLastLifecycleTraceabilityOperation(
             getWorkflowContext(lfcTraceabilityType).getEventType(),
+            getLfcSecurisationVersion(lfcTraceabilityType),
             false
         );
     }
@@ -250,9 +253,12 @@ public class LogbookLFCAdministration {
             return lastLfcTraceabilityOperation;
         }
 
+        String securisationVersion = getLfcSecurisationVersion(lfcTraceabilityType);
+
         // Retrieve last traceability with zip file
         return logbookOperations.findLastLifecycleTraceabilityOperation(
             getWorkflowContext(lfcTraceabilityType).getEventType(),
+            securisationVersion,
             true
         );
     }
@@ -494,5 +500,16 @@ public class LogbookLFCAdministration {
 
             return lifecycleTraceabilityStatus;
         }
+    }
+
+    private String getLfcSecurisationVersion(LfcTraceabilityType lfcTraceabilityType) {
+        return switch (lfcTraceabilityType) {
+            case Unit -> VitamConfiguration.getLfcUnitTraceabilityVersion(
+                VitamThreadUtils.getVitamSession().getTenantId()
+            );
+            case ObjectGroup -> VitamConfiguration.getLfcGotTraceabilityVersion(
+                VitamThreadUtils.getVitamSession().getTenantId()
+            );
+        };
     }
 }

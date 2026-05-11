@@ -57,6 +57,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
+import static fr.gouv.vitam.common.VitamConfiguration.DEFAULT_TRACEABILITY_VERSION;
+
 /**
  * Business class for Storage Traceability Administration
  */
@@ -207,7 +209,8 @@ public class StorageTraceabilityAdministration {
                 tmpFolder
             );
 
-            service.secureData(strategyId);
+            // Hardcoded to V1 as storagetraceability are not versioned/configurable by design
+            service.secureData(strategyId, DEFAULT_TRACEABILITY_VERSION);
 
             return new StorageLogTraceabilityResult().setTenantId(tenantId).setOperationId(requestId.getId());
         } catch (Exception e) {

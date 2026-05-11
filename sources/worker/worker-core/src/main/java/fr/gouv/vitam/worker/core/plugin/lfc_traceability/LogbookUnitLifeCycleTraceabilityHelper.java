@@ -110,7 +110,8 @@ public class LogbookUnitLifeCycleTraceabilityHelper extends LogbookLifeCycleTrac
     }
 
     @Override
-    protected Select generateSelectLogbookOperation(LocalDateTime date) throws InvalidCreateOperationException {
+    protected Select generateSelectLogbookOperation(LocalDateTime date, String securisationVersion)
+        throws InvalidCreateOperationException {
         final Select select = new Select();
         final Query query = QueryHelper.gt(eventDateTime.getDbname(), LocalDateUtil.getFormattedDateTimeForMongo(date));
         final Query type = QueryHelper.eq(eventTypeProcess.getDbname(), LogbookTypeProcess.TRACEABILITY.name());
@@ -122,7 +123,19 @@ public class LogbookUnitLifeCycleTraceabilityHelper extends LogbookLifeCycleTrac
         final Query hasTraceabilityFile = QueryHelper.exists(
             String.format("%s.%s.%s", LogbookDocument.EVENTS, eventDetailData.getDbname(), "FileName")
         );
-        select.setQuery(QueryHelper.and().add(query, type, eventStatus, hasTraceabilityFile));
+
+        final Query findVersion = QueryHelper.eq(
+            String.format(
+                "%s.%s.%s",
+                LogbookDocument.EVENTS,
+                eventDetailData.getDbname(),
+                LogbookDocument.SECURISATION_VERSION
+            ),
+            securisationVersion
+        );
+        // fixme  16398 The monthly chaining is not working correctly.
+        //  select.addOrderByAscFilter("evDateTime");
+        select.setQuery(QueryHelper.and().add(query, type, eventStatus, hasTraceabilityFile, findVersion));
         select.setLimitFilter(0, 1);
         return select;
     }

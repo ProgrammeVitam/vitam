@@ -132,28 +132,30 @@ public interface LogbookOperations {
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, InvalidCreateOperationException;
 
     /**
-     * Find One logbook TraceabilityOperation after a given date
+     * Find One logbook TraceabilityOperation after a given date for a specific securisation version
      *
-     * @param date the select request in format of JsonNode
+     * @param date the date after which to search
+     * @param securisationVersion the securisation version to filter by
      * @return the LogbookOperation
      * @throws LogbookNotFoundException if no operation selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the operation
      * @throws InvalidCreateOperationException if the query could not be created
      */
-    LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date)
+    LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date, String securisationVersion)
         throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException;
 
     /**
-     * Find last successful traceability operation
+     * Find last successful traceability operation for a specific version
      *
-     * @return the last valid traceability operation
+     * @param version The securisation version to look for
+     * @return the last valid traceability operation for the specified version
      * @throws InvalidCreateOperationException if the query could not be created
      * @throws LogbookNotFoundException if no operation selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if the query could not be created
      */
-    LogbookOperation findLastTraceabilityOperationOK()
+    LogbookOperation findLastTraceabilityOperationOK(String version)
         throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException, InvalidParseOperationException;
 
     /**
@@ -164,8 +166,11 @@ public interface LogbookOperations {
      * @return the last valid traceability operation
      * @throws VitamException if errors occur while retrieving data
      */
-    LogbookOperation findLastLifecycleTraceabilityOperation(String eventType, boolean traceabilityWithZipOnly)
-        throws VitamException;
+    LogbookOperation findLastLifecycleTraceabilityOperation(
+        String eventType,
+        String version,
+        boolean traceabilityWithZipOnly
+    ) throws VitamException;
 
     /**
      * Reindex one or more collections

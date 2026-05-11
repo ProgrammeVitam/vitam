@@ -158,9 +158,22 @@ extendedConfiguration:
   #
   # The `objectGroupBlackListedFields` configuration option specifies the fields that should not be reported by access-external.
   #
+  # The `traceabilityVersion` configuration option specifies the traceability version to use per / traceability type.
+  #   - logbookOperation: Version for logbook operation traceability (default: V1)
+  #   - lfcUnit: Version for LFC unit traceability (default: V1)
+  #   - lfcGot: Version for LFC GOT traceability (default: V1)
+  #   
+  #   Available versions: V1, V2, V3, V4......
+  #   WARNING: Updating traceability version generates a new traceability chain.
+  #   /!\ Do NOT change traceability version unless you know what you do!
+  #
   # Example for tenant 0 :
   #   0:
   #     eliminationReportExtraFields: ["#id", "FilePlanPosition", "SystemId"]
   #     ingestReportUnitExtraFields: [ "FilePlanPosition", "OriginatingSystemId", "ArchivalAgencyArchiveUnitIdentifier", "OriginatingAgencyArchiveUnitIdentifier", "TransferringAgencyArchiveUnitIdentifier", "PersistentIdentifier" ]
   #     ingestReportObjectExtraFields: [ "PersistentIdentifier" ]
   #     objectGroupBlackListedFields: ['Filename']
+  #     traceabilityVersion:
+  #       logbookOperation: 'V1'
+  #       lfcUnit: 'V1'
+  #       lfcGot: 'V1'

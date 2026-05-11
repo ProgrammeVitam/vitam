@@ -58,7 +58,7 @@ public interface LogbookTraceabilityHelper {
     void saveDataInZip(MerkleTreeAlgo algo, TraceabilityFile file) throws IOException, TraceabilityException;
 
     /**
-     * Prepare and start the traceability operation
+     * Prepare and start the traceability operation with a specific version
      *
      * @throws TraceabilityException if any error occurs
      */
@@ -138,21 +138,27 @@ public interface LogbookTraceabilityHelper {
 
     /**
      * Get the first traceability (in logbook) one month before the given currentDate and return the timestampToken of the entry
+     * for a specific securisation version
      *
+     * @param securisationVersion the securisation version to filter by
      * @return the timestamp token of the matching entry or null if no matching entry
      * @throws InvalidParseOperationException if any errors occurs while deserializing entry's data.
      * @throws TraceabilityException if any other error occurs
      */
-    byte[] getPreviousMonthTimestampToken() throws InvalidParseOperationException, TraceabilityException;
+    byte[] getPreviousMonthTimestampToken(String securisationVersion)
+        throws InvalidParseOperationException, TraceabilityException;
 
     /**
      * Get the first traceability (in logbook) one year before the given currentDate and return the timestampToken of the entry
+     * for a specific securisation version
      *
+     * @param securisationVersion the securisation version to filter by
      * @return the timestamp token of the matching entry or null if no matching entry
      * @throws InvalidParseOperationException if any errors occurs while deserializing entry's data.
      * @throws TraceabilityException if any other error occurs
      */
-    byte[] getPreviousYearTimestampToken() throws InvalidParseOperationException, TraceabilityException;
+    byte[] getPreviousYearTimestampToken(String securisationVersion)
+        throws InvalidParseOperationException, TraceabilityException;
 
     /**
      * Get the last traceability (in logbook) event and return the startDate of the entry
@@ -165,20 +171,24 @@ public interface LogbookTraceabilityHelper {
     /**
      * Get the first traceability (in logbook) one month before the given currentDate and return the startDate of the entry
      *
+     * @param securisationVersion the securisation version to filter by
      * @return the start date of the matching entry or null if no matching entry
      * @throws InvalidParseOperationException if any errors occurs while deserializing entry's data.
      * @throws TraceabilityException if any other error occurs
      */
-    String getPreviousMonthStartDate() throws InvalidParseOperationException, TraceabilityException;
+    String getPreviousMonthStartDate(String securisationVersion)
+        throws InvalidParseOperationException, TraceabilityException;
 
     /**
      * Get the first traceability (in logbook) one year before the given currentDate and return the startDate of the entry
      *
+     * @param securisationVersion the securisation version to filter by
      * @return the start date of the matching entry or null if no matching entry
      * @throws InvalidParseOperationException if any errors occurs while deserializing entry's data.
      * @throws TraceabilityException if any other error occurs
      */
-    String getPreviousYearStartDate() throws InvalidParseOperationException, TraceabilityException;
+    String getPreviousYearStartDate(String securisationVersion)
+        throws InvalidParseOperationException, TraceabilityException;
 
     /**
      * Save the close master event if needed
