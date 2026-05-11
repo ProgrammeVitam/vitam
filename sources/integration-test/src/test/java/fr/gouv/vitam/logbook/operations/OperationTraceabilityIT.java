@@ -91,7 +91,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -100,10 +102,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static fr.gouv.vitam.common.VitamConfiguration.DEFAULT_TRACEABILITY_VERSION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class OperationTraceabilityIT extends VitamRuleRunner {
@@ -758,5 +762,422 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
     private void assertThatDateIsAfterOrEqualTo(String mongoDate, LocalDateTime expectedMin) {
         LocalDateTime dateTime = LocalDateUtil.parseMongoFormattedDate(mongoDate);
         assertThat(dateTime).isAfterOrEqualTo(expectedMin);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testOperationTraceability_GivenVersionChangeWhenTraceabilityThenCorrectBehavior() throws Exception {
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_0, DEFAULT_TRACEABILITY_VERSION);
+        // Given: An operation to secure
+        String operation1 = injectTestLogbookOperation();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        // When: First traceability with V1
+        LocalDateTime beforeTraceability1 = LocalDateUtil.now();
+        String traceabilityOperationId1 = runTraceability();
+        LocalDateTime afterTraceability1 = LocalDateUtil.now();
+        // Then: Traceability OK
+        LogbookOperation logbookOperation1 = getLogbookInformation(traceabilityOperationId1);
+        LogbookEventOperation lastEvent1 = logbookOperation1.getEvents().get(logbookOperation1.getEvents().size() - 1);
+        assertThat(lastEvent1.getOutDetail()).isEqualTo("STP_OP_SECURISATION.OK");
+
+        TraceabilityEvent traceabilityEvent1 = JsonHandler.getFromString(
+            logbookOperation1.getEvDetData(),
+            TraceabilityEvent.class
+        );
+
+        assertThat(traceabilityEvent1.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
+        assertThatDateIsBetween(
+            traceabilityEvent1.getEndDate(),
+            beforeTraceability1.minusMinutes(5),
+            afterTraceability1.minusMinutes(5)
+        );
+
+        // Given: Another operation to secure
+        String operation2 = injectTestLogbookOperation();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        // When: Second traceability with V1
+        LocalDateTime beforeTraceability2 = LocalDateUtil.now();
+        String traceabilityOperationId2 = runTraceability();
+        LocalDateTime afterTraceability2 = LocalDateUtil.now();
+
+        // Then: Traceability OK and continues from previous
+        LogbookOperation logbookOperation2 = getLogbookInformation(traceabilityOperationId2);
+        LogbookEventOperation lastEvent2 = logbookOperation2.getEvents().get(logbookOperation2.getEvents().size() - 1);
+        assertThat(lastEvent2.getOutDetail()).isEqualTo("STP_OP_SECURISATION.OK");
+
+        TraceabilityEvent traceabilityEvent2 = JsonHandler.getFromString(
+            logbookOperation2.getEvDetData(),
+            TraceabilityEvent.class
+        );
+
+        assertThat(traceabilityEvent2.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
+        assertThatDateIsBetween(
+            traceabilityEvent2.getEndDate(),
+            beforeTraceability2.minusMinutes(5),
+            afterTraceability2.minusMinutes(5)
+        );
+
+        // Given: Change version to V2
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_0, "V2");
+
+        String operation3 = injectTestLogbookOperation();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        // When: First traceability with V2
+        LocalDateTime beforeTraceability3 = LocalDateUtil.now();
+        String traceabilityOperationId3 = runTraceability();
+        LocalDateTime afterTraceability3 = LocalDateUtil.now();
+
+        // Then: Traceability OK and restarts from zero
+        LogbookOperation logbookOperation3 = getLogbookInformation(traceabilityOperationId3);
+        LogbookEventOperation lastEvent3 = logbookOperation3.getEvents().get(logbookOperation3.getEvents().size() - 1);
+        assertThat(lastEvent3.getOutDetail()).isEqualTo("STP_OP_SECURISATION.OK");
+
+        TraceabilityEvent traceabilityEvent3 = JsonHandler.getFromString(
+            logbookOperation3.getEvDetData(),
+            TraceabilityEvent.class
+        );
+
+        // Should restart from zero with initial date
+        assertThat(traceabilityEvent3.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
+        assertThatDateIsBetween(
+            traceabilityEvent3.getEndDate(),
+            beforeTraceability3.minusMinutes(5),
+            afterTraceability3.minusMinutes(5)
+        );
+
+        // Given: Another operation to secure
+        String operation4 = injectTestLogbookOperation();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        // When: Second traceability with V2
+        LocalDateTime beforeTraceability4 = LocalDateUtil.now();
+        String traceabilityOperationId4 = runTraceability();
+        LocalDateTime afterTraceability4 = LocalDateUtil.now();
+
+        // Then: Traceability OK and continues on V2
+        LogbookOperation logbookOperation4 = getLogbookInformation(traceabilityOperationId4);
+        LogbookEventOperation lastEvent4 = logbookOperation4.getEvents().get(logbookOperation4.getEvents().size() - 1);
+        assertThat(lastEvent4.getOutDetail()).isEqualTo("STP_OP_SECURISATION.OK");
+
+        TraceabilityEvent traceabilityEvent4 = JsonHandler.getFromString(
+            logbookOperation4.getEvDetData(),
+            TraceabilityEvent.class
+        );
+
+        // Should continue from previous V2 traceability
+        assertThat(traceabilityEvent4.getStartDate()).isEqualTo(traceabilityEvent3.getEndDate());
+        assertThatDateIsBetween(
+            traceabilityEvent4.getEndDate(),
+            beforeTraceability4.minusMinutes(5),
+            afterTraceability4.minusMinutes(5)
+        );
+
+        // Given: Change version back to V1
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_0, DEFAULT_TRACEABILITY_VERSION);
+        String operation5 = injectTestLogbookOperation();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        // When: Traceability with V1 after using V2
+        LocalDateTime beforeTraceability5 = LocalDateUtil.now();
+        String traceabilityOperationId5 = runTraceability();
+        LocalDateTime afterTraceability5 = LocalDateUtil.now();
+
+        // Then: Traceability OK and continues from the last V1 operation
+        LogbookOperation logbookOperation5 = getLogbookInformation(traceabilityOperationId5);
+        LogbookEventOperation lastEvent5 = logbookOperation5.getEvents().get(logbookOperation5.getEvents().size() - 1);
+        assertThat(lastEvent5.getOutDetail()).isEqualTo("STP_OP_SECURISATION.OK");
+
+        TraceabilityEvent traceabilityEvent5 = JsonHandler.getFromString(
+            logbookOperation5.getEvDetData(),
+            TraceabilityEvent.class
+        );
+
+        // Should continue from the last V1 traceability (traceabilityEvent2)
+        assertThat(traceabilityEvent5.getStartDate()).isEqualTo(traceabilityEvent2.getEndDate());
+        assertThatDateIsBetween(
+            traceabilityEvent5.getEndDate(),
+            beforeTraceability5.minusMinutes(5),
+            afterTraceability5.minusMinutes(5)
+        );
+
+        // Verify chaining: operation 4's previous should be that of operation 3
+        assertThat(traceabilityEvent4.getPreviousLogbookTraceabilityDate()).isEqualTo(
+            traceabilityEvent3.getStartDate()
+        );
+
+        downloadZips(
+            traceabilityEvent1,
+            traceabilityEvent2,
+            traceabilityEvent3,
+            traceabilityEvent4,
+            traceabilityEvent5
+        );
+        // Verify zip contents for operations 3 and 4
+        verifyTraceabilityZip(traceabilityEvent3, "V2");
+
+        verifyTraceabilityZip(traceabilityEvent4, "V2"); // operation 4: previousTimestampToken should equal token from operation 3
+        File tmpFolder = new File(this.tmpFolder.getRoot(), traceabilityEvent5.getFileName());
+        // Verify data.txt exists and contains expected operation
+        verifyDataFile(Arrays.asList(operation5, traceabilityOperationId4, traceabilityOperationId2), tmpFolder);
+
+        verifyTraceabilityChaining(
+            "previousTimestampToken",
+            traceabilityEvent1,
+            traceabilityEvent2,
+            traceabilityEvent5
+        );
+        // fixme 16398  The monthly chaining is not working correctly.     select.addOrderByAscFilter("evDateTime");
+        //  verifyTraceabilityChaining("previousTimestampTokenMinusOneMonth", traceabilityEvent1, traceabilityEvent5);
+    }
+
+    /**
+     * Verifies the contents of a traceability zip file
+     */
+    private void verifyTraceabilityZip(TraceabilityEvent traceabilityEvent, String expectedSecurisationVersion)
+        throws IOException {
+        File tmpFolder = new File(this.tmpFolder.getRoot(), traceabilityEvent.getFileName());
+
+        // Verify operation-related files exist
+        verifyOperationFiles(tmpFolder);
+
+        // Verify additional_information.txt contains correct securisationVersion
+        verifyAdditionalInformation(expectedSecurisationVersion, tmpFolder);
+
+        // Verify computing_information.txt and token verification
+        verifyComputingInformationAndToken(tmpFolder);
+    }
+
+    /**
+     * Verifies data.txt file exists and contains the expected operations
+     */
+    private void verifyDataFile(List<String> expectedOperations, File tmpFolder) throws IOException {
+        File dataFile = new File(tmpFolder, "data.txt");
+        assertThat(dataFile).exists();
+
+        List<String> lines = FileUtils.readLines(dataFile, StandardCharsets.UTF_8);
+        List<String> ids = parseLines(lines);
+        assertThat(ids).containsAll(expectedOperations);
+    }
+
+    /**
+     * Verifies that all expected operation-related files exist in the zip
+     */
+    private void verifyOperationFiles(File tmpFolder) {
+        File merkleTreeFile = new File(tmpFolder, "merkleTree.json");
+        File additionalInfoFile = new File(tmpFolder, "additional_information.txt");
+        File computingInfoFile = new File(tmpFolder, "computing_information.txt");
+        File tokenFile = new File(tmpFolder, "token.tsp");
+
+        assertThat(merkleTreeFile).exists();
+        assertThat(additionalInfoFile).exists();
+        assertThat(computingInfoFile).exists();
+        assertThat(tokenFile).exists();
+    }
+
+    /**
+     * Verifies additional_information.txt contains the correct securisationVersion
+     */
+    private void verifyAdditionalInformation(String expectedSecurisationVersion, File tmpFolder) throws IOException {
+        File additionalInfoFile = new File(tmpFolder, "additional_information.txt");
+        String additionalInfoContent = FileUtils.readFileToString(additionalInfoFile, StandardCharsets.UTF_8);
+
+        String securisationVersionFromFile = extractValueFromContent(additionalInfoContent, "securisationVersion");
+        assertThat(securisationVersionFromFile).isEqualTo(expectedSecurisationVersion);
+    }
+
+    /**
+     * Verifies computing_information.txt and handles token verification logic
+     */
+    private void verifyComputingInformationAndToken(File tmpFolder) throws IOException {
+        File computingInfoFile = new File(tmpFolder, "computing_information.txt");
+        File tokenFile = new File(tmpFolder, "token.tsp");
+
+        String computingInfoContent = FileUtils.readFileToString(computingInfoFile, StandardCharsets.UTF_8);
+        String tokenContent = FileUtils.readFileToString(tokenFile, StandardCharsets.UTF_8);
+
+        // Verify that the fields exist
+        assertThat(computingInfoContent).isNotNull();
+        assertThat(tokenContent).isNotNull();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testOperationTraceability_ComprehensiveVersionChangeWithYearProgression() throws Exception {
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_0, "V2");
+        injectTestLogbookOperation();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+        String traceabilityOperationId1 = runTraceability();
+
+        logicalClock.logicalSleep(13, ChronoUnit.HOURS);
+        String traceabilityOperationId2 = runTraceability();
+
+        injectTestLogbookOperation();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+        String traceabilityOperationId3 = runTraceability();
+
+        logicalClock.logicalSleep(21, ChronoUnit.DAYS);
+        injectTestLogbookOperation();
+        String traceabilityOperationId4 = runTraceability();
+
+        logicalClock.logicalSleep(14, ChronoUnit.DAYS);
+        injectTestLogbookOperation();
+        String traceabilityOperationId5 = runTraceability();
+
+        logicalClock.logicalSleep(300, ChronoUnit.DAYS);
+        injectTestLogbookOperation();
+        String traceabilityOperationId6 = runTraceability();
+
+        logicalClock.logicalSleep(90, ChronoUnit.DAYS);
+        injectTestLogbookOperation();
+        String traceabilityOperationId7 = runTraceability();
+
+        // Get traceability events for verification
+        LogbookOperation logbookOperation1 = getLogbookInformation(traceabilityOperationId1);
+        LogbookOperation logbookOperation2 = getLogbookInformation(traceabilityOperationId2);
+        LogbookOperation logbookOperation3 = getLogbookInformation(traceabilityOperationId3);
+        LogbookOperation logbookOperation4 = getLogbookInformation(traceabilityOperationId4);
+        LogbookOperation logbookOperation5 = getLogbookInformation(traceabilityOperationId5);
+        LogbookOperation logbookOperation6 = getLogbookInformation(traceabilityOperationId6);
+        LogbookOperation logbookOperation7 = getLogbookInformation(traceabilityOperationId7);
+
+        TraceabilityEvent traceabilityEvent1 = JsonHandler.getFromString(
+            logbookOperation1.getEvDetData(),
+            TraceabilityEvent.class
+        );
+        TraceabilityEvent traceabilityEvent2 = JsonHandler.getFromString(
+            logbookOperation2.getEvDetData(),
+            TraceabilityEvent.class
+        );
+        TraceabilityEvent traceabilityEvent3 = JsonHandler.getFromString(
+            logbookOperation3.getEvDetData(),
+            TraceabilityEvent.class
+        );
+        TraceabilityEvent traceabilityEvent4 = JsonHandler.getFromString(
+            logbookOperation4.getEvDetData(),
+            TraceabilityEvent.class
+        );
+        TraceabilityEvent traceabilityEvent5 = JsonHandler.getFromString(
+            logbookOperation5.getEvDetData(),
+            TraceabilityEvent.class
+        );
+        TraceabilityEvent traceabilityEvent6 = JsonHandler.getFromString(
+            logbookOperation6.getEvDetData(),
+            TraceabilityEvent.class
+        );
+        TraceabilityEvent traceabilityEvent7 = JsonHandler.getFromString(
+            logbookOperation7.getEvDetData(),
+            TraceabilityEvent.class
+        );
+
+        // Verify all traceability operations completed successfully
+        assertThat(traceabilityOperationId1).isNotNull();
+        assertThat(traceabilityOperationId2).isNotNull();
+        assertThat(traceabilityOperationId3).isNotNull();
+        assertThat(traceabilityOperationId4).isNotNull();
+        assertThat(traceabilityOperationId5).isNotNull();
+        assertThat(traceabilityOperationId6).isNotNull();
+        assertThat(traceabilityOperationId7).isNotNull();
+
+        assertThat(traceabilityEvent2.getPreviousLogbookTraceabilityDate()).isEqualTo(
+            traceabilityEvent1.getStartDate()
+        );
+
+        assertThat(traceabilityEvent3.getPreviousLogbookTraceabilityDate()).isEqualTo(
+            traceabilityEvent2.getStartDate()
+        );
+
+        assertThat(traceabilityEvent4.getPreviousLogbookTraceabilityDate()).isEqualTo(
+            traceabilityEvent3.getStartDate()
+        );
+        assertThat(traceabilityEvent5.getPreviousLogbookTraceabilityDate()).isEqualTo(
+            traceabilityEvent4.getStartDate()
+        );
+        assertThat(traceabilityEvent6.getPreviousLogbookTraceabilityDate()).isEqualTo(
+            traceabilityEvent5.getStartDate()
+        );
+        assertThat(traceabilityEvent7.getPreviousLogbookTraceabilityDate()).isEqualTo(
+            traceabilityEvent6.getStartDate()
+        );
+
+        // Verify that currentHash and previousTimestampToken relationships are correct
+        // Download and unzip all zip files into dedicated folders before verification
+        TraceabilityEvent[] allEvents = {
+            traceabilityEvent2,
+            traceabilityEvent3,
+            traceabilityEvent4,
+            traceabilityEvent5,
+            traceabilityEvent6,
+            traceabilityEvent7,
+        };
+
+        downloadZips(allEvents);
+        // Verify zip contents for detailed verification
+        verifyTraceabilityChaining(
+            "previousTimestampToken",
+            traceabilityEvent3,
+            traceabilityEvent4,
+            traceabilityEvent5,
+            traceabilityEvent6,
+            traceabilityEvent7
+        );
+        // fixme  16398  bug of year
+        // verifyTraceabilityChaining("previousTimestampTokenMinusOneMonth", traceabilityEvent2, traceabilityEvent4);
+
+        // verifyTraceabilityChaining("previousTimestampTokenMinusOneYear", traceabilityEvent2, traceabilityEvent6);
+    }
+
+    /**
+     * Gets the token content from a traceability zip file
+     */
+    private String getTokenContentFromZip(TraceabilityEvent traceabilityEvent) throws IOException {
+        // Use already unzipped dedicated folder
+        File dedicatedFolder = new File(tmpFolder.getRoot(), traceabilityEvent.getFileName());
+
+        // Read token content
+        File tokenFile = new File(dedicatedFolder, "token.tsp");
+        return FileUtils.readFileToString(tokenFile, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Extracts a value from content based on key=value format
+     */
+    private String extractValueFromContent(String content, String key) throws IOException {
+        Properties properties = new Properties();
+        properties.load(new StringReader(content));
+        return properties.getProperty(key);
+    }
+
+    private void downloadZips(TraceabilityEvent... allEvents) throws Exception {
+        for (TraceabilityEvent traceabilityEvent : allEvents) {
+            File dedicatedFolder = new File(tmpFolder.getRoot(), traceabilityEvent.getFileName());
+            Files.createDirectories(dedicatedFolder.toPath());
+            downloadZip(traceabilityEvent.getFileName(), dedicatedFolder);
+        }
+    }
+
+    /**
+     * Verifies the traceability chaining by checking currentHash and previousTimestampToken relationships
+     */
+    private void verifyTraceabilityChaining(String key, TraceabilityEvent... events) throws Exception {
+        for (int i = 1; i < events.length; i++) {
+            TraceabilityEvent currentEvent = events[i];
+            TraceabilityEvent previousEvent = events[i - 1];
+
+            String tokenContentFromOperation3 = getTokenContentFromZip(previousEvent);
+
+            // Use already unzipped folder for current event
+            File currentEventFolder = new File(tmpFolder.getRoot(), currentEvent.getFileName());
+
+            // Verify computing_information.txt contains correct previousTimestampToken
+            File computingInfoFile = new File(currentEventFolder, "computing_information.txt");
+            String computingInfoContent = FileUtils.readFileToString(computingInfoFile, StandardCharsets.UTF_8);
+
+            String previousTimestampTokenFromFile = extractValueFromContent(computingInfoContent, key);
+
+            assertThat(previousTimestampTokenFromFile).isEqualTo(String.valueOf(tokenContentFromOperation3));
+        }
     }
 }

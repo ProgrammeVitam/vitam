@@ -85,6 +85,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static fr.gouv.vitam.common.VitamConfiguration.DEFAULT_TRACEABILITY_VERSION;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static org.junit.Assert.assertEquals;
@@ -325,6 +326,10 @@ public class LogbookOperationsImplWithDatabasesTest {
             eip4
         );
         securityEvent.putParameterValue(LogbookParameterName.eventDateTime, dateStringSecurity);
+        securityEvent.putParameterValue(
+            LogbookParameterName.eventDetailData,
+            "{\"" + LogbookDocument.SECURISATION_VERSION + "\":\"" + DEFAULT_TRACEABILITY_VERSION + "\"}"
+        );
     }
 
     @AfterClass
@@ -466,7 +471,8 @@ public class LogbookOperationsImplWithDatabasesTest {
 
         logbookOperationsImpl.update(eip4.getId(), securityEvent);
         final LogbookOperation secureOperation = logbookOperationsImpl.findFirstTraceabilityOperationOKAfterDate(
-            LocalDateTime.parse("2017-08-02T12:01:00")
+            LocalDateTime.parse("2017-08-02T12:01:00"),
+            DEFAULT_TRACEABILITY_VERSION
         );
 
         assertEquals(secureOperation.get("evTypeProc"), LogbookTypeProcess.TRACEABILITY.toString());

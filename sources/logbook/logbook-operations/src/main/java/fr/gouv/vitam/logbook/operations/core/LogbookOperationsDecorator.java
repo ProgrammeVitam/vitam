@@ -33,7 +33,6 @@ import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
@@ -87,21 +86,9 @@ public abstract class LogbookOperationsDecorator implements LogbookOperations {
     }
 
     @Override
-    public LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date)
+    public LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date, String securisationVersion)
         throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException {
-        return logbookOperations.findFirstTraceabilityOperationOKAfterDate(date);
-    }
-
-    @Override
-    public LogbookOperation findLastTraceabilityOperationOK()
-        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException, InvalidParseOperationException {
-        return logbookOperations.findLastTraceabilityOperationOK();
-    }
-
-    @Override
-    public LogbookOperation findLastLifecycleTraceabilityOperation(String eventType, boolean traceabilityWithZipOnly)
-        throws VitamException {
-        return logbookOperations.findLastLifecycleTraceabilityOperation(eventType, traceabilityWithZipOnly);
+        return logbookOperations.findFirstTraceabilityOperationOKAfterDate(date, securisationVersion);
     }
 
     @Override

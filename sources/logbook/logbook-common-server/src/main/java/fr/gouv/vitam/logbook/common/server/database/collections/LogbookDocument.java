@@ -63,6 +63,8 @@ public abstract class LogbookDocument<E> extends Document {
      */
     public static final String EVENT_DETAILS = "evDetData";
 
+    public static final String SECURISATION_VERSION = "SecurisationVersion";
+
     /**
      *
      */

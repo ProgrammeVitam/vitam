@@ -27,7 +27,9 @@
 package fr.gouv.vitam.logbook.operations.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -106,8 +108,15 @@ public class LogbookOperationsDecoratorTest {
         }
 
         @Override
+        public LogbookOperation findLastTraceabilityOperationOK(String version)
+            throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException, InvalidParseOperationException {
+            return null;
+        }
+
+        @Override
         public LogbookOperation findLastLifecycleTraceabilityOperation(
             String eventType,
+            String version,
             boolean traceabilityWithZipOnly
         ) {
             return null;

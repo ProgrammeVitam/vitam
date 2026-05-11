@@ -255,18 +255,16 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     @Override
-    public byte[] getPreviousMonthTimestampToken() throws InvalidParseOperationException, TraceabilityException {
-        if (!isLastMonthEventInit) {
-            extractPreviousEvent(this.traceabilityEndDate.minusMonths(1), true);
-        }
+    public byte[] getPreviousMonthTimestampToken(String securisationVersion)
+        throws InvalidParseOperationException, TraceabilityException {
+        extractPreviousEvent(this.traceabilityEndDate.minusMonths(1), true, securisationVersion);
         return previousMonthTimestampToken;
     }
 
     @Override
-    public byte[] getPreviousYearTimestampToken() throws InvalidParseOperationException, TraceabilityException {
-        if (!isLastYearEventInit) {
-            extractPreviousEvent(this.traceabilityEndDate.minusYears(1), false);
-        }
+    public byte[] getPreviousYearTimestampToken(String securisationVersion)
+        throws InvalidParseOperationException, TraceabilityException {
+        extractPreviousEvent(this.traceabilityEndDate.minusYears(1), false, securisationVersion);
         return previousYearTimestampToken;
     }
 
@@ -279,17 +277,19 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     @Override
-    public String getPreviousMonthStartDate() throws InvalidParseOperationException, TraceabilityException {
+    public String getPreviousMonthStartDate(String securisationVersion)
+        throws InvalidParseOperationException, TraceabilityException {
         if (!isLastMonthEventInit) {
-            extractPreviousEvent(this.traceabilityEndDate.minusMonths(1), true);
+            extractPreviousEvent(this.traceabilityEndDate.minusMonths(1), true, securisationVersion);
         }
         return previousMonthStartDate;
     }
 
     @Override
-    public String getPreviousYearStartDate() throws InvalidParseOperationException, TraceabilityException {
+    public String getPreviousYearStartDate(String securisationVersion)
+        throws InvalidParseOperationException, TraceabilityException {
         if (!isLastYearEventInit) {
-            extractPreviousEvent(this.traceabilityEndDate.minusYears(1), false);
+            extractPreviousEvent(this.traceabilityEndDate.minusYears(1), false, securisationVersion);
         }
         return previousYearStartDate;
     }
@@ -333,12 +333,13 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
         isLastEventInit = true;
     }
 
-    private void extractPreviousEvent(LocalDateTime specificDate, Boolean isMonth)
+    private void extractPreviousEvent(LocalDateTime specificDate, Boolean isMonth, String securisationVersion)
         throws InvalidParseOperationException, TraceabilityException {
         try {
-            previousMonthTimestampToken = findHashByTraceabilityEventExpect(specificDate);
+            previousMonthTimestampToken = findHashByTraceabilityEventExpect(specificDate, securisationVersion);
             final LogbookOperation oneMounthBeforeTraceabilityOperation = findFirstTraceabilityOperationOKAfterDate(
-                specificDate
+                specificDate,
+                securisationVersion
             );
             if (oneMounthBeforeTraceabilityOperation != null) {
                 TraceabilityEvent oneMonthBeforeTraceabilityEvent = extractEventDetData(
@@ -375,10 +376,12 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
         return JsonHandler.getFromString((String) logbookOperation.get(EVENT_DETAIL_DATA), TraceabilityEvent.class);
     }
 
-    private byte[] findHashByTraceabilityEventExpect(LocalDateTime date)
+    private byte[] findHashByTraceabilityEventExpect(LocalDateTime date, String securisationVersion)
         throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
         RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(
-            logbookOperationsClient.selectOperation(generateSelectLogbookOperation(date).getFinalSelect())
+            logbookOperationsClient.selectOperation(
+                generateSelectLogbookOperation(date, securisationVersion).getFinalSelect()
+            )
         );
         List<JsonNode> foundOperation = requestResponseOK.getResults();
         if (foundOperation != null && !foundOperation.isEmpty()) {
@@ -393,10 +396,12 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
         return null;
     }
 
-    private LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date)
+    private LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date, String securisationVersion)
         throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
         RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(
-            logbookOperationsClient.selectOperation(generateSelectLogbookOperation(date).getFinalSelect())
+            logbookOperationsClient.selectOperation(
+                generateSelectLogbookOperation(date, securisationVersion).getFinalSelect()
+            )
         );
         List<JsonNode> foundOperation = requestResponseOK.getResults();
         if (foundOperation != null && foundOperation.size() == 1) {
@@ -406,5 +411,6 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
         return null;
     }
 
-    protected abstract Select generateSelectLogbookOperation(LocalDateTime date) throws InvalidCreateOperationException;
+    protected abstract Select generateSelectLogbookOperation(LocalDateTime date, String securisationVersion)
+        throws InvalidCreateOperationException;
 }
