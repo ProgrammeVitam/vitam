@@ -183,7 +183,7 @@ public class TraceabilityLinkedCheckPreparePlugin extends ActionHandler {
         } else if (OBJECTGROUP_LFC_TRACEABILITY.getEventType().equals(eventType)) {
             return VitamConfiguration.getLfcGotTraceabilityVersion(tenantId);
         } else if (LOGBOOK_STORAGE_TRACEABILITY.getEventType().equals(eventType)) {
-            return VitamConfiguration.getDefaultTraceabilityVersion();
+            return VitamConfiguration.DEFAULT_TRACEABILITY_VERSION;
         } else {
             throw new IllegalStateException();
         }

@@ -424,7 +424,7 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
     public void should_execute_linked_check_traceability_audit_workflow_with_securisation_version_v2() {
         VitamTestHelper.prepareVitamSession(TENANT_ID, CONTRACT_ID, CONTEXT_ID);
 
-        // Switch to V2 and create second traceability operation
+        // Switch to V2
         VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V2");
         VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V2");
         VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V2");
@@ -452,7 +452,7 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         String secureUnitLFCDataOpId = secureUnitLFCData();
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
 
-        // Build query that includes both V1 and V2 operations
+        // Build query that includes both V1 (storage-log traceability) and V2 operations (lfc unit, lfc og, operation)
         List<String> allOperations = Arrays.asList(
             secureGOTLFCDataOpId,
             secureUnitLFCDataOpId,
@@ -461,7 +461,7 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         );
         JsonNode query = buildQuery(allOperations);
 
-        // Run LinkedCheckTraceabilityWorkflow with V2 - should only process V2 operations
+        // Run LinkedCheckTraceabilityWorkflow with V2 - should only process V2 operations (V1 for storage log traceability)
         String opId = runLinkedCheckTraceability(query);
 
         VitamTestHelper.verifyOperation(opId, StatusCode.OK);
@@ -473,6 +473,9 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
 
         assertEquals(4, report.get(1).get("vitamResults").get("OK").asInt());
         assertEquals(1, report.get(1).get("extendedInfo").get("nbOperations").asInt());
+        assertEquals(1, report.get(1).get("extendedInfo").get("nbStorage").asInt());
+        assertEquals(1, report.get(1).get("extendedInfo").get("nbUnitLFC").asInt());
+        assertEquals(1, report.get(1).get("extendedInfo").get("nbGotLFC").asInt());
     }
 
     @Test
