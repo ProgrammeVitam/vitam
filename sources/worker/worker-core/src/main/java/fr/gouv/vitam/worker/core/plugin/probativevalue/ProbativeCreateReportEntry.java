@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -57,8 +58,11 @@ import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.traceability.TimeStampService;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
@@ -1191,6 +1195,19 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         LogbookOperation operation
     ) {
         try {
+            String securisationVersion;
+            if (Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType().contains(operation.getEvType())) {
+                securisationVersion = VitamConfiguration.getLfcGotTraceabilityVersion(
+                    VitamThreadUtils.getVitamSession().getTenantId()
+                );
+            } else if (Contexts.LOGBOOK_TRACEABILITY.getEventType().contains(operation.getEvType())) {
+                securisationVersion = VitamConfiguration.getLogbookOperationTraceabilityVersion(
+                    VitamThreadUtils.getVitamSession().getTenantId()
+                );
+            } else {
+                throw new IllegalStateException("Only ObjectGroup LFC and LogbookOperation traceability expected");
+            }
+
             Select select = new Select();
             BooleanQuery query = and()
                 .add(
@@ -1198,10 +1215,20 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                     in("events.outDetail", operation.getEvType() + "." + OK, operation.getEvType() + "." + WARNING),
                     exists("events.evDetData.FileName"),
                     ne("#id", operation.getId()),
-                    lte(LogbookMongoDbName.eventDateTime.getDbname(), operation.getEvDateTime())
+                    lte(LogbookMongoDbName.eventDateTime.getDbname(), operation.getEvDateTime()),
+                    QueryHelper.eq(
+                        String.format(
+                            "%s.%s.%s",
+                            LogbookDocument.EVENTS,
+                            LogbookMongoDbName.eventDetailData.getDbname(),
+                            LogbookDocument.SECURISATION_VERSION
+                        ),
+                        securisationVersion
+                    )
                 );
 
             select.setQuery(query);
+
             select.setLimitFilter(0, 1);
             select.addOrderByDescFilter("evDateTime");
 
@@ -1233,15 +1260,25 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         if (StringUtils.isBlank(ingestEvDate) || StringUtils.isBlank(lastPersistedGOTLFCDate)) {
             return Collections.emptyList();
         }
+        String lfcOgTraceabilityVersion = VitamConfiguration.getLfcGotTraceabilityVersion(
+            VitamThreadUtils.getVitamSession().getTenantId()
+        );
+
+        String logbookOperationTraceabilityVersion = VitamConfiguration.getLogbookOperationTraceabilityVersion(
+            VitamThreadUtils.getVitamSession().getTenantId()
+        );
+
         Optional<LogbookOperation> logbook = getOperationId(
             logbookOperationsClient,
             ingestEvDate,
-            LOGBOOK_TRACEABILITY.getEventType()
+            LOGBOOK_TRACEABILITY.getEventType(),
+            logbookOperationTraceabilityVersion
         );
         Optional<LogbookOperation> objectGroupLFC = getOperationId(
             logbookOperationsClient,
             lastPersistedGOTLFCDate,
-            OBJECTGROUP_LFC_TRACEABILITY.getEventType()
+            OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
+            lfcOgTraceabilityVersion
         );
         if (logbook.isPresent() && objectGroupLFC.isPresent()) {
             return Arrays.asList(logbook.get(), objectGroupLFC.get());
@@ -1252,7 +1289,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
     private Optional<LogbookOperation> getOperationId(
         LogbookOperationsClient logbookOperationsClient,
         String lastPersistedIngestOperationDate,
-        String eventType
+        String eventType,
+        String securisationVersion
     ) throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
         Select select = new Select();
         BooleanQuery query = and()
@@ -1261,7 +1299,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                 in("events.outDetail", eventType + "." + OK, eventType + "." + WARNING),
                 exists("events.evDetData.FileName"),
                 lte("events.evDetData.StartDate", lastPersistedIngestOperationDate),
-                gte("events.evDetData.EndDate", lastPersistedIngestOperationDate)
+                gte("events.evDetData.EndDate", lastPersistedIngestOperationDate),
+                eq("events.evDetData.SecurisationVersion", securisationVersion)
             );
 
         select.setQuery(query);
