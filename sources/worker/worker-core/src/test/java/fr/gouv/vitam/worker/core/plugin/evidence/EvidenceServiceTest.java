@@ -59,6 +59,7 @@ import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditExceptio
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditParameters;
 import jakarta.ws.rs.core.Response;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -149,11 +150,29 @@ public class EvidenceServiceTest {
         when(storageClientFactory.getClient()).thenReturn(storageClient);
     }
 
+    @After
+    public void setUpAfter() {
+        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
+        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
+    }
+
     @RunWithCustomExecutor
     @Test
-    public void auditEvidenceNominalCaseForUnit() throws Exception {
+    public void auditEvidenceNominalCaseForUnitV1() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        auditEvidenceNominalCaseForUnit(VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
+    }
 
+    @RunWithCustomExecutor
+    @Test
+    public void auditEvidenceNominalCaseForUnitV2() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V2");
+        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V2");
+        auditEvidenceNominalCaseForUnit("V2");
+    }
+
+    private void auditEvidenceNominalCaseForUnit(String version) throws Exception {
         //GIVEN
         EvidenceService evidenceService = new EvidenceService(
             metaDataClientFactory,
@@ -174,9 +193,9 @@ public class EvidenceServiceTest {
             liceCycle
         );
 
-        JsonNode select = getSelectlogbookLCsecure();
+        JsonNode select = getSelectlogbookLCsecure(version);
 
-        JsonNode select2 = getSelect2();
+        JsonNode select2 = getSelect2(version);
 
         when(logbookOperationsClient.selectOperationById(anyString())).thenReturn(logbook);
         when(logbookOperationsClient.selectOperation(select)).thenReturn(
@@ -252,7 +271,14 @@ public class EvidenceServiceTest {
     }
 
     private JsonNode getSelectlogbookLCsecure() throws Exception {
+        // Get the securisation version for the tenant (same as in the actual code)
+        String securisationVersion = VitamConfiguration.DEFAULT_TRACEABILITY_VERSION;
+        return getSelectlogbookLCsecure(securisationVersion);
+    }
+
+    private JsonNode getSelectlogbookLCsecure(String securisationVersion) throws Exception {
         Select select = new Select();
+
         BooleanQuery query = and()
             .add(
                 QueryHelper.eq(LogbookMongoDbName.eventType.getDbname(), "LOGBOOK_UNIT_LFC_TRACEABILITY"),
@@ -263,7 +289,8 @@ public class EvidenceServiceTest {
                 ),
                 QueryHelper.exists("events.evDetData.FileName"),
                 lte("events.evDetData.StartDate", "2018-02-20T11:14:54.872"),
-                gte("events.evDetData.EndDate", "2018-02-20T11:14:54.872")
+                gte("events.evDetData.EndDate", "2018-02-20T11:14:54.872"),
+                QueryHelper.eq("events.evDetData.SecurisationVersion", securisationVersion)
             );
 
         select.setQuery(query);
@@ -272,7 +299,7 @@ public class EvidenceServiceTest {
         return select.getFinalSelect();
     }
 
-    private JsonNode getSelect2() throws Exception {
+    private JsonNode getSelect2(String securisationVersion) throws Exception {
         Select select = new Select();
 
         BooleanQuery query = and()
@@ -283,7 +310,8 @@ public class EvidenceServiceTest {
                     "LOGBOOK_UNIT_LFC_TRACEABILITY.OK",
                     "LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING"
                 ),
-                QueryHelper.exists("events.evDetData.FileName")
+                QueryHelper.exists("events.evDetData.FileName"),
+                QueryHelper.eq("events.evDetData.SecurisationVersion", securisationVersion)
             );
 
         select.setQuery(query);
