@@ -143,7 +143,7 @@ public interface LogbookOperations {
      * @throws InvalidCreateOperationException if the query could not be created
      */
     LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date, String securisationVersion)
-        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException;
+        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException, InvalidParseOperationException;
 
     /**
      * Find last successful traceability operation for a specific version

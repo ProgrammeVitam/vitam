@@ -929,8 +929,8 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
             traceabilityEvent2,
             traceabilityEvent5
         );
-        // fixme 16398  The monthly chaining is not working correctly.     select.addOrderByAscFilter("evDateTime");
-        //  verifyTraceabilityChaining("previousTimestampTokenMinusOneMonth", traceabilityEvent1, traceabilityEvent5);
+
+        verifyTraceabilityChaining("previousTimestampTokenMinusOneMonth", traceabilityEvent1, traceabilityEvent5);
     }
 
     /**
@@ -1105,6 +1105,7 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
         // Verify that currentHash and previousTimestampToken relationships are correct
         // Download and unzip all zip files into dedicated folders before verification
         TraceabilityEvent[] allEvents = {
+            traceabilityEvent1,
             traceabilityEvent2,
             traceabilityEvent3,
             traceabilityEvent4,
@@ -1117,14 +1118,18 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
         // Verify zip contents for detailed verification
         verifyTraceabilityChaining(
             "previousTimestampToken",
+            traceabilityEvent1,
+            traceabilityEvent2,
             traceabilityEvent3,
             traceabilityEvent4,
             traceabilityEvent5,
             traceabilityEvent6,
             traceabilityEvent7
         );
-        // fixme  16398  bug of year
-        // verifyTraceabilityChaining("previousTimestampTokenMinusOneMonth", traceabilityEvent2, traceabilityEvent4);
+        verifyTraceabilityChaining("previousTimestampTokenMinusOneMonth", traceabilityEvent1, traceabilityEvent3);
+        verifyTraceabilityChaining("previousTimestampTokenMinusOneMonth", traceabilityEvent1, traceabilityEvent4);
+        // Fixme  16428 Fix the bug where the yearly timestamp overwrites the monthly timestamp.
+        // verifyTraceabilityChaining("previousTimestampTokenMinusOneMonth", traceabilityEvent5, traceabilityEvent7);
 
         // verifyTraceabilityChaining("previousTimestampTokenMinusOneYear", traceabilityEvent2, traceabilityEvent6);
     }
