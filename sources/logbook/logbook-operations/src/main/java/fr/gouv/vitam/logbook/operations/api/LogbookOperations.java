@@ -142,7 +142,7 @@ public interface LogbookOperations {
      * @throws InvalidParseOperationException if invalid parse for selecting the operation
      * @throws InvalidCreateOperationException if the query could not be created
      */
-    LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date, String securisationVersion)
+    LogbookOperation findLastTraceabilityOperationOKBeforeDate(LocalDateTime date, String securisationVersion)
         throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException, InvalidParseOperationException;
 
     /**

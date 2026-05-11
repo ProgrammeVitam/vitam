@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
@@ -68,8 +69,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static fr.gouv.vitam.common.VitamConfiguration.DEFAULT_TRACEABILITY_VERSION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
@@ -147,6 +150,8 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/traceabilityData.jsonl")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/traceabilityStats.json")));
         itemStatus = new ItemStatus(HANDLER_ID);
+
+        doReturn(new RequestResponseOK<JsonNode>().toJsonNode()).when(logbookOperationsClient).selectOperation(any());
     }
 
     @Test
@@ -165,10 +170,10 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
             logbookOperationsClient,
             itemStatus,
             guid.getId(),
-            workspaceClientFactory,
             null,
             "eventFileName",
-            "zipFileName"
+            "zipFileName",
+            DEFAULT_TRACEABILITY_VERSION
         );
 
         // When
@@ -205,10 +210,10 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
             logbookOperationsClient,
             itemStatus,
             guid.getId(),
-            workspaceClientFactory,
             entriesIterator,
             "eventFileName",
-            "zipFileName"
+            "zipFileName",
+            DEFAULT_TRACEABILITY_VERSION
         );
 
         final MerkleTreeAlgo algo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
@@ -240,10 +245,10 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
             logbookOperationsClient,
             itemStatus,
             guid.getId(),
-            workspaceClientFactory,
             null,
             "eventFileName",
-            "zipFileName"
+            "zipFileName",
+            DEFAULT_TRACEABILITY_VERSION
         );
 
         helper.startTraceability();
@@ -273,10 +278,10 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
             logbookOperationsClient,
             itemStatus,
             guid.getId(),
-            workspaceClientFactory,
             null,
             "eventFileName",
-            "zipFileName"
+            "zipFileName",
+            DEFAULT_TRACEABILITY_VERSION
         );
 
         // When
@@ -306,10 +311,10 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
             logbookOperationsClient,
             itemStatus,
             guid.getId(),
-            workspaceClientFactory,
             null,
             "eventFileName",
-            "zipFileName"
+            "zipFileName",
+            DEFAULT_TRACEABILITY_VERSION
         );
 
         helper.startTraceability();

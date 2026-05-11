@@ -96,32 +96,6 @@ public class LogbookOperationTraceabilityHelperTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_extract_correctly_timestamp_token() throws Exception {
-        // Given
-        LogbookOperations logbookOperations = mock(LogbookOperations.class);
-        GUID guid = GUIDFactory.newOperationLogbookGUID(0);
-
-        LogbookOperationTraceabilityHelper helper = new LogbookOperationTraceabilityHelper(
-            logbookOperations,
-            guid,
-            OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
-            TRACEABILITY_EXPIRATION_IN_SECONDS,
-            OPERATION_TRACEABILITY_MAX_ENTRIES
-        );
-
-        InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
-        JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
-        LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
-
-        // When
-        byte[] token = helper.extractTimestampToken(logbookOperation);
-
-        // Then
-        assertThat(Base64.encodeBase64String(token)).isEqualTo(LAST_OPERATION_HASH);
-    }
-
-    @Test
-    @RunWithCustomExecutor
     public void should_extract_correctly_startDate_from_last_event() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamConfiguration.setLogbookOperationTraceabilityVersion(0, "V2");
@@ -142,7 +116,8 @@ public class LogbookOperationTraceabilityHelperTest {
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
             TRACEABILITY_EXPIRATION_IN_SECONDS,
-            OPERATION_TRACEABILITY_MAX_ENTRIES
+            OPERATION_TRACEABILITY_MAX_ENTRIES,
+            traceabilityVersion
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
@@ -178,7 +153,8 @@ public class LogbookOperationTraceabilityHelperTest {
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
             TRACEABILITY_EXPIRATION_IN_SECONDS,
-            OPERATION_TRACEABILITY_MAX_ENTRIES
+            OPERATION_TRACEABILITY_MAX_ENTRIES,
+            DEFAULT_TRACEABILITY_VERSION
         );
 
         given(logbookOperations.findLastTraceabilityOperationOK(DEFAULT_TRACEABILITY_VERSION)).willReturn(null);
@@ -204,7 +180,8 @@ public class LogbookOperationTraceabilityHelperTest {
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
             TRACEABILITY_EXPIRATION_IN_SECONDS,
-            OPERATION_TRACEABILITY_MAX_ENTRIES
+            OPERATION_TRACEABILITY_MAX_ENTRIES,
+            DEFAULT_TRACEABILITY_VERSION
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
@@ -245,7 +222,8 @@ public class LogbookOperationTraceabilityHelperTest {
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
             TRACEABILITY_EXPIRATION_IN_SECONDS,
-            OPERATION_TRACEABILITY_MAX_ENTRIES
+            OPERATION_TRACEABILITY_MAX_ENTRIES,
+            DEFAULT_TRACEABILITY_VERSION
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
@@ -276,7 +254,7 @@ public class LogbookOperationTraceabilityHelperTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_return_null_date_and_token_if_no_previous_logbook() throws Exception {
+    public void should_return_null_date_and_token_if_no_previous_logbook() {
         // Given
         LogbookOperations logbookOperations = mock(LogbookOperations.class);
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
@@ -286,7 +264,8 @@ public class LogbookOperationTraceabilityHelperTest {
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
             TRACEABILITY_EXPIRATION_IN_SECONDS,
-            OPERATION_TRACEABILITY_MAX_ENTRIES
+            OPERATION_TRACEABILITY_MAX_ENTRIES,
+            DEFAULT_TRACEABILITY_VERSION
         );
 
         // When
@@ -311,7 +290,8 @@ public class LogbookOperationTraceabilityHelperTest {
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
             TRACEABILITY_EXPIRATION_IN_SECONDS,
-            OPERATION_TRACEABILITY_MAX_ENTRIES
+            OPERATION_TRACEABILITY_MAX_ENTRIES,
+            DEFAULT_TRACEABILITY_VERSION
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
@@ -344,7 +324,8 @@ public class LogbookOperationTraceabilityHelperTest {
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
             TRACEABILITY_EXPIRATION_IN_SECONDS,
-            OPERATION_TRACEABILITY_MAX_ENTRIES
+            OPERATION_TRACEABILITY_MAX_ENTRIES,
+            DEFAULT_TRACEABILITY_VERSION
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
@@ -394,7 +375,8 @@ public class LogbookOperationTraceabilityHelperTest {
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
             traceabilityExpirationDelayInSeconds,
-            OPERATION_TRACEABILITY_MAX_ENTRIES
+            OPERATION_TRACEABILITY_MAX_ENTRIES,
+            DEFAULT_TRACEABILITY_VERSION
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
@@ -442,7 +424,8 @@ public class LogbookOperationTraceabilityHelperTest {
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
             traceabilityExpirationDelayInSeconds,
-            OPERATION_TRACEABILITY_MAX_ENTRIES
+            OPERATION_TRACEABILITY_MAX_ENTRIES,
+            DEFAULT_TRACEABILITY_VERSION
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
@@ -480,7 +463,8 @@ public class LogbookOperationTraceabilityHelperTest {
             guid,
             OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
             TRACEABILITY_EXPIRATION_IN_SECONDS,
-            OPERATION_TRACEABILITY_MAX_ENTRIES
+            OPERATION_TRACEABILITY_MAX_ENTRIES,
+            DEFAULT_TRACEABILITY_VERSION
         );
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);

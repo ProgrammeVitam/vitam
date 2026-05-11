@@ -146,12 +146,16 @@ public class LogbookAdministration {
 
         LOGGER.info("Starting traceability operation for tenant " + tenantId);
 
+        String securisationVersion = VitamConfiguration.getLogbookOperationTraceabilityVersion(
+            VitamThreadUtils.getVitamSession().getTenantId()
+        );
         LogbookOperationTraceabilityHelper helper = new LogbookOperationTraceabilityHelper(
             logbookOperations,
             guid,
             operationTraceabilityTemporizationDelayInSeconds,
             operationTraceabilityMaxRenewalDelayInSeconds,
-            operationTraceabilityMaxEntries
+            operationTraceabilityMaxEntries,
+            securisationVersion
         );
 
         helper.initialize();
@@ -163,10 +167,7 @@ public class LogbookAdministration {
 
         TraceabilityService generator = new TraceabilityService(timestampGenerator, helper, tenantId, tmpFolder);
 
-        String securisationVersion = VitamConfiguration.getLogbookOperationTraceabilityVersion(
-            VitamThreadUtils.getVitamSession().getTenantId()
-        );
-        generator.secureData(VitamConfiguration.getDefaultStrategy(), securisationVersion);
+        generator.secureData(VitamConfiguration.getDefaultStrategy());
 
         LOGGER.info("Traceability operation succeeded for tenant " + tenantId);
         return guid.getId();

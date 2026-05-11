@@ -65,19 +65,37 @@ public class TraceabilityEvent {
     private byte[] timeStampToken;
 
     /**
+     * Operation Id of the previous traceability
+     */
+    @JsonProperty("PreviousLogbookOperationId")
+    private String previousLogbookOperationId;
+
+    /**
+     * Operation Id of the previous traceability 1 month before - logbook.month(-1).previous()
+     */
+    @JsonProperty("MinusOneMonthLogbookOperationId")
+    private String minusOneMonthLogbookOperationId;
+
+    /**
+     * Operation Id of the previous traceability 1 year before - logbook.year(-1).previous()
+     */
+    @JsonProperty("MinusOneYearLogbookOperationId")
+    private String minusOneYearLogbookOperationId;
+
+    /**
      * Start date of the previous traceability
      */
     @JsonProperty("PreviousLogbookTraceabilityDate")
     private String previousLogbookTraceabilityDate;
 
     /**
-     * Start date of the next traceability 1 month before - logbook.mounth(-1).next()
+     * Start date of the previous traceability 1 month before - logbook.month(-1).previous()
      */
     @JsonProperty("MinusOneMonthLogbookTraceabilityDate")
     private String minusOneMonthLogbookTraceabilityDate;
 
     /**
-     * Start date of the next traceability 1 year before - logbook.year(-1).next()
+     * Start date of the previous traceability 1 year before - logbook.year(-1).previous()
      */
     @JsonProperty("MinusOneYearLogbookTraceabilityDate")
     private String minusOneYearLogbookTraceabilityDate;
@@ -154,6 +172,9 @@ public class TraceabilityEvent {
         String endDate,
         String hash,
         byte[] timeStampToken,
+        String previousLogbookOperationId,
+        String minusOneMonthLogbookOperationId,
+        String minusOneYearLogbookOperationId,
         String previousLogbookTraceabilityDate,
         String minusOneMonthLogbookTraceabilityDate,
         String minusOneYearLogbookTraceabilityDate,
@@ -168,6 +189,9 @@ public class TraceabilityEvent {
         this.logType = logType;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.previousLogbookOperationId = previousLogbookOperationId;
+        this.minusOneMonthLogbookOperationId = minusOneMonthLogbookOperationId;
+        this.minusOneYearLogbookOperationId = minusOneYearLogbookOperationId;
         this.previousLogbookTraceabilityDate = previousLogbookTraceabilityDate;
         this.hash = hash;
         this.minusOneMonthLogbookTraceabilityDate = minusOneMonthLogbookTraceabilityDate;
@@ -236,6 +260,27 @@ public class TraceabilityEvent {
      */
     public TraceabilityType getLogType() {
         return logType;
+    }
+
+    /**
+     * @return Operation Id of the previous traceability
+     */
+    public String getPreviousLogbookOperationId() {
+        return previousLogbookOperationId;
+    }
+
+    /**
+     * @return Operation Id of the previous traceability 1 month before - logbook.month(-1).previous()
+     */
+    public String getMinusOneMonthLogbookOperationId() {
+        return minusOneMonthLogbookOperationId;
+    }
+
+    /**
+     * @return Operation Id of the previous traceability 1 year before - logbook.year(-1).previous()
+     */
+    public String getMinusOneYearLogbookOperationId() {
+        return minusOneYearLogbookOperationId;
     }
 
     /**
