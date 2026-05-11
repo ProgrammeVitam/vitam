@@ -284,7 +284,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     public String getPreviousMonthStartDate(String securisationVersion)
         throws InvalidParseOperationException, TraceabilityException {
         if (!isLastMonthEventInit) {
-            extractMonthPreviousEvent(securisationVersion);
+            extractPreviousMonthEvent(securisationVersion);
         }
         return previousMonthStartDate;
     }
@@ -292,7 +292,9 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     @Override
     public byte[] getPreviousMonthTimestampToken(String securisationVersion)
         throws InvalidParseOperationException, TraceabilityException {
-        extractMonthPreviousEvent(securisationVersion);
+        if (!isLastMonthEventInit) {
+            extractPreviousMonthEvent(securisationVersion);
+        }
         return previousMonthTimestampToken;
     }
 
@@ -300,7 +302,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     public String getPreviousYearStartDate(String securisationVersion)
         throws InvalidParseOperationException, TraceabilityException {
         if (!isLastYearEventInit) {
-            extractYearPreviousEvent(securisationVersion);
+            extractPreviousYearEvent(securisationVersion);
         }
         return previousYearStartDate;
     }
@@ -308,7 +310,9 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     @Override
     public byte[] getPreviousYearTimestampToken(String securisationVersion)
         throws InvalidParseOperationException, TraceabilityException {
-        extractYearPreviousEvent(securisationVersion);
+        if (!isLastYearEventInit) {
+            extractPreviousYearEvent(securisationVersion);
+        }
         return previousYearTimestampToken;
     }
 
@@ -483,7 +487,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
         isLastEventInit = true;
     }
 
-    private void extractMonthPreviousEvent(String securisationVersion)
+    private void extractPreviousMonthEvent(String securisationVersion)
         throws InvalidParseOperationException, TraceabilityException {
         try {
             previousMonthTimestampToken = findHashByTraceabilityEventExpect(
@@ -491,14 +495,14 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
                 traceabilityEndDate.minusMonths(1),
                 securisationVersion
             );
-            final LogbookOperation oneMounthBeforeTraceabilityOperation =
+            final LogbookOperation oneMonthBeforeTraceabilityOperation =
                 logbookOperations.findFirstTraceabilityOperationOKAfterDate(
                     traceabilityEndDate.minusMonths(1),
                     securisationVersion
                 );
-            if (oneMounthBeforeTraceabilityOperation != null) {
+            if (oneMonthBeforeTraceabilityOperation != null) {
                 TraceabilityEvent oneMonthBeforeTraceabilityEvent = extractEventDetData(
-                    oneMounthBeforeTraceabilityOperation
+                    oneMonthBeforeTraceabilityOperation
                 );
                 if (oneMonthBeforeTraceabilityEvent != null) {
                     previousMonthStartDate = oneMonthBeforeTraceabilityEvent.getStartDate();
@@ -510,7 +514,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
         isLastMonthEventInit = true;
     }
 
-    private void extractYearPreviousEvent(String securisationVersion)
+    private void extractPreviousYearEvent(String securisationVersion)
         throws InvalidParseOperationException, TraceabilityException {
         try {
             previousYearTimestampToken = findHashByTraceabilityEventExpect(

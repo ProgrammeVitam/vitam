@@ -269,7 +269,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
     public LogbookOperation findFirstTraceabilityOperationOKAfterDate(
         final LocalDateTime date,
         String securisationVersion
-    ) throws InvalidCreateOperationException, LogbookDatabaseException {
+    ) throws InvalidCreateOperationException, LogbookDatabaseException, InvalidParseOperationException {
         final Select select = new Select();
         final Query query = QueryHelper.gt("evDateTime", LocalDateUtil.getFormattedDateTimeForMongo(date));
         final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
@@ -290,8 +290,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
         select.setQuery(QueryHelper.and().add(query, type, status, findVersion));
         select.setLimitFilter(0, 1);
-        // fixme 16398 The monthly chaining is not working correctly.
-        //  select.addOrderByAscFilter("evDateTime");
+        select.addOrderByAscFilter("evDateTime");
         LogbookOperation logbookOperation = null;
         try {
             logbookOperation = mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false).next();

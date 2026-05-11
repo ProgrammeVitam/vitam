@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
@@ -111,7 +112,7 @@ public class LogbookUnitLifeCycleTraceabilityHelper extends LogbookLifeCycleTrac
 
     @Override
     protected Select generateSelectLogbookOperation(LocalDateTime date, String securisationVersion)
-        throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException, InvalidParseOperationException {
         final Select select = new Select();
         final Query query = QueryHelper.gt(eventDateTime.getDbname(), LocalDateUtil.getFormattedDateTimeForMongo(date));
         final Query type = QueryHelper.eq(eventTypeProcess.getDbname(), LogbookTypeProcess.TRACEABILITY.name());
@@ -133,8 +134,7 @@ public class LogbookUnitLifeCycleTraceabilityHelper extends LogbookLifeCycleTrac
             ),
             securisationVersion
         );
-        // fixme  16398 The monthly chaining is not working correctly.
-        //  select.addOrderByAscFilter("evDateTime");
+        select.addOrderByAscFilter("evDateTime");
         select.setQuery(QueryHelper.and().add(query, type, eventStatus, hasTraceabilityFile, findVersion));
         select.setLimitFilter(0, 1);
         return select;
