@@ -47,6 +47,10 @@ import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.DbStorageModel;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.traceability.TimeStampService;
@@ -65,6 +69,7 @@ import fr.gouv.vitam.worker.core.plugin.preservation.TestHandlerIO;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeReportEntry;
 import jakarta.ws.rs.core.Response;
 import net.javacrumbs.jsonunit.JsonAssert;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -107,6 +112,13 @@ import static org.mockito.Mockito.verify;
 
 public class ProbativeCreateReportEntryTest {
 
+    private static final Integer TENANT_ID = 0;
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -145,6 +157,13 @@ public class ProbativeCreateReportEntryTest {
         given(storageClientFactory.getClient()).willReturn(storageClient);
         given(logbookOperationsClientFactory.getClient()).willReturn(logbookOperationsClient);
         given(logbookLifeCyclesClientFactory.getClient()).willReturn(logbookLifeCyclesClient);
+    }
+
+    @After
+    public void after() {
+        VitamConfiguration.setLfcGotTraceabilityVersion(0, VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
+        VitamConfiguration.setLfcUnitTraceabilityVersion(0, VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(0, VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
     }
 
     @Test
@@ -389,17 +408,30 @@ public class ProbativeCreateReportEntryTest {
 
         given(
             logbookOperationsClient.selectOperation(
-                createSelectTraceabilityWith(OBJECTGROUP_LFC_TRACEABILITY.getEventType(), logbookLFCDate)
+                createSelectTraceabilityWithVersion(
+                    OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
+                    logbookLFCDate,
+                    VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
+                )
             )
         ).willReturn(objectMapper.valueToTree(logbookOperationResponse(logBookOperationWith)));
         given(
             logbookOperationsClient.selectOperation(
-                createSelectTraceabilityWith(LOGBOOK_TRACEABILITY.getEventType(), logbookOperationLastpersiteddate)
+                createSelectTraceabilityWithVersion(
+                    LOGBOOK_TRACEABILITY.getEventType(),
+                    logbookOperationLastpersiteddate,
+                    VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
+                )
             )
         ).willReturn(objectMapper.valueToTree(logbookOperationResponse(logBookOperationWith1)));
 
         given(
-            logbookOperationsClient.selectOperation(createSelectClosestTraceabilityWith(logBookOperationWith))
+            logbookOperationsClient.selectOperation(
+                createSelectClosestTraceabilityWithVersion(
+                    logBookOperationWith1,
+                    VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
+                )
+            )
         ).willReturn(
             objectMapper.valueToTree(
                 logbookOperationResponse(
@@ -408,7 +440,12 @@ public class ProbativeCreateReportEntryTest {
             )
         );
         given(
-            logbookOperationsClient.selectOperation(createSelectClosestTraceabilityWith(logBookOperationWith1))
+            logbookOperationsClient.selectOperation(
+                createSelectClosestTraceabilityWithVersion(
+                    logBookOperationWith1,
+                    VitamConfiguration.DEFAULT_TRACEABILITY_VERSION
+                )
+            )
         ).willReturn(
             objectMapper.valueToTree(
                 logbookOperationResponse(
@@ -425,8 +462,22 @@ public class ProbativeCreateReportEntryTest {
     }
 
     @Test
-    public void should_return_OK() throws Exception {
-        // Given
+    @RunWithCustomExecutor
+    public void should_return_OK_with_V1() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        should_return_OK_with_version(VitamConfiguration.DEFAULT_TRACEABILITY_VERSION);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_return_OK_with_V2() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamConfiguration.setLfcGotTraceabilityVersion(0, "V2");
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(0, "V2");
+        should_return_OK_with_version("V2");
+    }
+
+    public void should_return_OK_with_version(String version) throws Exception {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         DbObjectGroupModel objectGroup = objectGroupFrom("ProbativeCreateReportEntryTest/01_OBJECT_GROUP.json");
         DbVersionsModel objectGroupQualifierVersion = objectGroup.getQualifiers().get(0).getVersions().get(0);
@@ -486,9 +537,10 @@ public class ProbativeCreateReportEntryTest {
         LogbookOperation logbookOperation_STP_OP_SECURISATION = logbookOperationFrom(
             "ProbativeCreateReportEntryTest/04_LOGBOOK_OPERATION__STP_OP_SECURISATION.json"
         );
-        JsonNode logookOperation_Query = createSelectTraceabilityWith(
+        JsonNode logookOperation_Query = createSelectTraceabilityWithVersion(
             LOGBOOK_TRACEABILITY.getEventType(),
-            logbookOperation_PROCESS_SIP_UNITARY.getLastPersistedDate()
+            logbookOperation_PROCESS_SIP_UNITARY.getLastPersistedDate(),
+            version
         );
         RequestResponseOK<JsonNode> logookOperation_Response = logbookOperationResponse(
             logbookOperation_STP_OP_SECURISATION
@@ -500,9 +552,10 @@ public class ProbativeCreateReportEntryTest {
         LogbookOperation logbookOperation_LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY = logbookOperationFrom(
             "ProbativeCreateReportEntryTest/05_LOGBOOK_OPERATION__LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.json"
         );
-        JsonNode logbookOperation_LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_Query = createSelectTraceabilityWith(
+        JsonNode logbookOperation_LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_Query = createSelectTraceabilityWithVersion(
             OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-            logbookLifecycleObjectGroup.getLastPersistedDate()
+            logbookLifecycleObjectGroup.getLastPersistedDate(),
+            version
         );
         RequestResponseOK<JsonNode> logbookOperation_LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_Response =
             logbookOperationResponse(logbookOperation_LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY);
@@ -513,8 +566,9 @@ public class ProbativeCreateReportEntryTest {
         LogbookOperation logbookOperation_STP_OP_SECURISATION_previous = logbookOperationFrom(
             "ProbativeCreateReportEntryTest/06_LOGBOOK_OPERATION__STP_OP_SECURISATION__previous.json"
         );
-        JsonNode logbookOperation_STP_OP_SECURISATION_previous_query = createSelectClosestTraceabilityWith(
-            logbookOperation_STP_OP_SECURISATION
+        JsonNode logbookOperation_STP_OP_SECURISATION_previous_query = createSelectClosestTraceabilityWithVersion(
+            logbookOperation_STP_OP_SECURISATION,
+            version
         );
         RequestResponseOK<JsonNode> logbookOperation_STP_OP_SECURISATION_previous_Response = logbookOperationResponse(
             logbookOperation_STP_OP_SECURISATION_previous
@@ -527,7 +581,7 @@ public class ProbativeCreateReportEntryTest {
             "ProbativeCreateReportEntryTest/07_LOGBOOK_OPERATION__LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY__previous.json"
         );
         JsonNode logbookOperation_LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_previous_query =
-            createSelectClosestTraceabilityWith(logbookOperation_LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY);
+            createSelectClosestTraceabilityWithVersion(logbookOperation_LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY, version);
         RequestResponseOK<JsonNode> logbookOperation_LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_previous_Response =
             logbookOperationResponse(logbookOperation_LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_previous);
         given(
@@ -618,7 +672,8 @@ public class ProbativeCreateReportEntryTest {
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(OK);
     }
 
-    private JsonNode createSelectClosestTraceabilityWith(LogbookOperation operation) throws Exception {
+    private JsonNode createSelectClosestTraceabilityWithVersion(LogbookOperation operation, String version)
+        throws Exception {
         Select select = new Select();
         BooleanQuery query = and()
             .add(
@@ -626,7 +681,8 @@ public class ProbativeCreateReportEntryTest {
                 in("events.outDetail", operation.getEvType() + ".OK", operation.getEvType() + ".WARNING"),
                 exists("events.evDetData.FileName"),
                 ne("#id", operation.getId()),
-                lte("evDateTime", operation.getEvDateTime())
+                lte("evDateTime", operation.getEvDateTime()),
+                eq("events.evDetData.SecurisationVersion", version)
             );
 
         select.setQuery(query);
@@ -683,7 +739,16 @@ public class ProbativeCreateReportEntryTest {
         return operation;
     }
 
-    private JsonNode createSelectTraceabilityWith(String eventType, String lastPersistedDate) throws Exception {
+    private JsonNode createSelectTraceabilityWithVersion(String eventType, String lastPersistedDate, String version)
+        throws Exception {
+        return createSelectTraceabilityWithSecurisationVersion(eventType, lastPersistedDate, version);
+    }
+
+    private JsonNode createSelectTraceabilityWithSecurisationVersion(
+        String eventType,
+        String lastPersistedDate,
+        String securisationVersion
+    ) throws Exception {
         Select select = new Select();
         BooleanQuery query = and()
             .add(
@@ -691,7 +756,8 @@ public class ProbativeCreateReportEntryTest {
                 in("events.outDetail", eventType + ".OK", eventType + ".WARNING"),
                 exists("events.evDetData.FileName"),
                 lte("events.evDetData.StartDate", lastPersistedDate),
-                gte("events.evDetData.EndDate", lastPersistedDate)
+                gte("events.evDetData.EndDate", lastPersistedDate),
+                eq("events.evDetData.SecurisationVersion", securisationVersion)
             );
 
         select.setQuery(query);
