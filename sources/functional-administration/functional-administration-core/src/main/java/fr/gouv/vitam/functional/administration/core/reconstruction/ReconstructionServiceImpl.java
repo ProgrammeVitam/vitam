@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.functional.administration.core.reconstruction;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -48,12 +49,15 @@ import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.metrics.VitamCommonMetrics;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterBackupModel;
@@ -82,9 +86,12 @@ import org.bson.conversions.Bson;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
@@ -437,7 +444,25 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                         offerLog.getSequence()
                     );
                     if (model.getAccessionRegister() != null && model.getOffset() != null) {
-                        originatingAgencies.add((model.getAccessionRegister().getString("OriginatingAgency")));
+                        originatingAgencies.add(
+                            (model.getAccessionRegister().getString(AccessionRegisterDetail.ORIGINATING_AGENCY))
+                        );
+                        if (model.getAccessionRegister().containsKey(AccessionRegisterDetail.EVENTS)) {
+                            List<RegisterValueEventModel> events = JsonHandler.getFromJsonNode(
+                                JsonHandler.toJsonNode(
+                                    model.getAccessionRegister().get(AccessionRegisterDetail.EVENTS)
+                                ),
+                                new TypeReference<>() {}
+                            );
+                            for (RegisterValueEventModel event : events) {
+                                if (event.getSourceOriginatingAgency() != null) {
+                                    originatingAgencies.add(event.getSourceOriginatingAgency());
+                                }
+                                if (event.getTargetOriginatingAgency() != null) {
+                                    originatingAgencies.add(event.getTargetOriginatingAgency());
+                                }
+                            }
+                        }
                         dataFromOffer.add(model);
                     } else {
                         throw new StorageException(
@@ -510,8 +535,13 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             );
             newOffset = offset;
             response.setStatus(StatusCode.KO);
-        } catch (StorageException | StorageServerClientException | StorageNotFoundClientException se) {
-            LOGGER.error(se.getMessage());
+        } catch (
+            StorageException
+            | StorageServerClientException
+            | StorageNotFoundClientException
+            | InvalidParseOperationException e
+        ) {
+            LOGGER.error("A technical error occurred during reconstruction", e);
             newOffset = offset;
             response.setStatus(StatusCode.KO);
         } finally {
@@ -664,7 +694,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenant);
-            List<Document> documents = agregateAccessionRegisterSummary(originatingAgencies, tenant);
+            Collection<Document> documents = aggregateAccessionRegisterSummary(originatingAgencies, tenant);
             Set<Document> accessionRegisterSummary = new HashSet<>();
             for (Document registerSummaryDoc : documents) {
                 registerSummaryDoc
@@ -721,7 +751,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
     }
 
     @Override
-    public List<Document> agregateAccessionRegisterSummary(Set<String> originatingAgencies, Integer tenant) {
+    public Collection<Document> aggregateAccessionRegisterSummary(Set<String> originatingAgencies, Integer tenant) {
         MongoCollection<AccessionRegisterDetail> accessionRegisterDetailCollection =
             FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection();
         AggregateIterable<Document> aggregate = accessionRegisterDetailCollection.aggregate(
@@ -785,6 +815,43 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             Document.class
         );
 
-        return Lists.newArrayList(aggregate.iterator());
+        Map<String, Document> docsByOriginatingAgency = new HashMap<>();
+        for (Document document : aggregate) {
+            docsByOriginatingAgency.put(document.getString(AccessionRegisterSummary.ORIGINATING_AGENCY), document);
+        }
+        for (String originatingAgency : originatingAgencies) {
+            if (!docsByOriginatingAgency.containsKey(originatingAgency)) {
+                docsByOriginatingAgency.put(
+                    originatingAgency,
+                    new Document(AccessionRegisterDetail.ORIGINATING_AGENCY, originatingAgency)
+                        .append(
+                            AccessionRegisterSummary.TOTAL_OBJECTGROUPS,
+                            new Document(AccessionRegisterSummary.INGESTED, 0L)
+                                .append(AccessionRegisterSummary.DELETED, 0L)
+                                .append(AccessionRegisterSummary.REMAINED, 0L)
+                        )
+                        .append(
+                            AccessionRegisterSummary.TOTAL_UNITS,
+                            new Document(AccessionRegisterSummary.INGESTED, 0L)
+                                .append(AccessionRegisterSummary.DELETED, 0L)
+                                .append(AccessionRegisterSummary.REMAINED, 0L)
+                        )
+                        .append(
+                            AccessionRegisterSummary.TOTAL_OBJECTS,
+                            new Document(AccessionRegisterSummary.INGESTED, 0L)
+                                .append(AccessionRegisterSummary.DELETED, 0L)
+                                .append(AccessionRegisterSummary.REMAINED, 0L)
+                        )
+                        .append(
+                            AccessionRegisterSummary.OBJECT_SIZE,
+                            new Document(AccessionRegisterSummary.INGESTED, 0L)
+                                .append(AccessionRegisterSummary.DELETED, 0L)
+                                .append(AccessionRegisterSummary.REMAINED, 0L)
+                        )
+                );
+            }
+        }
+
+        return docsByOriginatingAgency.values();
     }
 }

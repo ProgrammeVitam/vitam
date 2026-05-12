@@ -791,6 +791,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
                     )
             );
             update.addActions(UpdateActionHelper.set(ORIGINATING_AGENCY, targetOriginatingAgency));
+            update.addActions(UpdateActionHelper.set(OPC, operationId));
             update.addActions(
                 new PushAction(
                     EVENTS,

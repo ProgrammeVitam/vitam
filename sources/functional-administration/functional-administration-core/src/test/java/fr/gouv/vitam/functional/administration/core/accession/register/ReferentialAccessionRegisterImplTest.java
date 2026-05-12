@@ -861,6 +861,8 @@ public class ReferentialAccessionRegisterImplTest {
         accessionRegisterImpl.createOrUpdateAccessionRegister(sp2_detail1);
 
         // When
+        String reassignmentId = GUIDFactory.newGUID().getId();
+        VitamThreadUtils.getVitamSession().setRequestId(reassignmentId);
         accessionRegisterImpl.reassignAccessionRegisterOriginatingAgency(
             new AccessionRegisterOriginatingAgencyReassignmentRequest(Set.of("Opi_11", "Opi_12"), "SP1", "SP2")
         );
@@ -887,12 +889,12 @@ public class ReferentialAccessionRegisterImplTest {
         assertThat(detailsMap.get("Opi_13").getEvents()).hasSize(1);
         assertThat(detailsMap.get("Opi_21").getEvents()).hasSize(1);
 
+        assertThat(detailsMap.get("Opi_11").getOpc()).isEqualTo(reassignmentId);
+
         assertThat(detailsMap.get("Opi_11").getEvents().getLast().getCreationDate()).isNotNull();
         assertThat(detailsMap.get("Opi_11").getEvents().getLast().getSourceOriginatingAgency()).isEqualTo("SP1");
         assertThat(detailsMap.get("Opi_11").getEvents().getLast().getTargetOriginatingAgency()).isEqualTo("SP2");
-        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getOperation()).isEqualTo(
-            VitamThreadUtils.getVitamSession().getRequestId()
-        );
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getOperation()).isEqualTo(reassignmentId);
         assertThat(detailsMap.get("Opi_11").getEvents().getLast().getOperationType()).isEqualTo(
             "ORIGINATING_AGENCY_REASSIGNMENT"
         );
@@ -974,6 +976,8 @@ public class ReferentialAccessionRegisterImplTest {
         accessionRegisterImpl.createOrUpdateAccessionRegister(sp1_detail3);
 
         // When
+        String reassignmentId = GUIDFactory.newGUID().getId();
+        VitamThreadUtils.getVitamSession().setRequestId(reassignmentId);
         accessionRegisterImpl.reassignAccessionRegisterOriginatingAgency(
             new AccessionRegisterOriginatingAgencyReassignmentRequest(Set.of("Opi_11", "Opi_12"), "SP1", "SP2")
         );
@@ -998,12 +1002,11 @@ public class ReferentialAccessionRegisterImplTest {
         assertThat(detailsMap.get("Opi_12").getEvents()).hasSize(2);
         assertThat(detailsMap.get("Opi_13").getEvents()).hasSize(1);
 
+        assertThat(detailsMap.get("Opi_11").getOpc()).isEqualTo(reassignmentId);
         assertThat(detailsMap.get("Opi_11").getEvents().getLast().getCreationDate()).isNotNull();
         assertThat(detailsMap.get("Opi_11").getEvents().getLast().getSourceOriginatingAgency()).isEqualTo("SP1");
         assertThat(detailsMap.get("Opi_11").getEvents().getLast().getTargetOriginatingAgency()).isEqualTo("SP2");
-        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getOperation()).isEqualTo(
-            VitamThreadUtils.getVitamSession().getRequestId()
-        );
+        assertThat(detailsMap.get("Opi_11").getEvents().getLast().getOperation()).isEqualTo(reassignmentId);
         assertThat(detailsMap.get("Opi_11").getEvents().getLast().getOperationType()).isEqualTo(
             "ORIGINATING_AGENCY_REASSIGNMENT"
         );
