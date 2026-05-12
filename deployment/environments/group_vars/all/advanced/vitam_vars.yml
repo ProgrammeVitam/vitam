@@ -349,7 +349,7 @@ vitam:
     port_admin: 29104
     baseuri: worker
     https_enabled: false
-    api_output_index_tenants: "{{ vitam_tenant_ids }}"
+    api_output_index_tenants: []
     rules_index_tenants: "{{ vitam_tenant_ids }}"
     # Dip/transfer threshold file size
     binarySizePlatformThreshold: 1
