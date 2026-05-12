@@ -269,6 +269,12 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
             assertThat(traceabilityEvent.getNumberOfElements()).isEqualTo(1);
             assertThat(traceabilityEvent.getFileName()).isNotNull();
             assertThat(traceabilityEvent.getPreviousLogbookTraceabilityDate()).isNull();
+            assertThat(traceabilityEvent.getPreviousLogbookOperationId()).isNull();
+            assertThat(traceabilityEvent.getMinusOneMonthLogbookOperationId()).isNull();
+            assertThat(traceabilityEvent.getMinusOneMonthLogbookTraceabilityDate()).isNull();
+            assertThat(traceabilityEvent.getMinusOneYearLogbookOperationId()).isNull();
+            assertThat(traceabilityEvent.getMinusOneYearLogbookTraceabilityDate()).isNull();
+            assertThat(traceabilityEvent.getSecurisationVersion()).isEqualTo("V1");
 
             // Check Traceability ZIP
             downloadZip(traceabilityEvent.getFileName(), tmpFolder.getRoot());
@@ -383,6 +389,12 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
             assertThat(traceabilityEvent2.getHash()).isNotNull();
             assertThat(traceabilityEvent2.getTimeStampToken()).isNotNull();
             assertThat(traceabilityEvent2.getNumberOfElements()).isEqualTo(1);
+            assertThat(traceabilityEvent2.getPreviousLogbookOperationId()).isNull();
+            assertThat(traceabilityEvent2.getMinusOneMonthLogbookOperationId()).isNull();
+            assertThat(traceabilityEvent2.getMinusOneMonthLogbookTraceabilityDate()).isNull();
+            assertThat(traceabilityEvent2.getMinusOneYearLogbookOperationId()).isNull();
+            assertThat(traceabilityEvent2.getMinusOneYearLogbookTraceabilityDate()).isNull();
+            assertThat(traceabilityEvent2.getSecurisationVersion()).isEqualTo("V1");
 
             // Check chaining
             assertThat(

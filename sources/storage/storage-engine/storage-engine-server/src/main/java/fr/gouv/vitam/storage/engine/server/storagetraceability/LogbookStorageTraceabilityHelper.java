@@ -27,13 +27,13 @@
 package fr.gouv.vitam.storage.engine.server.storagetraceability;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
@@ -83,6 +83,7 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.Iterator;
 
+import static fr.gouv.vitam.common.VitamConfiguration.DEFAULT_TRACEABILITY_VERSION;
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
@@ -111,12 +112,10 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     private final GUID operationID;
     private final int delay;
 
-    private StorageTraceabilityData lastTraceabilityData = null;
     private LocalDateTime traceabilityStartDate;
     private LocalDateTime traceabilityEndDate;
     private int fileCount = 0;
 
-    private Boolean isLastEventInit = false;
     private String previousStartDate = null;
     private byte[] previousTimestampToken = null;
 
@@ -145,8 +144,9 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
         this.traceabilityEndDate = LocalDateUtil.now();
         String fileName = traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy());
         if (fileName == null) {
-            lastTraceabilityData = null;
             this.traceabilityStartDate = INITIAL_START_DATE;
+            this.previousStartDate = null;
+            this.previousTimestampToken = null;
             return;
         }
 
@@ -159,7 +159,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
             );
             try (
                 InputStream stream = response.readEntity(InputStream.class);
-                ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
+                ArchiveInputStream<?> archiveInputStream = new VitamArchiveStreamFactory()
                     .createArchiveInputStream(CommonMediaType.ZIP_TYPE, stream)
             ) {
                 ArchiveEntry entry = null;
@@ -171,11 +171,10 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
                 }
 
                 LocalDateTime date = StorageFileNameHelper.parseDateFromStorageTraceabilityFileName(fileName);
-                lastTraceabilityData = new StorageTraceabilityData(
-                    IOUtils.toByteArray(archiveInputStream),
-                    date.minusSeconds(delay)
-                );
-                this.traceabilityStartDate = lastTraceabilityData.startDate;
+
+                this.traceabilityStartDate = date.minusSeconds(delay);
+                this.previousTimestampToken = BaseXx.getFromBase64(new String(IOUtils.toByteArray(archiveInputStream)));
+                this.previousStartDate = LocalDateUtil.getFormattedDateTimeForMongo(traceabilityStartDate);
             }
         } catch (IOException e) {
             throw new TraceabilityException("Unable to read ZIP", e);
@@ -252,41 +251,53 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     }
 
     @Override
-    public String getPreviousStartDate() throws InvalidParseOperationException {
-        if (!isLastEventInit) {
-            extractPreviousEvent();
-        }
+    public String getPreviousOperationId() {
+        // Storage logs traceability chaining does not support previous logbook operation ids for now.
+        return null;
+    }
+
+    @Override
+    public String getPreviousStartDate() {
         return previousStartDate;
     }
 
     @Override
-    public byte[] getPreviousTimestampToken() throws InvalidParseOperationException {
-        if (!isLastEventInit) {
-            extractPreviousEvent();
-        }
+    public byte[] getPreviousTimestampToken() {
         return previousTimestampToken;
     }
 
     @Override
-    public String getPreviousMonthStartDate(String securisationVersion) {
+    public String getPreviousMonthOperationId() {
         // Never link to previous Year/Month token for storage
         return null;
     }
 
     @Override
-    public byte[] getPreviousMonthTimestampToken(String securisationVersion) {
+    public String getPreviousMonthStartDate() {
         // Never link to previous Year/Month token for storage
         return null;
     }
 
     @Override
-    public String getPreviousYearStartDate(String securisationVersion) {
+    public byte[] getPreviousMonthTimestampToken() {
         // Never link to previous Year/Month token for storage
         return null;
     }
 
     @Override
-    public byte[] getPreviousYearTimestampToken(String securisationVersion) {
+    public String getPreviousYearOperationId() {
+        // Never link to previous Year/Month token for storage
+        return null;
+    }
+
+    @Override
+    public String getPreviousYearStartDate() {
+        // Never link to previous Year/Month token for storage
+        return null;
+    }
+
+    @Override
+    public byte[] getPreviousYearTimestampToken() {
         // Never link to previous Year/Month token for storage
         return null;
     }
@@ -450,11 +461,9 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
         return LocalDateUtil.getFormattedDateTimeForMongo(traceabilityEndDate);
     }
 
-    private void extractPreviousEvent() {
-        if (lastTraceabilityData != null) {
-            previousTimestampToken = lastTraceabilityData.token;
-            previousStartDate = LocalDateUtil.getFormattedDateTimeForMongo(lastTraceabilityData.startDate);
-        }
-        isLastEventInit = true;
+    @Override
+    public String getSecurisationVersion() {
+        // Hardcoded to V1 as storagetraceability are not versioned/configurable by design
+        return DEFAULT_TRACEABILITY_VERSION;
     }
 }

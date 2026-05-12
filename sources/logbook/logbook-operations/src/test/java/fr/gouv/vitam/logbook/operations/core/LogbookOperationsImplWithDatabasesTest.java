@@ -470,8 +470,8 @@ public class LogbookOperationsImplWithDatabasesTest {
         assertFalse(cursor.hasNext());
 
         logbookOperationsImpl.update(eip4.getId(), securityEvent);
-        final LogbookOperation secureOperation = logbookOperationsImpl.findFirstTraceabilityOperationOKAfterDate(
-            LocalDateTime.parse("2017-08-02T12:01:00"),
+        final LogbookOperation secureOperation = logbookOperationsImpl.findLastTraceabilityOperationOKBeforeDate(
+            LocalDateTime.parse("2017-09-02T12:01:00"),
             DEFAULT_TRACEABILITY_VERSION
         );
 

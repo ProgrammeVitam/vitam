@@ -210,16 +210,16 @@ public class LogbookOperationsImplTest {
     }
 
     @Test
-    public void findFirstTraceabilityOperationOKAfterDateTest() throws Exception {
-        findFirstTraceabilityOperationOKAfterDateTestWithVersion(DEFAULT_TRACEABILITY_VERSION);
+    public void findLastTraceabilityOperationOKBeforeDateTest() throws Exception {
+        findLastTraceabilityOperationOKBeforeDateTestWithVersion(DEFAULT_TRACEABILITY_VERSION);
         VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V2");
-        findFirstTraceabilityOperationOKAfterDateTestWithVersion("V2");
+        findLastTraceabilityOperationOKBeforeDateTestWithVersion("V2");
     }
 
-    public void findFirstTraceabilityOperationOKAfterDateTestWithVersion(String traceabilityVersion) throws Exception {
+    public void findLastTraceabilityOperationOKBeforeDateTestWithVersion(String traceabilityVersion) throws Exception {
         reset(mongoDbAccess);
         doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(any(), anyBoolean());
-        LogbookOperation lo = logbookOperationsImpl.findFirstTraceabilityOperationOKAfterDate(
+        LogbookOperation lo = logbookOperationsImpl.findLastTraceabilityOperationOKBeforeDate(
             LocalDateUtil.now(),
             traceabilityVersion
         );
