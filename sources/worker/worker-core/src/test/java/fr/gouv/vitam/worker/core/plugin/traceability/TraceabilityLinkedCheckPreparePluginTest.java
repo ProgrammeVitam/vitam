@@ -33,6 +33,10 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.WorkspaceConstants;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -69,6 +73,11 @@ public class TraceabilityLinkedCheckPreparePluginTest {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
@@ -93,7 +102,9 @@ public class TraceabilityLinkedCheckPreparePluginTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_generate_logbook_distribution_file() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         // Given
         InputStream query = PropertiesUtils.getResourceAsStream(LINKED_CHECK_TRACEABILITY_QUERY_JSON);
         File distributionFile = temporaryFolder.newFile();
@@ -144,7 +155,9 @@ public class TraceabilityLinkedCheckPreparePluginTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_generate_logbook_distribution_file_with_warning() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         // Given
         InputStream query = PropertiesUtils.getResourceAsStream(LINKED_CHECK_TRACEABILITY_QUERY_JSON);
         File distributionFile = temporaryFolder.newFile();
