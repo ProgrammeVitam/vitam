@@ -32,7 +32,7 @@ import fr.gouv.vitam.functional.administration.common.ReconstructionResponseItem
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import org.bson.Document;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -66,5 +66,5 @@ public interface ReconstructionService {
      */
     ReconstructionResponseItem reconstructAccessionRegister(ReconstructionRequestItem reconstructionItem);
 
-    List<Document> agregateAccessionRegisterSummary(Set<String> originatingAgencies, Integer tenant);
+    Collection<Document> aggregateAccessionRegisterSummary(Set<String> originatingAgencies, Integer tenant);
 }

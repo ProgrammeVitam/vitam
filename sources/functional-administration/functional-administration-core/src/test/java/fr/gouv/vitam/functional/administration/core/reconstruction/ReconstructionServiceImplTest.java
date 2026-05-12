@@ -423,6 +423,11 @@ public class ReconstructionServiceImplTest {
         verify(reconstructionService, never()).reconstruct(any(), any());
     }
 
+    @Test
+    public void testReconstructionOfAccessionRegisterDetailsAndSummary() throws Exception {
+        Optional<CollectionBackupModel> backupCollection = getBackupCollection(TENANT_ID_1);
+    }
+
     /**
      * Prepare backup collections for tests.
      *
