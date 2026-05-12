@@ -165,6 +165,10 @@ public class EvidenceAuditIT extends VitamRuleRunner {
     @After
     public void afterTest() {
         handleAfter();
+        // Reset to default version
+        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V1");
+        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V1");
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V1");
     }
 
     @Test
@@ -348,6 +352,144 @@ public class EvidenceAuditIT extends VitamRuleRunner {
                 .toIterable()
                 .extracting(j -> j.get("outcome").asText())
                 .anyMatch(outcome -> outcome.equals(StatusCode.FATAL.name()));
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_execute_evidence_audit_with_version_2_traceability_and_version_2_audit_ok() throws Exception {
+        // Test 1: Ingest → traceability with version 2 → audit with same version (should be OK)
+
+        // Set securisation version to V2 for this tenant
+        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V2");
+        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V2");
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V2");
+
+        // Given - Do ingest
+        String ingestOperationId = VitamTestHelper.doIngest(TENANT_ID, "preservation/OG_with_3_parents.zip");
+
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        // Do traceability with version V2 (current configuration)
+        VitamTestHelper.doTraceabilityUnits();
+        VitamTestHelper.doTraceabilityGots();
+
+        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
+            SelectMultiQuery query = new SelectMultiQuery();
+            query.setQuery(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationId));
+
+            // Run evidence audit with version V2 (same as traceability)
+            String evidenceAuditOperation = runEvidenceAudit(query.getFinalSelect());
+
+            // When - Check results
+            ArrayNode jsonNode = (ArrayNode) accessClient
+                .selectOperationById(evidenceAuditOperation)
+                .toJsonNode()
+                .get("$results")
+                .get(0)
+                .get("events");
+
+            // Then - Should be OK since traceability and audit use same version
+            assertThat(jsonNode.iterator())
+                .toIterable()
+                .extracting(j -> j.get("outcome").asText())
+                .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_execute_evidence_audit_with_v1_securisation_and_v2_audit_warning() throws Exception {
+        // Start with version V1
+        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V1");
+        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V1");
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V1");
+
+        // Given - Do ingest
+        String ingestOperationId = VitamTestHelper.doIngest(TENANT_ID, "preservation/OG_with_3_parents.zip");
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        // Do traceability/securisation with version V1
+        VitamTestHelper.doTraceabilityUnits();
+        VitamTestHelper.doTraceabilityGots();
+
+        // Now change to version V2 for audit
+        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V2");
+        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V2");
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V2");
+
+        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
+            SelectMultiQuery query = new SelectMultiQuery();
+            query.setQuery(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationId));
+
+            // Run evidence audit with version V2 (different from securisation V1)
+            String evidenceAuditOperation = runEvidenceAudit(query.getFinalSelect());
+
+            // When - Check results
+            ArrayNode jsonNode = (ArrayNode) accessClient
+                .selectOperationById(evidenceAuditOperation)
+                .toJsonNode()
+                .get("$results")
+                .get(0)
+                .get("events");
+
+            // Then - Should be WARNING since data was secured with V1 but audit looks for V2
+            assertThat(jsonNode.iterator())
+                .toIterable()
+                .extracting(j -> j.get("outcome").asText())
+                .anyMatch(outcome -> outcome.equals(StatusCode.WARNING.name()));
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_execute_evidence_audit_with_v1_v2_traceability_and_v2_audit_ok() throws Exception {
+        // Start with version V1
+        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V1");
+        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V1");
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V1");
+        System.out.println("[DEBUG_LOG] Set securisation version to V1 for tenant " + TENANT_ID);
+
+        // Given - Do ingest
+        String ingestOperationId = VitamTestHelper.doIngest(TENANT_ID, "preservation/OG_with_3_parents.zip");
+
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        // Do first traceability with version V1
+        VitamTestHelper.doTraceabilityUnits();
+        VitamTestHelper.doTraceabilityGots();
+
+        // Change to version V2
+        VitamConfiguration.setLfcGotTraceabilityVersion(TENANT_ID, "V2");
+        VitamConfiguration.setLfcUnitTraceabilityVersion(TENANT_ID, "V2");
+        VitamConfiguration.setLogbookOperationTraceabilityVersion(TENANT_ID, "V2");
+
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        // Do second traceability with version V2
+        VitamTestHelper.doTraceabilityUnits();
+        VitamTestHelper.doTraceabilityGots();
+
+        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
+            SelectMultiQuery query = new SelectMultiQuery();
+            query.setQuery(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationId));
+
+            // Run evidence audit with version V2 (same as last traceability)
+            String evidenceAuditOperation = runEvidenceAudit(query.getFinalSelect());
+
+            // When - Check results
+            ArrayNode jsonNode = (ArrayNode) accessClient
+                .selectOperationById(evidenceAuditOperation)
+                .toJsonNode()
+                .get("$results")
+                .get(0)
+                .get("events");
+
+            // Then - Should be OK since data was secured with V2 (last traceability) and audit uses V2
+            assertThat(jsonNode.iterator())
+                .toIterable()
+                .extracting(j -> j.get("outcome").asText())
+                .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
         }
     }
 
