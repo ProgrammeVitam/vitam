@@ -26,7 +26,7 @@ pipeline {
         GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
         NVD_API_KEY = credentials("nvd-api-key")
         ES_VERSION="8.18.0"
-        MONGO_VERSION="8.0.20"
+        MONGO_VERSION="8.0.23"
         MINIO_VERSION="RELEASE.2020-04-15T00-39-01Z" // more precise than edge
         OPENIO_VERSION="18.10"
         JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
@@ -188,7 +188,7 @@ pipeline {
                         // elasticsearch
                         sh "docker run -d -m 2g --name elasticsearch -p 9200:9200 -p 9300:9300 -e \"xpack.security.enabled=false\" -e \"discovery.type=single-node\" -e \"cluster.name=elasticsearch-data\" ${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}"
                         // mongodb
-                        sh "docker run -d -m 1g --name mongodb -p 27017:27017 -v $WORKSPACE/vitam-conf-dev/tests/initdb.d/:/docker-entrypoint-initdb.d/ --health-cmd 'test \$(echo \"rs.status().ok\" | mongo --quiet) -eq 1' --health-start-period 30s --health-interval 10s ${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION} mongod --bind_ip_all --replSet rs0"
+                        sh "docker run -d -m 1g --name mongodb -p 27017:27017 --health-cmd 'mongosh --quiet --eval \"if (db.runCommand({ping:1}).ok !== 1) throw new Error()\"' --health-start-period 30s --health-interval 10s ${env.SERVICE_DOCKER_PULL_URL}/mongodb/mongodb-community-server:${env.MONGO_VERSION}-ubuntu2204-slim"
                         // minIO without SSL
                         sh "docker run -d -m 512m --name minionossl -p 127.0.0.1:9999:9000 -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\" ${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION} server /data"
                         // openio
