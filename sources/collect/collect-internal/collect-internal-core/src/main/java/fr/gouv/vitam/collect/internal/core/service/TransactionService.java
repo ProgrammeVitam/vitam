@@ -505,12 +505,16 @@ public class TransactionService {
                 }
                 RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
                 List<LogbookOperation> logbookOperations = getFromJsonNodeList(
-                    (requestResponseOK).getResults(),
+                    requestResponseOK.getResults(),
                     new TypeReference<>() {}
                 );
-                logbookOperations.forEach(
-                    logbookOperation -> results.put(logbookOperation.getId(), getOperationStatus(logbookOperation))
-                );
+                logbookOperations.forEach(logbookOperation -> {
+                    if (logbookOperation.getId() != null) {
+                        results.put(logbookOperation.getId(), getOperationStatus(logbookOperation));
+                    } else {
+                        LOGGER.error("Invalid state. LogbookOperation id is null " + logbookOperation);
+                    }
+                });
             }
 
             List<String> notFoundTransactionIds = transactionIds
@@ -520,9 +524,6 @@ public class TransactionService {
 
             if (CollectionUtils.isNotEmpty(notFoundTransactionIds)) {
                 LOGGER.error("Invalid state. Transactions ids have not been found " + notFoundTransactionIds);
-                throw new CollectInternalException(
-                    "Invalid state. At least one transaction have not been found in Vitam"
-                );
             }
 
             return results;
@@ -530,6 +531,7 @@ public class TransactionService {
             LOGGER.error("Error when select operation:", e);
             throw new CollectInternalException(e);
         } catch (LogbookClientException | InvalidParseOperationException e) {
+            LOGGER.error("Error parsing or fetching logbook operations:", e);
             throw new CollectInternalException(e);
         }
     }
