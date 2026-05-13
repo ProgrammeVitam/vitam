@@ -1,4 +1,4 @@
-mongodb/mongodb-community-server:8.0.20-ubuntu2204
+mongodb/mongodb-community-server:8.0.23-ubuntu2204
 elasticsearch:8.18.0
 logstash:8.18.0
 kibana:8.18.0
