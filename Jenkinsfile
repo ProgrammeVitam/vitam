@@ -26,7 +26,7 @@ pipeline {
         GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
         NVD_API_KEY = credentials("nvd-api-key")
         ES_VERSION="9.3.2"
-        MONGO_VERSION="8.0.20"
+        MONGO_VERSION="8.0.23"
     }
 
     options {
@@ -175,7 +175,7 @@ pipeline {
                         // elasticsearch
                         sh "docker run -d -m 2g --name elasticsearch -p 9200:9200 -p 9300:9300 -e \"xpack.security.enabled=false\" -e \"discovery.type=single-node\" -e \"cluster.name=elasticsearch-data\" ${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}"
                         // mongodb
-                        sh "docker run -d -m 1g --name mongodb -p 27017:27017 -v $WORKSPACE/vitam-conf-dev/tests/initdb.d/:/docker-entrypoint-initdb.d/ --health-cmd 'test \$(echo \"rs.status().ok\" | mongo --quiet) -eq 1' --health-start-period 30s --health-interval 10s ${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION} mongod --bind_ip_all --replSet rs0"
+                        sh "docker run -d -m 1g --name mongodb -p 27017:27017 --health-cmd 'mongosh --quiet --eval \"if (db.runCommand({ping:1}).ok !== 1) throw new Error()\"' --health-start-period 30s --health-interval 10s ${env.SERVICE_DOCKER_PULL_URL}/mongodb/mongodb-community-server:${env.MONGO_VERSION}-ubuntu2204-slim"
                         // Configure elasticsearch
                         sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
                         sh 'curl -X PUT http://localhost:9200/_index_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"], "priority": 1,"template": { "settings": {"index.number_of_shards": "1", "index.number_of_replicas": "0"}}}\''
