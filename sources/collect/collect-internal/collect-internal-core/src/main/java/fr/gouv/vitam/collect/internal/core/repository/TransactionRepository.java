@@ -271,7 +271,7 @@ public class TransactionRepository {
      */
     public List<TransactionModel> getListTransactionToDeleteByTenant(Integer tenantId)
         throws CollectInternalServerSideException {
-        LOGGER.debug("Transactions to delete : {}");
+        LOGGER.debug("Transactions to delete ");
         try {
             Bson query = and(eq(TENANT_ID, tenantId), in("Status", "ACK_OK", "ACK_WARNING", "ABORTED"));
             List<TransactionModel> listTransactionToDelete = new ArrayList<>();
