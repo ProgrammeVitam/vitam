@@ -8,8 +8,7 @@
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
-  notify:
-    - "siegfried - restart service"
+  notify: "siegfried - restart service"
   when: install_mode != "container"
 
 - name: Deploy systemd service file for siegfried
@@ -19,8 +18,21 @@
     owner: root
     group: root
     mode: "0644"
-  notify:
-    - "siegfried - restart service"
+  notify: "siegfried - restart service"
+
+- name: Check that the directories exist
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/siegfried"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ '0777' if install_mode == 'container' else vitam_defaults.folder.folder_permission }}"
+  with_items:
+    - app
+    - bin
+    - conf
+    - log
+  notify: "siegfried - restart service"
 
 - block:
 
@@ -39,23 +51,6 @@
 
   when: install_mode == "container"
 
-#### Configuration ####
-
-- name: Check that the directories exist
-  file:
-    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/siegfried"
-    state: directory
-    owner: "{{ vitam_defaults.users.vitam }}"
-    group: "{{ vitam_defaults.users.group }}"
-    mode: "{{ '0777' if install_mode == 'container' else vitam_defaults.folder.folder_permission }}"
-  with_items:
-    - app
-    - bin
-    - conf
-    - log
-  notify:
-    - "siegfried - restart service"
-
 - name: Copy siegfried sysconfig file
   template:
     src: sysconfig.conf.j2
@@ -63,8 +58,7 @@
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ '0644' if install_mode == 'container' else vitam_defaults.folder.script_permission }}"
-  notify:
-    - "siegfried - restart service"
+  notify: "siegfried - restart service"
 
 - name: Flush handlers
   meta: flush_handlers
