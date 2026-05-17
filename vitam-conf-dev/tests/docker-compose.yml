@@ -1,17 +1,13 @@
-version: "3.4"
 name: vitam-tests
 services:
   mongo:
-    image: library/mongo:8.0.20
+    image: mongodb/mongodb-community-server:8.0.23-ubuntu2204
     ports:
       - "27017:27017"
-    volumes:
-      - ./initdb.d/:/docker-entrypoint-initdb.d/
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      test: mongosh --quiet --eval "if (db.runCommand({ping:1}).ok !== 1) throw new Error()"
       interval: 10s
       start_period: 30s
-    command: [ "mongod", "--bind_ip_all", "--replSet", "rs0" ]
   elasticsearch:
     image: elasticsearch:8.18.0
     environment:
