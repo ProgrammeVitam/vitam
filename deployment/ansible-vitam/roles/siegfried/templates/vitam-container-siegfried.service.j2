@@ -10,6 +10,7 @@ ExecStartPre=-/usr/bin/docker pull {{ container_repository.registry_url }}/vitam
 ExecStartPre=-/usr/bin/docker stop vitam-siegfried
 ExecStartPre=-/usr/bin/docker rm vitam-siegfried
 ExecStart=/usr/bin/docker run --rm --net=host --name vitam-siegfried --user {{ getent_passwd[vitam_defaults.users.vitam | default('vitam')].1 }}:{{ getent_passwd[vitam_defaults.users.vitam | default('vitam')].2 }} \
+        -e USER={{ vitam_defaults.users.vitam | default('vitam')}} \
         -v "{{ vitam_defaults.folder.root_path }}/app/siegfried:{{ vitam_defaults.folder.root_path }}/app/siegfried:rw" \
         -v "{{ vitam_defaults.folder.root_path }}/conf/siegfried:{{ vitam_defaults.folder.root_path }}/conf/siegfried:rw" \
 {% if inventory_hostname in groups.get('hosts_ingest_external', []) %}
@@ -17,6 +18,7 @@ ExecStart=/usr/bin/docker run --rm --net=host --name vitam-siegfried --user {{ g
 {% endif %}
 {% if inventory_hostname in groups.get('hosts_worker', []) %}
         -v "{{ vitam_defaults.folder.root_path }}/data/worker:{{ vitam_defaults.folder.root_path }}/data/worker:rw" \
+        -v "{{ vitam_defaults.folder.root_path }}/tmp/worker:{{ vitam_defaults.folder.root_path }}/tmp/worker:rw" \
 {% endif %}
         {{ container_repository.registry_url }}/vitam-external/ghcr.io/keeps/siegfried:v1.11.4 \
         sf -home {{ vitam_defaults.folder.root_path }}/app/siegfried -serve $LISTEN
