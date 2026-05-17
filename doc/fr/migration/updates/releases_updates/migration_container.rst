@@ -4,7 +4,7 @@ Migration d'un vitam legacy vers un vitam conteneurisé
 Adaptation des sources de déploiement ansible
 =============================================
 
-.. caution:: Les composants ``ingest-external``, ``worker`` (en cas d'utilisation des griffons) et ``library`` ne sont actuellement pas compatible avec le mode de déploiement conteneurisé. La variable ``legacy_components_list`` permet de déployer n'importe quel composant en mode legacy.
+.. caution:: Les composants ``antivirus``, ``worker`` (en cas d'utilisation des griffons) et ``library`` ne sont actuellement pas compatible avec le mode de déploiement conteneurisé. La variable ``legacy_components_list`` permet de déployer n'importe quel composant en mode legacy.
 
 Il faut éditer le contenu du fichier ``environments/group_vars/all/main/repositories.yml``. Pour cela il faut rajouter les paramètres présentés dans l'exemple:
 
@@ -12,7 +12,7 @@ Il faut éditer le contenu du fichier ``environments/group_vars/all/main/reposit
 
     install_mode: container
 
-    legacy_components_list: [ "ingest-external", "worker", "library" ]
+    legacy_components_list: [ "antivirus", "worker", "library" ]
 
     container_repository:
       registry_url: https://docker.programmevitam.fr/
