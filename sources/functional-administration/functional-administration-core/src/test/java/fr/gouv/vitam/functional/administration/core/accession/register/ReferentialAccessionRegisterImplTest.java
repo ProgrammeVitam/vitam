@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.functional.administration.core.accession.register;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -1186,6 +1187,84 @@ public class ReferentialAccessionRegisterImplTest {
         assertStatsEquals(summarySP3.getTotalObjectGroups(), 0, 0, 0);
         assertStatsEquals(summarySP3.getTotalObjects(), 0, 0, 0);
         assertStatsEquals(summarySP3.getTotalObjectSize(), 0, 0, 0);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createOrUpdateAccessionRegister_with_large_object_should_not_overflow() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        ElasticsearchAccessFunctionalAdmin.ensureIndex();
+
+        long objectSize = 600_000_000L; // 600M bytes per object
+        int objectQuantity = 4;
+        long totalSize = objectQuantity * objectSize;
+
+        String id = GUIDFactory.newGUID().getId();
+
+        // Simulate 4 additions one by one on the same OPI
+        for (int i = 1; i <= objectQuantity; i++) {
+            AccessionRegisterDetailModel ingestDetail = new AccessionRegisterDetailModel()
+                .setId(id)
+                .setTenant(TENANT_ID)
+                .setOpi("Opi_Large")
+                .setOpc(i == 1 ? "Opi_Large" : "Opc_Add_" + i)
+                .setOriginatingAgency("SP_LARGE")
+                .setTotalUnits(new RegisterValueDetailModel().setIngested(1).setDeleted(0).setRemained(1))
+                .setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(1).setDeleted(0).setRemained(1))
+                .setTotalObjects(new RegisterValueDetailModel().setIngested(1).setDeleted(0).setRemained(1))
+                .setObjectSize(
+                    new RegisterValueDetailModel().setIngested(objectSize).setDeleted(0).setRemained(objectSize)
+                )
+                .setStatus(AccessionRegisterStatus.STORED_AND_UPDATED)
+                .addEvent(new RegisterValueEventModel());
+
+            accessionRegisterImpl.createOrUpdateAccessionRegister(ingestDetail);
+        }
+
+        // Check Summary after ingest
+        Select select = new Select();
+        select.setQuery(QueryHelper.eq("OriginatingAgency", "SP_LARGE"));
+        RequestResponseOK<AccessionRegisterSummary> response = accessionRegisterImpl.findDocuments(
+            select.getFinalSelect()
+        );
+        AccessionRegisterSummary summary = response.getResults().iterator().next();
+        assertThat(summary.getTotalObjectSize().getRemained()).isEqualTo(totalSize);
+
+        // Simulate deletion of the 4 objects at once
+        AccessionRegisterDetailModel deleteDetail = new AccessionRegisterDetailModel()
+            .setId(GUIDFactory.newGUID().getId())
+            .setTenant(TENANT_ID)
+            .setOpi("Opi_Large")
+            .setOpc("Opc_Delete_Large")
+            .setOriginatingAgency("SP_LARGE")
+            .setTotalUnits(new RegisterValueDetailModel().setIngested(0).setDeleted(4).setRemained(-4))
+            .setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(0).setDeleted(4).setRemained(-4))
+            .setTotalObjects(new RegisterValueDetailModel().setIngested(0).setDeleted(4).setRemained(-4))
+            .setObjectSize(new RegisterValueDetailModel().setIngested(0).setDeleted(totalSize).setRemained(-totalSize))
+            .setStatus(AccessionRegisterStatus.STORED_AND_UPDATED)
+            .addEvent(new RegisterValueEventModel());
+
+        accessionRegisterImpl.createOrUpdateAccessionRegister(deleteDetail);
+
+        // Check Summary after delete
+        response = accessionRegisterImpl.findDocuments(select.getFinalSelect());
+        summary = response.getResults().iterator().next();
+        assertThat(summary.getTotalObjectSize().getIngested()).isEqualTo(totalSize);
+        assertThat(summary.getTotalObjectSize().getDeleted()).isEqualTo(totalSize);
+        assertThat(summary.getTotalObjectSize().getRemained()).isEqualTo(0);
+
+        // Check Detail after delete
+        select = new Select();
+        select.setQuery(
+            QueryHelper.and().add(QueryHelper.eq("Opi", "Opi_Large"), QueryHelper.eq("OriginatingAgency", "SP_LARGE"))
+        );
+        RequestResponseOK<AccessionRegisterDetail> detailResponse = accessionRegisterImpl.findDetail(
+            select.getFinalSelect()
+        );
+        AccessionRegisterDetail detail = detailResponse.getResults().iterator().next();
+        assertThat(detail.getTotalObjectSize().getIngested()).isEqualTo(totalSize);
+        assertThat(detail.getTotalObjectSize().getDeleted()).isEqualTo(totalSize);
+        assertThat(detail.getTotalObjectSize().getRemained()).isEqualTo(0);
     }
 
     private void verifyAccessionRegisterBackup(Collection<AccessionRegisterDetail> dbAccessionRegisterDetails)

@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchTestHelper;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -39,9 +40,12 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
@@ -51,7 +55,10 @@ import fr.gouv.vitam.functional.administration.core.backup.RestoreBackupService;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import org.bson.Document;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -63,9 +70,13 @@ import org.mockito.junit.MockitoRule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -95,6 +106,11 @@ public class ReconstructionServiceImplTest {
     public static final String SEQUENCE_NAME = "fake name";
     public static final String BACKUP_SEQUENCE_NAME = "fake backup name";
     private static final String DEFAULT_OFFER = "default";
+
+    @ClassRule
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(AccessionRegisterDetail.class, AccessionRegisterSummary.class)
+    );
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
@@ -137,6 +153,24 @@ public class ReconstructionServiceImplTest {
     private final ElasticsearchFunctionalAdminIndexManager indexManager =
         FunctionalAdminCollectionsTestUtils.createTestIndexManager(ElasticsearchTestHelper.loadElasticSearchSettings());
     private ReconstructionServiceImpl reconstructionService;
+
+    @BeforeClass
+    public static void setUpBeforeClass() {
+        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection()
+            .setName(GUIDFactory.newGUID().getId() + "AccessionRegisterDetail");
+        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection()
+            .initialize(mongoRule.getMongoDatabase(), false);
+        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection()
+            .setName(GUIDFactory.newGUID().getId() + "AccessionRegisterSummary");
+        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection()
+            .initialize(mongoRule.getMongoDatabase(), false);
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() {
+        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().drop();
+        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().drop();
+    }
 
     @Before
     public void setup() {
@@ -425,7 +459,61 @@ public class ReconstructionServiceImplTest {
 
     @Test
     public void testReconstructionOfAccessionRegisterDetailsAndSummary() throws Exception {
-        Optional<CollectionBackupModel> backupCollection = getBackupCollection(TENANT_ID_1);
+        // Prepare data with large object size > 2147483647
+        int normalSize = 100_000;
+        int largeSize1 = 2_000_000_000;
+        int largeSize2 = 1_000_000_000;
+        long largeSize3 = 1_000_000_000_000L;
+
+        List<Number> objectSizes = new ArrayList<>();
+        objectSizes.add(100_000);
+        objectSizes.add(2_000_000_000);
+        objectSizes.add(1_000_000_000);
+        objectSizes.add(1_000_000_000_000L);
+
+        List<Document> accessionRegisterDetails = objectSizes
+            .stream()
+            .map(
+                objectSize ->
+                    new Document(VitamDocument.TENANT_ID, TENANT_ID_1)
+                        .append(VitamDocument.ID, GUIDFactory.newGUID().toString())
+                        .append(AccessionRegisterDetail.ORIGINATING_AGENCY, "agency1")
+                        .append(
+                            "ObjectSize",
+                            new Document("ingested", objectSize).append("deleted", 0).append("remained", objectSize)
+                        )
+                        .append(
+                            "TotalObjectGroups",
+                            new Document("ingested", 1).append("deleted", 0).append("remained", 1)
+                        )
+                        .append("TotalUnits", new Document("ingested", 1).append("deleted", 0).append("remained", 1))
+                        .append("TotalObjects", new Document("ingested", 1).append("deleted", 0).append("remained", 1))
+            )
+            .toList();
+
+        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().insertMany(accessionRegisterDetails);
+
+        Set<String> agencies = new HashSet<>();
+        agencies.add("agency1");
+
+        Collection<Document> summaries = reconstructionService.aggregateAccessionRegisterSummary(agencies, TENANT_ID_1);
+
+        assertThat(summaries).hasSize(1);
+        Document summary = summaries.iterator().next();
+
+        assertThat(summary.getString(AccessionRegisterSummary.ORIGINATING_AGENCY)).isEqualTo("agency1");
+
+        Document objectSize = (Document) summary.get(AccessionRegisterSummary.OBJECT_SIZE);
+        final long expectedObjectSize = objectSizes.stream().mapToLong(Number::longValue).sum();
+        assertThat(((Number) objectSize.get(AccessionRegisterSummary.INGESTED)).longValue()).isEqualTo(
+            expectedObjectSize
+        );
+        assertThat(((Number) objectSize.get(AccessionRegisterSummary.REMAINED)).longValue()).isEqualTo(
+            expectedObjectSize
+        );
+
+        // Clean up
+        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().deleteMany(new Document());
     }
 
     /**
