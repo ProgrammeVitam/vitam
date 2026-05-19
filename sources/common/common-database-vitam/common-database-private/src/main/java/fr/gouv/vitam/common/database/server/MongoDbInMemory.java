@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.common.database.server;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -61,8 +62,6 @@ import fr.gouv.vitam.common.model.unit.RuleModel;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalUnit;
@@ -76,6 +75,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -758,44 +758,7 @@ public class MongoDbInMemory {
 
     private void inc(final BuilderToken.UPDATEACTION req, final JsonNode content)
         throws InvalidParseOperationException {
-        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
-        final String fieldName = element.getKey();
-        Number nodeValue = getNumberValue(req.name(), fieldName);
-
-        JsonNode actionValue = element.getValue();
-
-        if (!actionValue.isNumber()) {
-            throw new InvalidParseOperationException(
-                "[ INC" + ACTION_ARGUMENT + actionValue + COULD_NOT_CONVERTED + fieldName
-            );
-        }
-
-        String[] fieldNamePath = fieldName.split("[.]");
-        String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
-
-        final ObjectNode parentNode = (ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
-        if (parentNode != null) {
-            if (nodeValue.getClass().equals(Integer.class)) {
-                parentNode.put(lastNodeName, element.getValue().intValue() + nodeValue.intValue());
-            } else if (nodeValue.getClass().equals(Long.class)) {
-                parentNode.put(lastNodeName, element.getValue().longValue() + nodeValue.longValue());
-            } else if (nodeValue.getClass().equals(Float.class)) {
-                parentNode.put(lastNodeName, element.getValue().floatValue() + nodeValue.floatValue());
-            } else if (nodeValue.getClass().equals(Double.class)) {
-                parentNode.put(lastNodeName, element.getValue().doubleValue() + nodeValue.doubleValue());
-            } else if (nodeValue.getClass().equals(BigDecimal.class)) {
-                parentNode.put(
-                    lastNodeName,
-                    element.getValue().decimalValue().add(BigDecimal.valueOf(nodeValue.doubleValue()))
-                );
-            } else if (nodeValue.getClass().equals(BigInteger.class)) {
-                parentNode.put(
-                    lastNodeName,
-                    element.getValue().bigIntegerValue().add(BigInteger.valueOf(nodeValue.intValue()))
-                );
-            }
-        }
-        updatedFields.add(fieldName);
+        updateNumber(req, content, NumberUtils::add);
     }
 
     private void unset(final JsonNode content) {
@@ -872,82 +835,12 @@ public class MongoDbInMemory {
 
     private void min(final BuilderToken.UPDATEACTION req, final JsonNode content)
         throws InvalidParseOperationException {
-        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
-        final String fieldName = element.getKey();
-        Number nodeValue = getNumberValue(req.name(), fieldName);
-
-        JsonNode actionValue = element.getValue();
-        if (!actionValue.isNumber()) {
-            throw new InvalidParseOperationException(
-                "[ MIN" + ACTION_ARGUMENT + actionValue + COULD_NOT_CONVERTED + fieldName
-            );
-        }
-
-        String[] fieldNamePath = fieldName.split("[.]");
-        String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
-        final ObjectNode parentNode = (ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
-        if (parentNode != null) {
-            if (nodeValue.getClass().equals(Integer.class)) {
-                parentNode.put(lastNodeName, Math.min(element.getValue().intValue(), nodeValue.intValue()));
-            } else if (nodeValue.getClass().equals(Long.class)) {
-                parentNode.put(lastNodeName, Math.min(element.getValue().longValue(), nodeValue.longValue()));
-            } else if (nodeValue.getClass().equals(Float.class)) {
-                parentNode.put(lastNodeName, Math.min(element.getValue().floatValue(), nodeValue.floatValue()));
-            } else if (nodeValue.getClass().equals(Double.class)) {
-                parentNode.put(lastNodeName, Math.min(element.getValue().doubleValue(), nodeValue.doubleValue()));
-            } else if (nodeValue.getClass().equals(BigDecimal.class)) {
-                parentNode.put(
-                    lastNodeName,
-                    element.getValue().decimalValue().min(BigDecimal.valueOf(nodeValue.doubleValue()))
-                );
-            } else if (nodeValue.getClass().equals(BigInteger.class)) {
-                parentNode.put(
-                    lastNodeName,
-                    element.getValue().bigIntegerValue().min(BigInteger.valueOf(nodeValue.intValue()))
-                );
-            }
-        }
-        updatedFields.add(fieldName);
+        updateNumber(req, content, NumberUtils::min);
     }
 
     private void max(final BuilderToken.UPDATEACTION req, final JsonNode content)
         throws InvalidParseOperationException {
-        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
-        final String fieldName = element.getKey();
-        Number nodeValue = getNumberValue(req.name(), fieldName);
-
-        JsonNode actionValue = element.getValue();
-        if (!actionValue.isNumber()) {
-            throw new InvalidParseOperationException(
-                "[ MAX" + ACTION_ARGUMENT + actionValue + COULD_NOT_CONVERTED + fieldName
-            );
-        }
-
-        String[] fieldNamePath = fieldName.split("[.]");
-        String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
-        final ObjectNode parentNode = (ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
-        if (parentNode != null) {
-            if (nodeValue.getClass().equals(Integer.class)) {
-                parentNode.put(lastNodeName, Math.max(element.getValue().intValue(), nodeValue.intValue()));
-            } else if (nodeValue.getClass().equals(Long.class)) {
-                parentNode.put(lastNodeName, Math.max(element.getValue().longValue(), nodeValue.longValue()));
-            } else if (nodeValue.getClass().equals(Float.class)) {
-                parentNode.put(lastNodeName, Math.max(element.getValue().floatValue(), nodeValue.floatValue()));
-            } else if (nodeValue.getClass().equals(Double.class)) {
-                parentNode.put(lastNodeName, Math.max(element.getValue().doubleValue(), nodeValue.doubleValue()));
-            } else if (nodeValue.getClass().equals(BigDecimal.class)) {
-                parentNode.put(
-                    lastNodeName,
-                    element.getValue().decimalValue().max(BigDecimal.valueOf(nodeValue.doubleValue()))
-                );
-            } else if (nodeValue.getClass().equals(BigInteger.class)) {
-                parentNode.put(
-                    lastNodeName,
-                    element.getValue().bigIntegerValue().max(BigInteger.valueOf(nodeValue.intValue()))
-                );
-            }
-        }
-        updatedFields.add(fieldName);
+        updateNumber(req, content, NumberUtils::max);
     }
 
     private void rename(final BuilderToken.UPDATEACTION req, final JsonNode content)
@@ -1125,6 +1018,53 @@ public class MongoDbInMemory {
             throw new InvalidParseOperationException(message);
         }
         return node;
+    }
+
+    private void putNumber(final ObjectNode parentNode, final String fieldName, final Number value)
+        throws InvalidParseOperationException {
+        if (value instanceof Integer) {
+            parentNode.put(fieldName, value.intValue());
+        } else if (value instanceof Long) {
+            parentNode.put(fieldName, value.longValue());
+        } else if (value instanceof Float) {
+            parentNode.put(fieldName, value.floatValue());
+        } else if (value instanceof Double) {
+            parentNode.put(fieldName, value.doubleValue());
+        } else {
+            throw new InvalidParseOperationException("Unsupported numeric type: " + value.getClass());
+        }
+    }
+
+    private Number toAllowedNumber(final String fieldName, final JsonNode node) throws InvalidParseOperationException {
+        if (!node.isNumber()) {
+            throw new InvalidParseOperationException("Non numeric value: " + node + " for field " + fieldName);
+        }
+        if (!node.isInt() && !node.isLong() && !node.isFloat() && !node.isDouble()) {
+            throw new InvalidParseOperationException("Node is not allowed numeric type: " + node);
+        }
+        return node.numberValue();
+    }
+
+    private void updateNumber(BuilderToken.UPDATEACTION req, JsonNode content, BinaryOperator<Number> operation)
+        throws InvalidParseOperationException {
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
+
+        final String fieldName = element.getKey();
+        final JsonNode actionValue = element.getValue();
+
+        final Number currentValue = getNumberValue(req.name(), fieldName);
+        final Number updateValue = toAllowedNumber(fieldName, actionValue);
+        final ObjectNode parentNode = (ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
+
+        if (parentNode == null) {
+            throw new InvalidParseOperationException("Parent node not found for field: " + fieldName);
+        }
+
+        final String lastNodeName = JsonHandler.getLastFieldName(fieldName);
+        final Number result = operation.apply(currentValue, updateValue);
+
+        putNumber(parentNode, lastNodeName, result);
+        updatedFields.add(fieldName);
     }
 
     public Set<String> getUpdatedFields() {
