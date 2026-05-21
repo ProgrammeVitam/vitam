@@ -106,7 +106,6 @@ import org.junit.Test;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -346,7 +345,7 @@ public class AccessExternalIT extends VitamRuleRunner {
             .insertOne(
                 new MetadataSnapshot(
                     "{ \"_id\" : \"aeaaaaaaaaeaaaabahd72al7ivfrywiaaaaq\", \"Name\" : \"UnitsScrollDate\", \"_tenant\" : 0, \"Value\" : \"" +
-                    LocalDateUtil.getFormattedDateTimeForMongo(LocalDate.now().atStartOfDay()) +
+                    LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.today().atStartOfDay()) +
                     "\" }"
                 )
             );
@@ -380,7 +379,7 @@ public class AccessExternalIT extends VitamRuleRunner {
             .insertOne(
                 new MetadataSnapshot(
                     "{ \"_id\" : \"aeaaaaaaaaeaaaabahd72al7ivfrywiaaaaq\", \"Name\" : \"UnitsScrollDate\", \"_tenant\" : 0, \"Value\" : \"" +
-                    LocalDateUtil.getFormattedDateTimeForMongo(LocalDate.now().minusDays(1).atStartOfDay()) +
+                    LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.today().minusDays(1).atStartOfDay()) +
                     "\" }"
                 )
             );
@@ -461,7 +460,7 @@ public class AccessExternalIT extends VitamRuleRunner {
             .insertOne(
                 new MetadataSnapshot(
                     "{ \"_id\" : \"aeaaaaaaaaeaaaabahd72al7ivfrywiaaaaq\", \"Name\" : \"ObjectsScrollDate\", \"_tenant\" : 0, \"Value\" : \"" +
-                    LocalDateUtil.getFormattedDateTimeForMongo(LocalDate.now().atStartOfDay()) +
+                    LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.today().atStartOfDay()) +
                     "\" }"
                 )
             );
@@ -495,7 +494,7 @@ public class AccessExternalIT extends VitamRuleRunner {
             .insertOne(
                 new MetadataSnapshot(
                     "{ \"_id\" : \"aeaaaaaaaaeaaaabahd72al7ivfrywiaaaaq\", \"Name\" : \"LastScrollRequestDate\", \"_tenant\" : 0, \"Value\" : \"" +
-                    LocalDateUtil.getFormattedDateTimeForMongo(LocalDate.now().minusDays(1).atStartOfDay()) +
+                    LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.today().minusDays(1).atStartOfDay()) +
                     "\" }"
                 )
             );
