@@ -54,6 +54,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageUnavailableDataFromAsyncOfferException;
 import org.apache.commons.io.IOUtils;
+import org.bson.BsonDocument;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -533,7 +534,7 @@ public class TapeLibraryContentAddressableStorageTest {
         ObjectEntry objectEntry1 = new ObjectEntry("obj1", 100L);
         when(closeableIterator.next())
             .thenReturn(objectEntry1)
-            .thenThrow(new MongoCursorNotFoundException(124L, new ServerAddress()));
+            .thenThrow(new MongoCursorNotFoundException(124L, new BsonDocument(), new ServerAddress()));
 
         doReturn(closeableIterator).when(objectReferentialRepository).listContainerObjectEntries("container");
 
