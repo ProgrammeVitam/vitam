@@ -9,11 +9,11 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify: "siegfried - restart service"
-  when: install_mode != "container"
+  when: install_mode != "container" or 'siegfried' in legacy_components_list
 
 - name: Deploy systemd service file for siegfried
   template:
-    src: "vitam-{{ 'container-' if install_mode == 'container' else '' }}siegfried.service.j2"
+    src: "vitam-{{ 'container-' if install_mode == 'container' and 'siegfried' not in legacy_components_list else '' }}siegfried.service.j2"
     dest: "{{ '/lib/systemd/system' if ansible_os_family == 'Debian' else '/usr/lib/systemd/system' }}/vitam-siegfried.service"
     owner: root
     group: root
@@ -49,7 +49,9 @@
         sf -update -home {{ vitam_defaults.folder.root_path }}/app/siegfried
       when: not siegfried_signature.stat.exists
 
-  when: install_mode == "container"
+  when:
+    - install_mode == "container"
+    - "'siegfried' not in legacy_components_list"
 
 - name: Copy siegfried sysconfig file
   template:
