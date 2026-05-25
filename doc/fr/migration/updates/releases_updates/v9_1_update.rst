@@ -104,7 +104,6 @@ Les timers et les externals de Vitam doivent être arrêtés sur **tous les site
 
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_external.yml --ask-vault-pass
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_scheduling.yml --ask-vault-pass
-    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_scheduler.yml --ask-vault-pass
 
 ..
 
@@ -128,6 +127,73 @@ Puis exécutez le playbook suivant **sur tous les sites** :
 
 ..
 
+Mise à jour intermédiaire des clusters ElasticSearch
+----------------------------------------------------
+
+.. caution:: Cette opération doit être effectuée AVANT la montée de version vers la V9.1
+
+Cette procédure permet de faire le saut intermédiaire entre les versions 7 et 8 des clusters ElasticSearch (data & log).
+
+Le saut final vers la version 9 d'ElasticSearch sera effectué lors de la mise à jour de Vitam via l'exécution du master playbook ``ansible-vitam/vitam.yml``.
+
+Exécutez les playbooks suivants sur **tous les sites** pour mettre à jour vos clusters ElasticSearch vers la version intermédiaire 8.19.8 :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam/services/cots/elasticsearch_log.yml --ask-vault-pass -e "elasticsearch_version=8.19.8"
+    ansible-playbook -i environments/<inventaire> ansible-vitam/services/cots/elasticsearch_data.yml --ask-vault-pass -e "elasticsearch_version=8.19.8"
+
+..
+
+Attention, à partir de cette étape, il va falloir s'assurer que l'ensemble des indexes présents sur les clusters ElasticSearch (data & log) sont compatibles avec la version 9 d'ElasticSearch avant de poursuivre la procédure de montée de version. Les indexes incompatibles sont ceux créés avec une version antérieure à la version 8.x d'ElasticSearch.
+
+.. note::
+    Si vous souhaitez conserver l'ensemble des données, y compris les plus anciennes ou si vous avez un cluster elasticsearch-data trop volumineux pour effectuer une réindexation complète, vous pouvez utiliser la procédure de migration de données à l'aide d'un cluster ElasticSearch tampon (cf. :doc:`procedure_montee_version_speciale_es7_es9`). Autrement, vous pouvez suivre la procédure suivante.
+
+Pour ElasticSearch-Log
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-migration/check_incompatible_elasticsearch_v9_indices.yml --ask-vault-pass -t elasticsearch_log
+
+
+Vous pouvez aussi vérifier la compatibilité via Kibana-Log:
+
+* Accédez à la section ``Management > Stack Management > Stack > Upgrade Assistant``
+* Vérifiez que les indexes ne sont pas marqués comme ``Incompatible with the current version of Elasticsearch``
+
+Si des indexes incompatibles sont détectés, soit vous procédez à la migration des données à l'aide de la procédure dédiée, sinon, si les données ne sont pas critiques, vous pouvez les supprimer en ajoutant les paramètres ``-e delete_incompatible_indices=true --tags elasticsearch_log`` au playbook de détection.
+
+.. caution::
+    Cette opération supprimera définitivement les indexes concernés. Assurez-vous d'avoir sauvegardé ou réindexé l'ensemble des données nécessaires avant de poursuivre.
+
+Pour ElasticSearch-Data
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-migration/check_incompatible_elasticsearch_v9_indices.yml --ask-vault-pass -t elasticsearch_data
+
+Si des indexes incompatibles sont détectés, vous devez procéder à la réindexation de ces indexes. Pour cela, exécutez le playbook de réindexation :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --ask-vault-pass
+
+.. note::
+    Si seulement une sous-partie des indexes est incompatible avec la nouvelle version d'ElasticSearch, il ne sera pas nécessaire de réindexer l'ensemble des données. Dans ce cas, référez-vous à la documentation d'exploitation sur la réindexation pour cibler uniquement les indexes concernés.
+
+.. caution::
+    Durant la réindexation, les tâches planifiées et les accès externes à Vitam doivent être arrêtés.
+
+    Cette opération peut prendre plusieurs heures en fonction de la quantité de données à réindexer. Si la durée de réindexation est trop longue pour votre production, veuillez vous référer à la procédure de migration de données Vitam vers un nouveau cluster ElasticSearch tampon.
+
+À l'issue de la réindexation, vous pouvez réexécuter le playbook de détection avec les paramètres ``-e delete_incompatible_indices=true --tags elasticsearch_data`` afin de supprimer les indexes incompatibles restants.
+
+.. caution::
+    Cette opération supprimera définitivement les indexes concernés. Assurez-vous d'avoir sauvegardé ou réindexé l'ensemble des données nécessaires avant de poursuivre.
+
 Mise à jour de MongoDB 8.0.23
 -----------------------------
 
@@ -141,24 +207,6 @@ Exécutez le playbook suivant à partir de l'ansiblerie de la V9.1 **sur tous le
 .. code-block:: bash
 
     ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_mongodb_80.yml --ask-vault-pass
-
-..
-
-Mise à jour intermédiaire des clusters ElasticSearch
-----------------------------------------------------
-
-.. caution:: Cette opération doit être effectuée AVANT la montée de version
-
-Ces opérations permettent de faire le saut intermédiaire entre les versions 8.18.0 et 8.19.8 des clusters ElasticSearch (data & log).
-
-Le saut final vers la version 9.3.2 sera effectué lors de la mise à jour de Vitam via l'exécution du master playbook.
-
-Exécutez les playbooks suivants sur **tous les sites** :
-
-.. code-block:: bash
-
-    ansible-playbook -i environments/<inventaire> ansible-vitam/services/cots/elasticsearch_log.yml --ask-vault-pass -e "elasticsearch_version=8.19.8"
-    ansible-playbook -i environments/<inventaire> ansible-vitam/services/cots/elasticsearch_data.yml --ask-vault-pass -e "elasticsearch_version=8.19.8"
 
 ..
 
