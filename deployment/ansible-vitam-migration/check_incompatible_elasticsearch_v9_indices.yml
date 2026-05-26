@@ -1,0 +1,38 @@
+---
+#
+# Description: Checks for ElasticSearch indices that are incompatible with ES 9.
+#              Indices created with a version prior to ES 8.x cannot be used in ES 9 and must be reindexed or deleted before upgrading.
+#
+# Example: ansible-vitam-migration/check_incompatible_elasticsearch_v9_indices.yml [-e "delete_incompatible_indices=true"]
+#
+# Optional parameters:
+#   - delete_incompatible_indices: If set to true, delete incompatible indices (default: false).
+#     /!\ WARNING: This will permanently delete the indices. Make sure to back up or reindex them before enabling this option.
+#
+# Tags:
+#   - elasticsearch_log:  Run only on the elasticsearch-log cluster
+#   - elasticsearch_data: Run only on the elasticsearch-data cluster
+
+# ===== Check incompatible indices on elasticsearch-log cluster =====
+- hosts: hosts_elasticsearch_log
+  any_errors_fatal: true
+  run_once: true
+  gather_facts: false
+  tags: elasticsearch_log
+  roles:
+    - check_elasticsearch_indices_compatibility
+  vars:
+    elasticsearch_cluster: "{{ elasticsearch.log }}"
+    compatibility_target_version: 8000000
+
+# ===== Check incompatible indices on elasticsearch-data cluster =====
+- hosts: hosts_elasticsearch_data
+  any_errors_fatal: true
+  run_once: true
+  gather_facts: false
+  tags: elasticsearch_data
+  roles:
+    - check_elasticsearch_indices_compatibility
+  vars:
+    elasticsearch_cluster: "{{ elasticsearch.data }}"
+    compatibility_target_version: 8000000

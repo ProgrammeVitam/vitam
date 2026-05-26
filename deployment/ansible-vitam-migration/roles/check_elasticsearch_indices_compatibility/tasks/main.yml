@@ -1,0 +1,41 @@
+---
+
+- name: "Retrieve all index settings from {{ elasticsearch_cluster.cluster_name }}"
+  uri:
+    url: "{{ elasticsearch_cluster | client_url }}_settings?expand_wildcards=all&filter_path=*.settings.index.version.created"
+    method: GET
+    return_content: true
+    status_code: 200
+  register: es_cluster_settings
+
+- name: "Build list of incompatible indices for {{ elasticsearch_cluster.cluster_name }}"
+  set_fact:
+    es_cluster_incompatible_indices: "{{ _result }}"
+  vars:
+    _result: >-
+      {%- set incompatible = [] -%}
+      {%- for index_name, index_data in es_cluster_settings.json.items() -%}
+        {%- if index_data.settings.index.version.created | int < compatibility_target_version -%}
+          {%- set _ = incompatible.append({'index': index_name, 'version_created': index_data.settings.index.version.created}) -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{ incompatible }}
+
+- name: "Display incompatible indices for {{ elasticsearch_cluster.cluster_name }}"
+  assert:
+    that: es_cluster_incompatible_indices | length == 0
+    fail_msg: "Found {{ es_cluster_incompatible_indices | length }} incompatible index(es) on {{ elasticsearch_cluster.cluster_name }} cluster: {{ es_cluster_incompatible_indices | map(attribute='index') | list | sort | join(', ') }}."
+    success_msg: "All indices on {{ elasticsearch_cluster.cluster_name }} cluster are compatible with Elasticsearch {{ (compatibility_target_version | string | first | int) + 1 }}.x."
+  ignore_errors: "{{ delete_incompatible_indices | default(false) | bool }}"
+
+- name: "Delete incompatible indices from {{ elasticsearch_cluster.cluster_name }} cluster"
+  uri:
+    url: "{{ elasticsearch_cluster | client_url }}{{ item.index }}"
+    method: DELETE
+    status_code: 200
+  loop: "{{ es_cluster_incompatible_indices }}"
+  loop_control:
+    label: "{{ item.index }}"
+  when:
+    - es_cluster_incompatible_indices | length > 0
+    - delete_incompatible_indices | default(false) | bool
