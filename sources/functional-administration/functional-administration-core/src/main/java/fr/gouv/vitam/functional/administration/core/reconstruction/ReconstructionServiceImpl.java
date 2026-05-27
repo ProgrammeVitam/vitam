@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.functional.administration.core.reconstruction;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -82,6 +83,7 @@ import org.bson.conversions.Bson;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -664,7 +666,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenant);
-            List<Document> documents = agregateAccessionRegisterSummary(originatingAgencies, tenant);
+            Collection<Document> documents = aggregateAccessionRegisterSummary(originatingAgencies, tenant);
             Set<Document> accessionRegisterSummary = new HashSet<>();
             for (Document registerSummaryDoc : documents) {
                 registerSummaryDoc
@@ -721,7 +723,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
     }
 
     @Override
-    public List<Document> agregateAccessionRegisterSummary(Set<String> originatingAgencies, Integer tenant) {
+    public Collection<Document> aggregateAccessionRegisterSummary(Set<String> originatingAgencies, Integer tenant) {
         MongoCollection<AccessionRegisterDetail> accessionRegisterDetailCollection =
             FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection();
         AggregateIterable<Document> aggregate = accessionRegisterDetailCollection.aggregate(
