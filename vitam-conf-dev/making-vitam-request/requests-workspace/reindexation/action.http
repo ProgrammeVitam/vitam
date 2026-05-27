@@ -1,32 +1,45 @@
 # Configuration
-@access-contract = ContratTNR
-@tenant = 0
-@index-name = unit_0_20180809_163925
+@collection = "Unit"
+@tenant_list = ["0"]
 
-### Lancement de la réindexation de la collection 'Unit' sur le tenant '0'
+### Launch full reindexation of a collection
+# @name reindex
 POST {{url-ingest}}/adminmanagement/v1/reindex/
 Accept: application/json
 Content-Type: application/json
-X-Access-Contract-Id: {{access-contract}}
-X-Tenant-Id: {{tenant}}
 
 [
   {
-    "collection": "Unit",
-    "tenants": [0]
+    "collection": "{{collection}}",
+    "tenants": "{{tenant_list}}"
   }
 ]
 
-### Changement d'index elasticsearch grâce au résultat de la requête précédente
+### Switch the associated alias to the newly created index
+@index-name = {{ reindex.response.body.$.$results.0.OK.0.indexName }}
+@alias-name = {{ reindex.response.body.$.$results.0.OK.0.aliasName }}
+
 POST {{url-ingest}}/adminmanagement/v1/alias/
 Accept: application/json
 Content-Type: application/json
-X-Access-Contract-Id: {{access-contract}}
-X-Tenant-Id: {{tenant}}
 
 [
   {
-    "alias": "Unit",
+    "alias": "{{alias-name}}",
     "indexName": "{{index-name}}"
+  }
+]
+
+### Launch differential (delta) reindexation
+# Only works for Unit and ObjectGroup collections
+POST {{url-ingest}}/adminmanagement/v1/reindex/
+Accept: application/json
+Content-Type: application/json
+
+[
+  {
+    "collection": "{{collection}}",
+    "tenants": "{{tenant_list}}",
+    "indexationStartDate": "2026-05-20"
   }
 ]
