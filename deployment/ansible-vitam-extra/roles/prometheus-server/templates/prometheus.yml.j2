@@ -30,6 +30,7 @@ scrape_config_files:
 # Here it's Prometheus itself.
 scrape_configs:
   - job_name: vitam-prometheus
+    metrics_path: {{ prometheus.server.metrics_path | default('/prometheus/metrics') }}
     static_configs:
 {% for item in groups['hosts_prometheus'] %}
       - targets: ["{{ hostvars[item]['ip_admin'] }}:{{ prometheus.server.port | default(9090) }}"]
