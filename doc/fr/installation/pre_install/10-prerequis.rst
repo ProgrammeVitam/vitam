@@ -16,9 +16,9 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
 
 * packages nécessaires :
 
-  + **ansible** (version **2.9** minimale et conseillée ; se référer à la `documentation ansible <http://docs.ansible.com/ansible/latest/intro_installation.html>`_ pour la procédure d'installation)
+  + **ansible** (version **2.14** minimale et conseillée ; se référer à la `documentation ansible <http://docs.ansible.com/ansible/latest/intro_installation.html>`_ pour la procédure d'installation)
   + **openssh-client** (client SSH utilisé par ansible)
-  + **JRE OpenJDK 11** et **openssl** (du fait de la génération de certificats / *stores*, l'utilitaire ``keytool`` est nécessaire)
+  + **JRE OpenJDK 21** et **openssl** (du fait de la génération de certificats / *stores*, l'utilitaire ``keytool`` est nécessaire)
 
 * un accès ssh vers un utilisateur d'administration avec élévation de privilèges vers les droits ``root``, ``vitam``, ``vitamdb`` (les comptes ``vitam`` et ``vitamdb`` sont créés durant le déploiement) sur les serveurs cibles.
 * Le compte utilisé sur le serveur d'administration doit avoir confiance dans les serveurs sur lesquels la solution logicielle :term:`VITAM` doit être installée (fichier ``~/.ssh/known_hosts`` correctement renseigné)
@@ -79,7 +79,7 @@ Déploiement sur environnement AlmaLinux
 Déploiement sur environnement Debian
 ------------------------------------
 
-* Disposer d'une plate-forme Linux Debian "bookworm" installée selon la répartition des services souhaitée. En particulier, ces serveurs doivent avoir :
+* Disposer d'une plate-forme Linux Debian 12 "bookworm" installée selon la répartition des services souhaitée. En particulier, ces serveurs doivent avoir :
 
   + une configuration de temps synchronisée (ex: en récupérant le temps à un serveur centralisé)
   + Des autorisations de flux conformément aux besoins décrits dans le :term:`DAT`
@@ -90,14 +90,10 @@ Déploiement sur environnement Debian
 * Disposer des binaires VITAM : paquets deb de VITAM (vitam-product) ainsi que les paquets d'éditeurs tiers livrés avec VITAM (vitam-external)
 * Disposer, si besoin, des binaires pour l'installation des *griffins*
 
-.. warning:: Pour l'installation des *packages* mongoDB, il est nécessaire de mettre à disposition le *package* ``libcurl3`` présent en *stretch* uniquement (le *package* ``libcurl4`` sera désinstallé).
-
-.. warning:: Le *package* ``curl`` est installé depuis les dépôts ``stretch``.
-
 Présence d'un agent antiviral
 -----------------------------
 
-Dans le cas de partitions sur lesquelles un agent antiviral est déjà configuré (typiquement, *golden image*), il est recommandé de positionner une exception sur l'arborescence ``/vitam`` et les sous-arborescences, hormis la partition hébergeant le composant ``ingest-exteral`` (emploi d'un agent antiviral en prérequis des *ingest* ; se reporter à :ref:`confantivirus`).
+Dans le cas de partitions sur lesquelles un agent antiviral est déjà configuré (typiquement, *golden image*), il est recommandé de positionner une exception sur l'arborescence ``/vitam`` et les sous-arborescences, hormis la partition hébergeant le composant ``ingest-external`` (emploi d'un agent antiviral en prérequis des *ingest* ; se reporter à :ref:`confantivirus`).
 
 Matériel
 ========
