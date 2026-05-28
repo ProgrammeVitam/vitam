@@ -18,8 +18,8 @@ services:
     ports:
       - 27017:27017
     environment:
-      MONGO_INITDB_ROOT_USERNAME: vitamdb-admin
-      MONGO_INITDB_ROOT_PASSWORD: azerty
+      MONGODB_INITDB_ROOT_USERNAME: vitamdb-admin
+      MONGODB_INITDB_ROOT_PASSWORD: azerty
     volumes:
       - mongo_data:/data/db
     healthcheck:
