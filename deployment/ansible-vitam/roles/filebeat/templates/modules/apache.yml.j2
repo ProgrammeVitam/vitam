@@ -85,6 +85,7 @@
               }
         - timestamp:
             field: date_time
+            timezone: {{ filebeat.timezone | default('Europe/Paris') }}
             layouts:
               - 'Mon Jan 02 15:04:05.000000 2006'
             test:
