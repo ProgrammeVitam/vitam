@@ -1,69 +1,8 @@
 ---
 
-# tasks file for clone-tests
-- block:
-  - name: get repo for git lfs for RedHat family
-    copy:
-      src: gitlfs-el9.repo
-      dest: /etc/yum.repos.d/github_git-lfs.repo
-      owner: root
-      group: root
-      mode: 0640
-
-  - name: Make sure curl is installed to download GPG key (RedHat)
-    package:
-      name: curl
-      state: latest
-    register: result
-    retries: "{{ packages_install_retries_number }}"
-    until: result is succeeded
-    delay: "{{ packages_install_retries_delay }}"
-
-  when: ansible_os_family in ['RedHat', 'Rocky']
-
-- block:
-
-  - name: install curl & apt-transport-https & gnupg
-    apt:
-      name:
-        - curl
-        - gnupg
-        - apt-transport-https
-      state: latest
-    register: result
-    retries: "{{ packages_install_retries_number }}"
-    until: result is succeeded
-    delay: "{{ packages_install_retries_delay }}"
-
-  - name: get repo for git lfs for Debian
-    copy:
-      src: gitlfs-debian12.list
-      dest: /etc/apt/sources.list.d/github_git-lfs.list
-      owner: root
-      group: root
-      mode: 0640
-
-  - name: add GPG key
-    shell: "export https_proxy={{ http_proxy_environnement }} && curl -L 'https://packagecloud.io/github/git-lfs/gpgkey' 2> /dev/null | apt-key add -"
-    when: http_proxy_environnement is defined
-
-  - name: add GPG key
-    shell: "curl -L 'https://packagecloud.io/github/git-lfs/gpgkey' 2> /dev/null | apt-key add -"
-    when: http_proxy_environnement is undefined
-
-  - name: update apt cache
-    apt:
-      update_cache: yes
-    register: result
-    retries: "{{ packages_install_retries_number }}"
-    until: result is succeeded
-    delay: "{{ packages_install_retries_delay }}"
-
-  when: ansible_os_family == "Debian"
-
-- name: install git-lfs
+- name: install curl & apt-transport-https & gnupg
   package:
-    name: git-lfs
+    name: git
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
@@ -103,12 +42,6 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   when: vitam_gitlab_itest_login is defined
 
-- name: initialize git lfs
-  shell: "git lfs install --local"
-  become_user: "{{ vitam_defaults.users.vitam }}"
-  args:
-    chdir: /vitam/data/ihm-recette/test-data/system
-
 - name: Set proxy conf in repo
   shell: "git config http.proxy {{ http_proxy_environnement }}"
   become_user: "{{ vitam_defaults.users.vitam }}"
@@ -121,14 +54,8 @@
 - name: ensure git repo is clean
   shell: "git reset --hard && git clean -fd"
   become_user: "{{ vitam_defaults.users.vitam }}"
-  become_method: sudo
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
-
-- name: check whether data are already downloaded from git lfs
-  stat:
-      path: /vitam/data/ihm-recette/test-data/system/data/
-  register: git_pulled
 
 - name: fetch repo
   shell: "git fetch"
