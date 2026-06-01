@@ -18,6 +18,7 @@ pipeline {
         CI = credentials("app-jenkins")
         SERVICE_SONAR_URL = credentials("service-sonar-java11-url")
         SERVICE_SONAR_PUBLIC_URL = credentials("service-sonar-url")
+        SERVICE_SONAR_TOKEN = credentials("service-sonar-token")
         SERVICE_NEXUS_URL = credentials("service-nexus-url")
         SERVICE_GIT_URL = credentials("service-gitlab-url")
         SERVICE_REPO_SSHURL = credentials("repository-connection-string")
