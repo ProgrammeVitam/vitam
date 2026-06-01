@@ -117,11 +117,11 @@ public class IndexationHelper {
 
             logReindexationStart(indexAlias, tenantIds);
 
-            LOGGER.warn("Starting document count for reindexation on collection: {}", elasticsearchCollection.name());
+            LOGGER.warn("Starting document count for reindexation on collection: {}", indexAlias.getName());
             numberOfDocumentsToIndex = countDocuments(vitamMongoRepository, filter);
             LOGGER.warn(
                 "Document count completed for collection {}: {} documents to index",
-                elasticsearchCollection.name(),
+                indexAlias.getName(),
                 numberOfDocumentsToIndex
             );
 
@@ -151,7 +151,6 @@ public class IndexationHelper {
                 tenant -> targetIndex
             );
 
-            LOGGER.warn("number of documents to index = {}", numberOfDocumentsToIndex);
             long numberOfDocumentsIndexed = 0;
             // Reindex document with bulk
             Iterator<List<Document>> bulkDocumentIterator = Iterators.partition(
@@ -167,19 +166,16 @@ public class IndexationHelper {
                 }
                 numberOfDocumentsIndexed += documents.size();
                 LOGGER.warn(
-                    "Reindexation in progress {}%",
-                    0.01 * ((int) (((float) numberOfDocumentsIndexed / numberOfDocumentsToIndex) * 10000))
-                );
-                LOGGER.warn(
-                    "number of indexed documents = {}\t number of remaining documents = {}",
+                    "Reindexation of index {} in progress {}% (number of indexed documents = {}, number of remaining documents = {})",
+                    targetIndex.getName(),
+                    String.format("%.2f", ((double) numberOfDocumentsIndexed / numberOfDocumentsToIndex) * 100),
                     numberOfDocumentsIndexed,
-                    numberOfDocumentsToIndex - numberOfDocumentsIndexed
+                    (numberOfDocumentsToIndex - numberOfDocumentsIndexed)
                 );
             }
-            LOGGER.warn("Reindexation ended successfully");
+            LOGGER.warn("Reindexation of index {} ended successfully", targetIndex.getName());
             return new ReindexationOK(indexAlias.getName(), targetIndex.getName(), tenantIds, tenantGroupName);
         } catch (DatabaseException | RuntimeException e) {
-            LOGGER.error("Reindexation failed", e);
             throw e;
         } finally {
             if (cursor != null) {
