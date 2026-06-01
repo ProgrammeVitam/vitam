@@ -147,16 +147,12 @@ Exécutez les playbooks suivants sur **tous les sites** pour mettre à jour vos 
 
 Attention, à partir de cette étape, il va falloir s'assurer que l'ensemble des indexes présents sur les clusters ElasticSearch (data & log) sont compatibles avec la version 9 d'ElasticSearch avant de poursuivre la procédure de montée de version. Les indexes incompatibles sont ceux créés avec une version antérieure à la version 8.x d'ElasticSearch.
 
-.. note::
-    Si vous souhaitez conserver l'ensemble des données, y compris les plus anciennes ou si vous avez un cluster elasticsearch-data trop volumineux pour effectuer une réindexation complète, vous pouvez utiliser la procédure de migration de données à l'aide d'un cluster ElasticSearch tampon (cf. :doc:`procedure_montee_version_speciale_es7_es9`). Autrement, vous pouvez suivre la procédure suivante.
-
 Pour ElasticSearch-Log
 ^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 
     ansible-playbook -i environments/<inventaire> ansible-vitam-migration/check_incompatible_elasticsearch_v9_indices.yml --ask-vault-pass -t elasticsearch_log
-
 
 Vous pouvez aussi vérifier la compatibilité via Kibana-Log:
 
@@ -182,7 +178,7 @@ Si des indexes incompatibles sont détectés, vous devez procéder à la réinde
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --ask-vault-pass
 
 .. note::
-    Si seulement une sous-partie des indexes est incompatible avec la nouvelle version d'ElasticSearch, il ne sera pas nécessaire de réindexer l'ensemble des données. Dans ce cas, référez-vous à la documentation d'exploitation sur la réindexation pour cibler uniquement les indexes concernés.
+    Si seulement une sous-partie des indexes est incompatible avec la nouvelle version d'ElasticSearch, il ne sera pas nécessaire de réindexer l'ensemble des données. Dans ce cas, référez-vous à la documentation d'exploitation sur la réindexation :ref:`reindexation_es` pour cibler uniquement les indexes concernés.
 
 .. caution::
     Durant la réindexation, les tâches planifiées et les accès externes à Vitam doivent être arrêtés.
