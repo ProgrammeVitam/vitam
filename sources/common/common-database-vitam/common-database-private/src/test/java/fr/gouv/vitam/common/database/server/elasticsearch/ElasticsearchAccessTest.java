@@ -580,22 +580,73 @@ public class ElasticsearchAccessTest {
     }
 
     @Test
-    public void testSwitchIndexNonExistingAlias() throws Exception {
-        // Given
-        ElasticsearchIndexAlias nonExistingAlias = ElasticsearchIndexAlias.ofFullIndexName("unknown");
+    public void testSwitchIndexIdempotent() throws Exception {
+        // Given: create alias pointing to an initial index
+        elasticsearchAccess.createIndexAndAliasIfAliasNotExists(
+            myalias,
+            new ElasticsearchIndexSettings(2, 1, () -> "{}"),
+            ElasticsearchTestHelper.loadElasticSearchSettings()
+        );
+        waitCycle();
         ElasticsearchIndexAlias newIndex = elasticsearchAccess.createIndexWithoutAlias(
             myalias,
             new ElasticsearchIndexSettings(2, 1, () -> "{}"),
             ElasticsearchTestHelper.loadElasticSearchSettings()
         );
+        ElasticsearchIndexAlias existingIndex = ElasticsearchIndexAlias.ofFullIndexName(
+            elasticsearchAccess.getAlias(myalias).aliases().keySet().iterator().next()
+        );
 
-        // When / Then
-        assertThatThrownBy(() -> elasticsearchAccess.switchIndex(nonExistingAlias, newIndex)).isInstanceOf(
-            DatabaseException.class
+        // First switch: alias now points to newIndex
+        elasticsearchAccess.switchIndex(myalias, newIndex);
+        assertThat(elasticsearchAccess.getAlias(myalias).aliases().keySet().iterator().next()).isEqualTo(
+            newIndex.getName()
+        );
+
+        // When: second switch with same target index (idempotent call)
+        elasticsearchAccess.switchIndex(myalias, newIndex);
+
+        // Then: alias must still point to newIndex
+        assertThat(elasticsearchAccess.existsAlias(myalias)).isTrue();
+        assertThat(elasticsearchAccess.getAlias(myalias).aliases().keySet().iterator().next()).isEqualTo(
+            newIndex.getName()
+        );
+
+        // When: third call should also succeed (no error)
+        elasticsearchAccess.switchIndex(myalias, newIndex);
+
+        // Then: still consistent
+        assertThat(elasticsearchAccess.existsAlias(myalias)).isTrue();
+        assertThat(elasticsearchAccess.getAlias(myalias).aliases().keySet().iterator().next()).isEqualTo(
+            newIndex.getName()
         );
 
         // Cleanup
-        elasticsearchAccess.deleteIndexForTesting(newIndex);
+        elasticsearchAccess.deleteIndexForTesting(existingIndex);
+    }
+
+    @Test
+    public void testSwitchIndexNonExistingAlias_createsAlias() throws Exception {
+        // Given: an index exists but no alias is associated
+        ElasticsearchIndexAlias aliasToCreate = ElasticsearchIndexAlias.ofFullIndexName("mynewalias");
+        ElasticsearchIndexAlias newIndex = elasticsearchAccess.createIndexWithoutAlias(
+            aliasToCreate,
+            new ElasticsearchIndexSettings(2, 1, () -> "{}"),
+            ElasticsearchTestHelper.loadElasticSearchSettings()
+        );
+        assertThat(elasticsearchAccess.existsAlias(aliasToCreate)).isFalse();
+
+        // When: switchIndex is called with a non-existing alias
+        elasticsearchAccess.switchIndex(aliasToCreate, newIndex);
+
+        // Then: the alias is created on the target index
+        assertThat(elasticsearchAccess.existsAlias(aliasToCreate)).isTrue();
+        assertThat(elasticsearchAccess.getAlias(aliasToCreate).aliases().keySet().iterator().next()).isEqualTo(
+            newIndex.getName()
+        );
+
+        // Cleanup
+        elasticsearchAccess.deleteIndexByAliasForTesting(aliasToCreate);
     }
 
     @Test

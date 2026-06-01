@@ -697,12 +697,19 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
     public final void switchIndex(ElasticsearchIndexAlias indexAlias, ElasticsearchIndexAlias indexNameToSwitchTo)
         throws DatabaseException, IOException, ElasticsearchException {
-        if (!existsAlias(indexAlias)) {
-            throw new DatabaseException(String.format("Alias does not exist : %s", indexAlias.getName()));
-        }
-
         if (!existsIndex(indexNameToSwitchTo)) {
             throw new DatabaseException(String.format("New index does not exist : %s", indexNameToSwitchTo.getName()));
+        }
+
+        if (!existsAlias(indexAlias)) {
+            // Alias does not exist yet: create it directly on the target index
+            LOGGER.warn(
+                "Alias '{}' does not exist. Creating it on index '{}'.",
+                indexAlias.getName(),
+                indexNameToSwitchTo.getName()
+            );
+            addAlias(indexAlias, indexNameToSwitchTo);
+            return;
         }
 
         GetAliasResponse actualIndex = getAlias(indexAlias);
@@ -715,6 +722,16 @@ public class ElasticsearchAccess implements DatabaseConnection {
         String oldIndexName = aliases.keySet().iterator().next();
 
         LOGGER.debug("Alias (" + indexAlias.getName() + ") map to index (" + oldIndexName + ")");
+
+        // Idempotency check: if the alias already points to the target index, nothing to do
+        if (oldIndexName.equals(indexNameToSwitchTo.getName())) {
+            LOGGER.info(
+                "Alias '{}' already points to index '{}'. No switch needed.",
+                indexAlias.getName(),
+                indexNameToSwitchTo.getName()
+            );
+            return;
+        }
 
         Action addNewIndexAliasAction = Action.of(
             b -> b.add(idx -> idx.index(indexNameToSwitchTo.getName()).alias(indexAlias.getName()))
@@ -738,6 +755,31 @@ public class ElasticsearchAccess implements DatabaseConnection {
                 oldIndexName +
                 " to " +
                 indexNameToSwitchTo
+            );
+        }
+    }
+
+    private void addAlias(ElasticsearchIndexAlias indexAlias, ElasticsearchIndexAlias indexName)
+        throws DatabaseException {
+        Action addAliasAction = Action.of(
+            b -> b.add(idx -> idx.index(indexName.getName()).alias(indexAlias.getName()))
+        );
+        UpdateAliasesRequest request = new UpdateAliasesRequest.Builder()
+            .actions(addAliasAction)
+            .timeout(timeOfMilliseconds(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()))
+            .masterTimeout(timeOfMilliseconds(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()))
+            .build();
+        try {
+            UpdateAliasesResponse response = getClient().indices().updateAliases(request);
+            if (!response.acknowledged()) {
+                throw new DatabaseException(
+                    "Could not create alias " + indexAlias.getName() + " on index " + indexName.getName()
+                );
+            }
+        } catch (IOException | ElasticsearchException e) {
+            throw toDatabaseException(
+                "Could not create alias " + indexAlias.getName() + " on index " + indexName.getName(),
+                e
             );
         }
     }
