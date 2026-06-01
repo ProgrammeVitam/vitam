@@ -55,8 +55,7 @@
 			<properties>
 				<!-- Optional URL to server. Default value is http://localhost:9000 -->
 				<sonar.host.url>${env.SERVICE_SONAR_URL}</sonar.host.url>
-				<sonar.login>${env.CI_USR}</sonar.login>
-				<sonar.password>${env.CI_PSW}</sonar.password>
+				<sonar.token>${env.SERVICE_SONAR_TOKEN}</sonar.token>
 			</properties>
 		</profile>
 		<profile>
