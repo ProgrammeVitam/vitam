@@ -63,8 +63,6 @@ public class TraceabilityService {
     private final DateTimeFormatter formatter;
     private static final String SECURISATION_VERSION = "V1";
 
-    private File zipFile = null;
-
     /**
      * @param timestampGenerator Service used to generate timestamp for the traceability
      * @param traceabilityHelper Implementation to handle specific method or values depending on the traceability type
@@ -80,7 +78,6 @@ public class TraceabilityService {
         this.timestampGenerator = timestampGenerator;
         this.tenantId = tenantId;
         this.helper = traceabilityHelper;
-
         this.tmpFolder = tmpFolder;
         formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
         tmpFolder.mkdir();
@@ -95,13 +92,24 @@ public class TraceabilityService {
     public void secureData(String strategyId) throws TraceabilityException {
         helper.startTraceability();
 
-        TraceabilityEvent event;
-
         // Call createZipFile
-        String fileName = createZipFile(
+        final File zipFile = createZipFile(
             tenantId,
             LocalDateUtil.parseMongoFormattedDate(helper.getTraceabilityEndDate())
         );
+        final String fileName = zipFile.getName();
+
+        boolean emptyZip = false;
+        String rootHash = null;
+        byte[] timestampToken = null;
+        long numberOfLine = 0;
+        String startDate = null;
+        String endDate = null;
+        String previousDate = null;
+        String previousMonthDate = null;
+        String previousYearDate = null;
+        boolean maxEntriesReached = false;
+        TraceabilityStatistics traceabilityStatistics = null;
 
         try (TraceabilityFile traceabilityFile = new TraceabilityFile(zipFile)) {
             // Create new merkleTreeAlgo
@@ -116,50 +124,26 @@ public class TraceabilityService {
             if (merkleTree != null) {
                 traceabilityFile.storeMerkleTree(merkleTree);
                 byte[] merkleRootHash = merkleTree.getRoot();
-                String rootHash = BaseXx.getBase64(merkleRootHash);
+                rootHash = BaseXx.getBase64(merkleRootHash);
 
                 // Compute and store token
-                byte[] timestampToken = computeAndStoreTimestampToken(traceabilityFile, merkleRootHash);
+                timestampToken = computeAndStoreTimestampToken(traceabilityFile, merkleRootHash);
 
-                final long numberOfLine = helper.getDataSize();
-                final String startDate = helper.getTraceabilityStartDate();
-                final String endDate = helper.getTraceabilityEndDate();
+                numberOfLine = helper.getDataSize();
+                startDate = helper.getTraceabilityStartDate();
+                endDate = helper.getTraceabilityEndDate();
 
                 traceabilityFile.storeAdditionalInformation(numberOfLine, startDate, endDate);
 
                 // fill traceability event
-                String previousDate = helper.getPreviousStartDate();
-                String previousMonthDate = helper.getPreviousMonthStartDate();
-                String previousYearDate = helper.getPreviousYearStartDate();
-                long size = zipFile.length();
-                boolean maxEntriesReached = helper.getMaxEntriesReached();
-                TraceabilityStatistics traceabilityStatistics = helper.getTraceabilityStatistics();
+                previousDate = helper.getPreviousStartDate();
+                previousMonthDate = helper.getPreviousMonthStartDate();
+                previousYearDate = helper.getPreviousYearStartDate();
 
-                event = new TraceabilityEvent(
-                    helper.getTraceabilityType(),
-                    startDate,
-                    endDate,
-                    rootHash,
-                    timestampToken,
-                    previousDate,
-                    previousMonthDate,
-                    previousYearDate,
-                    numberOfLine,
-                    fileName,
-                    size,
-                    VitamConfiguration.getDefaultDigestType(),
-                    maxEntriesReached,
-                    SECURISATION_VERSION,
-                    traceabilityStatistics
-                );
+                maxEntriesReached = helper.getMaxEntriesReached();
+                traceabilityStatistics = helper.getTraceabilityStatistics();
             } else {
-                // do nothing, nothing to be handled
-                LOGGER.warn("No entries to be processed");
-                helper.saveEmpty(tenantId);
-                if (!zipFile.delete()) {
-                    LOGGER.error("Unable to delete zipFile");
-                }
-                return;
+                emptyZip = true;
             }
         } catch (IOException | ArchiveException | InvalidParseOperationException e) {
             helper.createLogbookOperationEvent(tenantId, helper.getStepName(), StatusCode.FATAL, null);
@@ -170,15 +154,45 @@ public class TraceabilityService {
             throw new TraceabilityException(e);
         }
 
+        if (emptyZip) {
+            // do nothing, nothing to be handled
+            LOGGER.warn("No entries to be processed");
+            helper.saveEmpty(tenantId);
+            if (!zipFile.delete()) {
+                LOGGER.error("Unable to delete zipFile");
+            }
+            return;
+        }
+
+        // Get actual file size after the try-with-resources closes and flushes/finalizes the ZIP file
+        final long size = zipFile.length();
+
+        final TraceabilityEvent event = new TraceabilityEvent(
+            helper.getTraceabilityType(),
+            startDate,
+            endDate,
+            rootHash,
+            timestampToken,
+            previousDate,
+            previousMonthDate,
+            previousYearDate,
+            numberOfLine,
+            fileName,
+            size,
+            VitamConfiguration.getDefaultDigestType(),
+            maxEntriesReached,
+            SECURISATION_VERSION,
+            traceabilityStatistics
+        );
+
         helper.storeAndDeleteZip(tenantId, strategyId, zipFile, fileName, event);
         helper.createLogbookOperationEvent(tenantId, helper.getStepName(), StatusCode.OK, event);
     }
 
-    private String createZipFile(Integer tenantId, LocalDateTime date) {
+    private File createZipFile(Integer tenantId, LocalDateTime date) {
         final String fileName = String.format("%d_%s_%s.zip", tenantId, helper.getZipName(), date.format(formatter));
 
-        zipFile = new File(tmpFolder, fileName);
-        return fileName;
+        return new File(tmpFolder, fileName);
     }
 
     private byte[] computeAndStoreTimestampToken(TraceabilityFile file, byte[] merkleRootHash)
