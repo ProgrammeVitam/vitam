@@ -91,7 +91,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.time.temporal.ChronoUnit;
@@ -139,8 +138,8 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         )
     );
 
-    @Rule
-    public LogicalClockRule logicalClock = new LogicalClockRule();
+    @ClassRule
+    public static LogicalClockRule logicalClock = new LogicalClockRule();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -155,6 +154,8 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
     @Before
     public void setUpBefore() {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
+        // At delay between tests to insure tests do not generate same ZIP filenames
+        logicalClock.logicalSleep(1, ChronoUnit.MINUTES);
     }
 
     @Test
