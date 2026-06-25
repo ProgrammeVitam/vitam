@@ -86,48 +86,47 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
 
     @Override
     public void trace(final Throwable t) {
-        trace(getMessagePrepend() + EXCEPTION_MESSAGE, t);
+        trace(EXCEPTION_MESSAGE, t);
     }
 
     @Override
     public void debug(final Throwable t) {
-        debug(getMessagePrepend() + EXCEPTION_MESSAGE, t);
+        debug(EXCEPTION_MESSAGE, t);
     }
 
     @Override
     public void info(final Throwable t) {
-        info(getMessagePrepend() + EXCEPTION_MESSAGE, t);
+        info(EXCEPTION_MESSAGE, t);
     }
 
     @Override
     public void warn(final Throwable t) {
-        warn(getMessagePrepend() + EXCEPTION_MESSAGE, t);
+        warn(EXCEPTION_MESSAGE, t);
     }
 
     @Override
     public void error(final Throwable t) {
-        error(getMessagePrepend() + EXCEPTION_MESSAGE, t);
+        error(EXCEPTION_MESSAGE, t);
     }
 
     @Override
     public void log(final VitamLogLevel level, final String msg, final Throwable cause) {
-        final String newmsg = getMessagePrepend() + msg;
         switch (level) {
             case TRACE:
-                trace(newmsg, cause);
+                trace(msg, cause);
                 break;
             case DEBUG:
-                debug(newmsg, cause);
+                debug(msg, cause);
                 break;
             case INFO:
-                info(newmsg, cause);
+                info(msg, cause);
                 break;
             case WARN:
-                warn(newmsg, cause);
+                warn(msg, cause);
                 break;
             case ERROR:
             default:
-                error(newmsg, cause);
+                error(msg, cause);
                 break;
         }
     }
@@ -136,112 +135,108 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
     public void log(final VitamLogLevel level, final Throwable cause) {
         switch (level) {
             case TRACE:
-                trace(getMessagePrepend() + cause.getMessage(), cause);
+                trace(cause.getMessage(), cause);
                 break;
             case DEBUG:
-                debug(getMessagePrepend() + cause.getMessage(), cause);
+                debug(cause.getMessage(), cause);
                 break;
             case INFO:
-                info(getMessagePrepend() + cause.getMessage(), cause);
+                info(cause.getMessage(), cause);
                 break;
             case WARN:
-                warn(getMessagePrepend() + cause.getMessage(), cause);
+                warn(cause.getMessage(), cause);
                 break;
             case ERROR:
             default:
-                error(getMessagePrepend() + cause.getMessage(), cause);
+                error(cause.getMessage(), cause);
                 break;
         }
     }
 
     @Override
     public void log(final VitamLogLevel level, final String msg) {
-        final String newmsg = getMessagePrepend() + msg;
         switch (level) {
             case TRACE:
-                trace(newmsg);
+                trace(msg);
                 break;
             case DEBUG:
-                debug(newmsg);
+                debug(msg);
                 break;
             case INFO:
-                info(newmsg);
+                info(msg);
                 break;
             case WARN:
-                warn(newmsg);
+                warn(msg);
                 break;
             case ERROR:
             default:
-                error(newmsg);
+                error(msg);
                 break;
         }
     }
 
     @Override
     public void log(final VitamLogLevel level, final String format, final Object arg) {
-        final String newmsg = getMessagePrepend() + format;
         switch (level) {
             case TRACE:
-                trace(newmsg, arg);
+                trace(format, arg);
                 break;
             case DEBUG:
-                debug(newmsg, arg);
+                debug(format, arg);
                 break;
             case INFO:
-                info(newmsg, arg);
+                info(format, arg);
                 break;
             case WARN:
-                warn(newmsg, arg);
+                warn(format, arg);
                 break;
             case ERROR:
             default:
-                error(newmsg, arg);
+                error(format, arg);
                 break;
         }
     }
 
     @Override
     public void log(final VitamLogLevel level, final String format, final Object argA, final Object argB) {
-        final String newmsg = getMessagePrepend() + format;
         switch (level) {
             case TRACE:
-                trace(newmsg, argA, argB);
+                trace(format, argA, argB);
                 break;
             case DEBUG:
-                debug(newmsg, argA, argB);
+                debug(format, argA, argB);
                 break;
             case INFO:
-                info(newmsg, argA, argB);
+                info(format, argA, argB);
                 break;
             case WARN:
-                warn(newmsg, argA, argB);
+                warn(format, argA, argB);
                 break;
             case ERROR:
             default:
-                error(newmsg, argA, argB);
+                error(format, argA, argB);
                 break;
         }
     }
 
     @Override
     public void log(final VitamLogLevel level, final String format, final Object... arguments) {
-        final String newmsg = getMessagePrepend() + format;
         switch (level) {
             case TRACE:
-                trace(newmsg, arguments);
+                trace(format, arguments);
                 break;
             case DEBUG:
-                debug(newmsg, arguments);
+                debug(format, arguments);
                 break;
             case INFO:
-                info(newmsg, arguments);
+                info(format, arguments);
                 break;
             case WARN:
-                warn(newmsg, arguments);
+                warn(format, arguments);
                 break;
             case ERROR:
             default:
-                error(newmsg, arguments);
+                error(format, arguments);
                 break;
         }
     }

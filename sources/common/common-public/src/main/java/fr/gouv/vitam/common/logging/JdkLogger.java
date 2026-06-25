@@ -531,7 +531,7 @@ final class JdkLogger extends AbstractVitamLogger {
      */
     private void log(final String callerFQCN, final Level level, final String msg, final Throwable t) {
         // millis and thread are filled by the constructor
-        final LogRecord record = new LogRecord(level, msg);
+        final LogRecord record = new LogRecord(level, getMessagePrepend() + msg);
         record.setLoggerName(name());
         record.setThrown(t);
         fillCallerData(callerFQCN, record);
