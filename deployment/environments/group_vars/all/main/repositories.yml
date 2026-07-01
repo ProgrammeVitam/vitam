@@ -20,7 +20,7 @@ install_mode: legacy
 #   username:
 #   password:
 # Add vitam_container_version for specific container version deployment (default: latest)
-vitam_container_version: '8.0.3-SNAPSHOT'
+vitam_container_version: '8.0.3'
 
 # List of components to install in legacy mode when install_mode == 'container'
 legacy_components_list:
