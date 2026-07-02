@@ -212,7 +212,7 @@
         <jaxb2.version>1.1.0</jaxb2.version>
         <jaxb.version>2.3.9</jaxb.version>
         <httpclient.version>4.5.14</httpclient.version>
-        <commons-compress.version>1.27.1</commons-compress.version>
+        <commons-compress.version>1.28.0</commons-compress.version>
         <zjsonpatch.version>0.4.16</zjsonpatch.version>
         <!-- Json Validation -->
         <json-schema-validator.version>2.2.14</json-schema-validator.version>
