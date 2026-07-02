@@ -217,7 +217,7 @@
         <!-- Json Validation -->
         <json-schema-validator.version>2.2.14</json-schema-validator.version>
         <javax-validation.version>2.0.1.Final</javax-validation.version>
-        <hibernate-validator.version>6.2.5.Final</hibernate-validator.version>
+        <hibernate-validator.version>7.0.0.Final</hibernate-validator.version>
         <org.glassfish.web.version>3.0.1-b12</org.glassfish.web.version>
         <javax.el-api.version>3.0.1-b06</javax.el-api.version>
         <retrofit2.version>2.11.0</retrofit2.version>
