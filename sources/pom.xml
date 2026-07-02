@@ -205,7 +205,7 @@
         <xerces-xsd11.version>2.12-beta-r1667115</xerces-xsd11.version>
         <xml-resolver.version>1.2</xml-resolver.version>
         <opencsv.version>5.9</opencsv.version>
-        <commons-csv.version>1.10.0</commons-csv.version>
+        <commons-csv.version>1.13.0</commons-csv.version>
         <bouncycastle.version>1.78.1</bouncycastle.version>
         <diffutils.version>1.3.0</diffutils.version>
         <json-flattener.version>0.16.6</json-flattener.version>
